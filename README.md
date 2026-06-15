@@ -2,6 +2,12 @@
 
 This project contains a 5-page portfolio frontend and a PHP backend API.
 
+## Docs
+
+- `docs/architecture.md` runtime architecture and backend/frontend boundaries
+- `docs/deployment.md` deployment guidance and root config file usage
+- `docs/security.md` authentication, abuse prevention, and operational security notes
+
 ## Pages
 
 - Home
@@ -22,6 +28,13 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - `backend/php/data/` local JSON storage for contact messages
 - `backend/node/` optional Node API implementation
 
+## Architecture
+
+- Primary runtime (PHP): use `php -S localhost:8000 -t public` and PHP endpoints in `public/api/*.php`.
+- Secondary runtime (Node): use `npm start` and Express endpoints under `/api` from `backend/node/routes/`.
+- Shared frontend: `public/` is served by both runtimes.
+- Contact API compatibility: frontend tries `/api/contact` first and falls back to `/api/contact.php`.
+
 ## Run Locally
 
 1. Ensure PHP is installed.
@@ -37,6 +50,7 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 
 ## Security Notes
 
+- See `docs/security.md` for detailed controls and production recommendations.
 - Admin authentication now requires explicit env vars. No fallback credentials are used.
 - Admin login attempts are throttled and temporarily blocked after repeated failures.
 - Contact submissions have stricter validation and IP-based sliding-window rate limiting.
@@ -98,6 +112,11 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
    - `[Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes("your-password"))).ToLower()`
 
 ## Deployment
+
+- See `docs/deployment.md` for centralized deployment notes.
+- Root deployment config files intentionally remain at the repository root:
+   - `render.yaml`
+   - `railway.json`
 
 ### Render
 
