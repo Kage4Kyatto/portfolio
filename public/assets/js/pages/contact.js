@@ -23,18 +23,49 @@ if (contactForm && notice) {
     }
 
     try {
-      const response = await fetch("/api/contact.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+      const endpoints = ["/api/contact", "/api/contact.php"];
+      let result = null;
+      let lastError = new Error("Failed to send message.");
 
-      const result = await response.json();
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
 
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to send message.");
+          const contentType = response.headers.get("content-type") || "";
+          const bodyText = await response.text();
+          let parsed = null;
+
+          if (bodyText) {
+            try {
+              parsed = JSON.parse(bodyText);
+            } catch {
+              parsed = null;
+            }
+          }
+
+          if (response.ok) {
+            result = parsed;
+            break;
+          }
+
+          const fallbackMessage = contentType.includes("application/json")
+            ? "Failed to send message."
+            : "API endpoint responded with non-JSON content.";
+
+          throw new Error(parsed?.message || fallbackMessage);
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (!result) {
+        throw lastError;
       }
 
       notice.textContent = "Thanks. Your message has been sent.";
