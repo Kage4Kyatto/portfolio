@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: portfolio-fullstack-site
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASS
+        sync: false
+      - key: PORT
+        value: 10000

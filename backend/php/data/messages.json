@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1781558784995,
+        "name": "Test User",
+        "email": "test.user@example.com",
+        "subject": "Form flow verification",
+        "message": "This is a test submission to verify the contact form end-to-end.",
+        "createdAt": "2026-06-15T21:26:24+00:00"
+    },
+    {
+        "id": 1781559259276,
+        "name": "Email Check",
+        "email": "test@example.com",
+        "subject": "Notify check",
+        "message": "Contact endpoint still works.",
+        "createdAt": "2026-06-15T21:34:19+00:00"
+    }
+]
