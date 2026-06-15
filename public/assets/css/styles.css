@@ -12,6 +12,9 @@
   --radius-lg: 26px;
   --shadow: 0 28px 70px rgba(0, 0, 0, 0.3);
   --shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.18);
+  --cursor-x: 50vw;
+  --cursor-y: 18vh;
+  --cursor-glow-opacity: 0;
 }
 
 * {
@@ -29,6 +32,7 @@ html {
 }
 
 body {
+  position: relative;
   font-family: "Inter", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
@@ -38,6 +42,23 @@ body {
   min-height: 100vh;
   line-height: 1.7;
   font-size: 16px;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--cursor-glow-opacity);
+  background:
+    radial-gradient(
+      280px circle at var(--cursor-x) var(--cursor-y),
+      rgba(147, 197, 253, 0.1),
+      rgba(125, 211, 252, 0.045) 30%,
+      transparent 70%
+    );
+  transition: opacity 0.25s ease;
 }
 
 ::selection {

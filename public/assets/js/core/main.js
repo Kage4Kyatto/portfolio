@@ -39,3 +39,32 @@ const yearEl = document.getElementById("year");
 if (yearEl) {
   yearEl.textContent = new Date().getFullYear();
 }
+
+const root = document.documentElement;
+let frameId = 0;
+let nextX = window.innerWidth / 2;
+let nextY = window.innerHeight * 0.18;
+
+const renderGlow = () => {
+  root.style.setProperty("--cursor-x", `${nextX}px`);
+  root.style.setProperty("--cursor-y", `${nextY}px`);
+  frameId = 0;
+};
+
+const queueGlowUpdate = (event) => {
+  nextX = event.clientX;
+  nextY = event.clientY;
+  document.body.style.setProperty("--cursor-glow-opacity", "1");
+
+  if (!frameId) {
+    frameId = window.requestAnimationFrame(renderGlow);
+  }
+};
+
+window.addEventListener("pointermove", queueGlowUpdate, { passive: true });
+window.addEventListener("pointerleave", () => {
+  document.body.style.setProperty("--cursor-glow-opacity", "0");
+});
+window.addEventListener("blur", () => {
+  document.body.style.setProperty("--cursor-glow-opacity", "0");
+});
