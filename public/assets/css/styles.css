@@ -51,6 +51,7 @@ body::after {
   z-index: -1;
   pointer-events: none;
   opacity: var(--cursor-glow-opacity);
+  will-change: opacity, background;
   background:
     radial-gradient(
       280px circle at var(--cursor-x) var(--cursor-y),
@@ -79,11 +80,13 @@ body::after {
 .bg-blob {
   position: fixed;
   border-radius: 999px;
-  filter: blur(118px);
+  filter: blur(92px);
   opacity: 0.08;
   z-index: -3;
   pointer-events: none;
   animation: float 18s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
 }
 
 .blob-a {
@@ -112,8 +115,8 @@ body::after {
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(14px);
-  background: rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(8px);
+  background: rgba(2, 6, 23, 0.9);
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
 }
@@ -412,7 +415,8 @@ main {
   background: rgba(15, 23, 42, 0.25);
   border-radius: 4px;
   border-left: 2px solid rgba(220, 38, 38, 0.3);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  will-change: transform;
 }
 
 .icon-card:hover {
@@ -805,6 +809,7 @@ th {
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 0.55s ease, transform 0.55s ease;
+  will-change: opacity, transform;
 }
 
 .reveal.show {
