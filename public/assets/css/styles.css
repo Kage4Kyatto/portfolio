@@ -427,6 +427,47 @@ main {
   padding: 24px 24px 16px;
 }
 
+.about-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+}
+
+.about-page .page-panel {
+  gap: 24px;
+}
+
+.about-copy {
+  min-width: 0;
+  padding-top: 42px;
+}
+
+.about-page .about-copy .lead {
+  max-width: 56ch;
+}
+
+.about-photo-frame {
+  width: min(100%, 320px);
+  aspect-ratio: 3 / 4.4;
+  overflow: hidden;
+  justify-self: end;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.32);
+  box-shadow: var(--shadow-soft);
+}
+
+.about-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  transform: scale(1);
+}
+
 .about-page .card {
   background: rgba(15, 23, 42, 0.28);
 }
@@ -757,6 +798,18 @@ th {
   .inline-form,
   .admin-controls {
     grid-template-columns: 1fr;
+  }
+
+  .about-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .about-copy {
+    padding-top: 0;
+  }
+
+  .about-photo-frame {
+    justify-self: start;
   }
 
   .menu-toggle {
