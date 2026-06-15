@@ -29,16 +29,15 @@ html {
 }
 
 body {
-  font-family: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  font-family: "Inter", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 18% 12%, rgba(118, 239, 217, 0.18), transparent 20%),
-    radial-gradient(circle at 86% -10%, rgba(158, 184, 255, 0.2), transparent 30%),
-    radial-gradient(circle at 58% 88%, rgba(209, 251, 242, 0.07), transparent 18%),
-    linear-gradient(180deg, #07111f 0%, #0a1425 48%, #07111f 100%);
+    radial-gradient(circle at 20% 0%, rgba(96, 165, 250, 0.08), transparent 24%),
+    radial-gradient(circle at 90% 10%, rgba(56, 189, 248, 0.06), transparent 22%),
+    linear-gradient(180deg, #030712 0%, #0b1120 42%, #020617 100%);
   min-height: 100vh;
-  line-height: 1.6;
-  font-size: 16.2px;
+  line-height: 1.7;
+  font-size: 16px;
 }
 
 ::selection {
@@ -50,7 +49,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: -2;
-  opacity: 0.04;
+  opacity: 0.02;
   pointer-events: none;
   background-image: radial-gradient(#ffffff 0.4px, transparent 0.4px);
   background-size: 3px 3px;
@@ -60,26 +59,26 @@ body {
   position: fixed;
   border-radius: 999px;
   filter: blur(118px);
-  opacity: 0.26;
+  opacity: 0.08;
   z-index: -3;
   pointer-events: none;
   animation: float 18s ease-in-out infinite alternate;
 }
 
 .blob-a {
-  width: 360px;
-  height: 360px;
-  background: rgba(118, 239, 217, 0.62);
-  top: 18px;
-  left: -120px;
+  width: 320px;
+  height: 320px;
+  background: rgba(59, 130, 246, 0.18);
+  top: 0;
+  left: -140px;
 }
 
 .blob-b {
-  width: 460px;
-  height: 460px;
-  background: rgba(158, 184, 255, 0.34);
-  bottom: -170px;
-  right: -120px;
+  width: 420px;
+  height: 420px;
+  background: rgba(14, 165, 233, 0.12);
+  bottom: -160px;
+  right: -150px;
   animation-delay: -6s;
 }
 
@@ -92,9 +91,9 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(18px);
-  background: rgba(7, 17, 31, 0.72);
-  border-bottom: 1px solid rgba(172, 187, 225, 0.12);
+  backdrop-filter: blur(14px);
+  background: rgba(2, 6, 23, 0.82);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
@@ -107,17 +106,16 @@ body {
 }
 
 .logo {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
-  color: var(--brand);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  color: #dbeafe;
   text-decoration: none;
-  border: 1px solid rgba(97, 255, 222, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 999px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(118, 239, 217, 0.12), rgba(158, 184, 255, 0.12));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  padding: 8px 11px;
+  background: rgba(15, 23, 42, 0.55);
 }
 
 .menu-toggle {
@@ -143,18 +141,20 @@ body {
 .nav-links a {
   text-decoration: none;
   color: var(--muted);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.84rem;
-  padding: 10px 13px;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 10px 10px;
   border-radius: 999px;
   transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .nav-links a:hover,
 .nav-links a.active {
-  color: var(--brand);
-  background: linear-gradient(135deg, rgba(118, 239, 217, 0.1), rgba(158, 184, 255, 0.08));
-  box-shadow: inset 0 0 0 1px rgba(97, 255, 222, 0.12);
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.08);
+  box-shadow: inset 0 -1px 0 rgba(226, 232, 240, 0.2);
   transform: translateY(-1px);
 }
 
@@ -165,11 +165,16 @@ body {
   width: 38px;
   height: 38px;
   padding: 0;
-  color: var(--muted);
 }
 
-.github-link:hover {
-  color: var(--brand);
+.nav-links .github-link,
+.nav-links .guns-link {
+  color: #4ade80;
+}
+
+.nav-links .github-link:hover,
+.nav-links .guns-link:hover {
+  color: #86efac;
 }
 
 .github-icon {
@@ -185,12 +190,12 @@ body {
 }
 
 main {
-  padding: 56px 0 84px;
+  padding: 84px 0 120px;
 }
 
 .site-page {
   display: grid;
-  gap: 28px;
+  gap: 44px;
 }
 
 .site-page > section {
@@ -198,28 +203,28 @@ main {
 }
 
 .site-page .page-panel {
-  padding: 30px;
+  padding: 26px 24px 18px;
 }
 
 .site-page .section-title {
-  margin: 12px 0 0;
+  margin: 40px 0 0;
 }
 
 .site-page .grid-3,
 .site-page .two-col {
-  gap: 18px;
+  gap: 24px;
 }
 
 .site-page .card {
-  padding: 25px;
+  padding: 24px 20px 8px;
 }
 
 .site-page .button-row {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 .site-page .lead {
-  max-width: 72ch;
+  max-width: 66ch;
 }
 
 .site-page h1 {
@@ -227,52 +232,56 @@ main {
 }
 
 .eyebrow {
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--brand);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: #7dd3fc;
+  font-family: "Inter", "Segoe UI", sans-serif;
   font-size: 0.72rem;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 32px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 48px;
+  align-items: center;
 }
 
 .hero h1 {
-  font-family: "Cormorant Garamond", serif;
-  font-size: clamp(2.4rem, 6vw, 4.7rem);
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-  margin: 10px 0 16px;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  font-weight: 700;
+  margin: 10px 0 20px;
   color: transparent;
-  background: linear-gradient(135deg, #ffffff 0%, #e6fff8 38%, #d7e0ff 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #bfdbfe 55%, #e2e8f0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   text-wrap: balance;
 }
 
 .lead {
-  color: var(--muted);
-  font-size: 1.03rem;
-  max-width: 64ch;
+  color: #94a3b8;
+  font-size: 1rem;
+  max-width: 60ch;
   margin-bottom: 0;
 }
 
 .hero-panel,
 .card,
 .page-panel {
-  background: linear-gradient(160deg, rgba(23, 37, 65, 0.92), rgba(12, 21, 39, 0.95));
-  border: 1px solid rgba(172, 187, 225, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+  background: transparent;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  transition: transform 0.24s ease, border-color 0.24s ease;
   position: relative;
   overflow: hidden;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero-panel::before,
@@ -280,22 +289,27 @@ main {
 .page-panel::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(118, 239, 217, 0.42), rgba(158, 184, 255, 0.05));
-  opacity: 0.7;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(125, 211, 252, 0.9), rgba(59, 130, 246, 0.12));
+  opacity: 0.9;
 }
 
 .hero-panel:hover,
 .card:hover,
 .page-panel:hover {
-  transform: translateY(-4px);
-  border-color: rgba(118, 239, 217, 0.22);
-  box-shadow: 0 30px 72px rgba(0, 0, 0, 0.34);
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 252, 0.28);
 }
 
 .hero-panel {
-  padding: 24px;
+  padding: 24px 20px 18px;
+}
+
+.hero-panel,
+.page-panel,
+.card {
+  justify-content: flex-start;
 }
 
 .stats {
@@ -306,49 +320,99 @@ main {
 }
 
 .stat {
-  background: rgba(118, 239, 217, 0.06);
-  border: 1px solid rgba(118, 239, 217, 0.12);
-  border-radius: 14px;
-  padding: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
 }
 
 .stat strong {
   font-size: 1.3rem;
   display: block;
-  color: var(--brand);
+  color: #dbeafe;
 }
 
 .section-title {
-  margin: 60px 0 20px;
-  font-size: 1.42rem;
-  color: #e6f1ff;
+  margin: 72px 0 16px;
+  font-size: 0.78rem;
+  color: #94a3b8;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
 }
 
 .section-title::after {
   content: "";
-  width: 88px;
+  width: 110px;
   height: 1px;
-  background: linear-gradient(90deg, rgba(118, 239, 217, 0.8), rgba(158, 184, 255, 0.12));
-  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.3);
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 24px;
 }
 
 .card {
-  padding: 25px;
+  padding: 24px 20px 16px;
+  min-width: 0;
+}
+
+.about-page .card,
+.contact-page .card {
+  padding: 24px 24px 16px;
+}
+
+.about-page .card {
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.projects-page .card {
+  padding: 26px 20px 16px;
+}
+
+.projects-page .card:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.projects-page .card:nth-child(even) {
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.contact-page .card {
+  background: rgba(15, 23, 42, 0.22);
+}
+
+.about-page .card h3,
+.projects-page .card h3,
+.contact-page .card h3 {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.about-page .card .clean li,
+.contact-page .card .clean li {
+  padding: 12px 0;
+}
+
+.about-page .two-col,
+.contact-page .two-col {
+  align-items: start;
+}
+
+.contact-page .card:first-child {
+  padding-bottom: 20px;
+}
+
+.contact-page .card:last-child {
+  padding-top: 26px;
 }
 
 .projects-page .page-panel {
-  padding: 32px;
+  padding: 26px 24px 18px;
 }
 
 .projects-page .card p {
@@ -397,23 +461,26 @@ main {
 }
 
 .card h3 {
-  margin-top: 8px;
-  margin-bottom: 8px;
-  color: #e6f1ff;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #e2e8f0;
+  font-weight: 600;
 }
 
 .card p {
-  color: var(--muted);
+  color: #94a3b8;
 }
 
 .tag {
   display: inline-block;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: "Inter", "Segoe UI", sans-serif;
   font-size: 0.72rem;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, rgba(118, 239, 217, 0.1), rgba(158, 184, 255, 0.08));
-  color: var(--brand);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #7dd3fc;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .button-row {
@@ -429,36 +496,32 @@ main {
 
 .btn {
   text-decoration: none;
-  border: 1px solid rgba(97, 255, 222, 0.35);
+  border: 0;
   display: inline-block;
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.82rem;
+  border-radius: 0;
+  padding: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .btn.primary {
-  color: #07111f;
-  background: linear-gradient(135deg, var(--brand), var(--brand-strong) 44%, #dde4ff 100%);
-  border-color: rgba(97, 255, 222, 0.35);
-  box-shadow: 0 16px 30px rgba(97, 255, 222, 0.18);
+  color: #dbeafe;
 }
 
 .btn.primary:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 20px 40px rgba(97, 255, 222, 0.28);
+  opacity: 0.8;
 }
 
 .btn.secondary {
-  color: var(--brand);
-  background: rgba(97, 255, 222, 0.05);
+  color: #7dd3fc;
 }
 
 .btn.secondary:hover {
-  background: linear-gradient(135deg, rgba(118, 239, 217, 0.1), rgba(158, 184, 255, 0.06));
-  transform: translateY(-1px);
+  opacity: 0.8;
 }
 
 .btn:disabled {
@@ -467,11 +530,11 @@ main {
 }
 
 .page-panel {
-  padding: 30px;
+  padding: 26px 24px 18px;
 }
 
 .page-panel .lead {
-  max-width: 72ch;
+  max-width: 64ch;
 }
 
 .page-panel h1 {
@@ -492,8 +555,8 @@ ul.clean {
 
 ul.clean li {
   padding: 10px 0;
-  border-bottom: 1px dashed rgba(136, 146, 176, 0.34);
-  color: var(--muted);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  color: #94a3b8;
 }
 
 form {
@@ -510,9 +573,11 @@ form {
 }
 
 label {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  color: #9fb3d9;
-  font-size: 0.8rem;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 input,
@@ -520,20 +585,20 @@ select,
 textarea {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(146, 168, 214, 0.14);
-  background: rgba(9, 19, 35, 0.68);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.45);
   color: var(--ink);
   font-family: inherit;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  box-shadow: none;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: rgba(97, 255, 222, 0.85);
-  box-shadow: 0 0 0 3px rgba(97, 255, 222, 0.16);
+  border-color: rgba(125, 211, 252, 0.85);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.12);
 }
 
 textarea {
@@ -555,9 +620,9 @@ textarea {
 }
 
 .site-footer {
-  border-top: 1px solid rgba(146, 168, 214, 0.12);
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
   padding: 22px 0 34px;
-  color: var(--muted);
+  color: #94a3b8;
 }
 
 .inline-form {
@@ -586,9 +651,9 @@ textarea {
 .table-wrap {
   margin-top: 16px;
   overflow-x: auto;
-  border: 1px solid rgba(146, 168, 214, 0.12);
-  border-radius: 16px;
-  background: rgba(9, 19, 35, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.42);
 }
 
 table {
@@ -601,16 +666,16 @@ th,
 td {
   text-align: left;
   padding: 10px 12px;
-  border-bottom: 1px dashed rgba(136, 146, 176, 0.26);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
   vertical-align: top;
 }
 
 th {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #9fb3d9;
+  color: #94a3b8;
 }
 
 .reveal {
@@ -658,6 +723,113 @@ th {
 
   .stats {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1180px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .projects-page .grid-3,
+  .site-page .grid-3 {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 720px) {
+  main {
+    padding: 64px 0 84px;
+  }
+
+  .site-page {
+    gap: 32px;
+  }
+
+  .hero {
+    gap: 28px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 12vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .lead,
+  .page-panel .lead {
+    max-width: none;
+    font-size: 0.97rem;
+  }
+
+  .section-title {
+    margin-top: 28px;
+    letter-spacing: 0.16em;
+  }
+
+  .grid-3,
+  .two-col,
+  .inline-form,
+  .admin-controls,
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .card,
+  .hero-panel,
+  .page-panel {
+    padding-left: 16px;
+    padding-right: 16px;
+    min-height: 0;
+  }
+
+  .about-page .card,
+  .contact-page .card,
+  .projects-page .card {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .card {
+    padding-top: 20px;
+  }
+
+  .about-page .card,
+  .contact-page .card,
+  .projects-page .card {
+    background: transparent;
+  }
+
+  .contact-page .card:first-child {
+    padding-bottom: 16px;
+  }
+
+  .contact-page .card:last-child {
+    padding-top: 18px;
+  }
+
+  .card h3 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+
+  .card p,
+  .hero-panel li,
+  .page-panel p {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .button-row {
+    gap: 14px;
+  }
+
+  .btn {
+    font-size: 0.7rem;
+  }
+
+  .nav-links {
+    right: 3vw;
+    min-width: 200px;
   }
 }
 
