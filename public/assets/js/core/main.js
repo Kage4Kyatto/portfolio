@@ -41,6 +41,10 @@ if (yearEl) {
 }
 
 const root = document.documentElement;
+const glowEl = document.createElement("div");
+glowEl.className = "cursor-glow";
+document.body.appendChild(glowEl);
+
 let frameId = 0;
 let nextX = window.innerWidth / 2;
 let nextY = window.innerHeight * 0.18;
