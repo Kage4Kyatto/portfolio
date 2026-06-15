@@ -1,0 +1,43 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .service-bg { fill: #030712; }
+      .service-circle { fill: #7dd3fc; }
+      .service-line { stroke: #4ade80; stroke-width: 2; fill: none; stroke-linecap: round; }
+      .service-center { fill: #4ade80; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" class="service-bg"/>
+  
+  <!-- Central gears/service hub -->
+  <!-- Main gear in center -->
+  <circle cx="100" cy="100" r="25" class="service-center"/>
+  <circle cx="100" cy="100" r="20" fill="#030712"/>
+  <circle cx="100" cy="100" r="8" class="service-center"/>
+  
+  <!-- Gear teeth -->
+  <rect x="97" y="70" width="6" height="10" fill="#4ade80"/>
+  <rect x="97" y="120" width="6" height="10" fill="#4ade80"/>
+  <rect x="70" y="97" width="10" height="6" fill="#4ade80"/>
+  <rect x="120" y="97" width="10" height="6" fill="#4ade80"/>
+  
+  <!-- Connected service nodes -->
+  <circle cx="60" cy="60" r="12" class="service-circle"/>
+  <circle cx="140" cy="60" r="12" class="service-circle"/>
+  <circle cx="60" cy="140" r="12" class="service-circle"/>
+  <circle cx="140" cy="140" r="12" class="service-circle"/>
+  
+  <!-- Connection lines -->
+  <line x1="75" y1="75" x2="85" y2="85" class="service-line"/>
+  <line x1="125" y1="75" x2="115" y2="85" class="service-line"/>
+  <line x1="75" y1="125" x2="85" y2="115" class="service-line"/>
+  <line x1="125" y1="125" x2="115" y2="115" class="service-line"/>
+  
+  <!-- Inner dots in service nodes -->
+  <circle cx="60" cy="60" r="4" class="service-center"/>
+  <circle cx="140" cy="60" r="4" class="service-center"/>
+  <circle cx="60" cy="140" r="4" class="service-center"/>
+  <circle cx="140" cy="140" r="4" class="service-center"/>
+</svg>

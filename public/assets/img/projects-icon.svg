@@ -1,0 +1,30 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .project-bg { fill: #030712; }
+      .project-shape { fill: #7dd3fc; }
+      .project-accent { fill: #4ade80; }
+      .project-line { stroke: #dbeafe; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" class="project-bg"/>
+  
+  <!-- Building blocks - represents project building -->
+  <!-- Bottom block -->
+  <rect x="40" y="120" width="50" height="50" rx="4" class="project-shape"/>
+  <text x="65" y="155" font-size="28" text-anchor="middle" class="project-accent">█</text>
+  
+  <!-- Middle block -->
+  <rect x="105" y="90" width="50" height="50" rx="4" class="project-accent"/>
+  <text x="130" y="125" font-size="28" text-anchor="middle" class="project-bg">█</text>
+  
+  <!-- Top block -->
+  <rect x="72" y="40" width="50" height="50" rx="4" class="project-shape"/>
+  <text x="97" y="75" font-size="28" text-anchor="middle" class="project-accent">█</text>
+  
+  <!-- Connection lines -->
+  <line x1="90" y1="120" x2="105" y2="100" class="project-line" stroke-width="2" opacity="0.6"/>
+  <line x1="97" y1="90" x2="105" y2="70" class="project-line" stroke-width="2" opacity="0.6"/>
+</svg>

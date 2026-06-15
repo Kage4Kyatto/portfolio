@@ -1,0 +1,44 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .ai-bg { fill: #030712; }
+      .ai-line { stroke: #7dd3fc; stroke-width: 2; fill: none; stroke-linecap: round; }
+      .ai-node { fill: #4ade80; }
+      .ai-pulse { fill: #dbeafe; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" class="ai-bg"/>
+  
+  <!-- Neural network nodes and connections -->
+  <g class="ai-line">
+    <!-- Left layer -->
+    <line x1="50" y1="50" x2="100" y2="80"/>
+    <line x1="50" y1="100" x2="100" y2="80"/>
+    <line x1="50" y1="150" x2="100" y2="80"/>
+    
+    <!-- Middle to right -->
+    <line x1="100" y1="80" x2="150" y2="60"/>
+    <line x1="100" y1="80" x2="150" y2="100"/>
+    <line x1="100" y1="80" x2="150" y2="140"/>
+  </g>
+  
+  <!-- Left layer nodes -->
+  <circle cx="50" cy="50" r="6" class="ai-node"/>
+  <circle cx="50" cy="100" r="6" class="ai-node"/>
+  <circle cx="50" cy="150" r="6" class="ai-node"/>
+  
+  <!-- Center hub -->
+  <circle cx="100" cy="80" r="8" class="ai-pulse"/>
+  <circle cx="100" cy="80" r="12" fill="none" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Right layer nodes -->
+  <circle cx="150" cy="60" r="6" class="ai-node"/>
+  <circle cx="150" cy="100" r="6" class="ai-node"/>
+  <circle cx="150" cy="140" r="6" class="ai-node"/>
+  
+  <!-- Data flow indicators -->
+  <path class="ai-line" d="M 35 80 L 45 80" stroke-dasharray="4,4"/>
+  <path class="ai-line" d="M 155 80 L 165 80" stroke-dasharray="4,4"/>
+</svg>
