@@ -7,6 +7,7 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - `docs/architecture.md` runtime architecture and backend/frontend boundaries
 - `docs/deployment.md` deployment guidance and root config file usage
 - `docs/security.md` authentication, abuse prevention, and operational security notes
+- `docs/polyglot.md` TypeScript, SQL, Python, and Docker usage notes
 
 ## Pages
 
@@ -27,6 +28,10 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - `backend/php/bootstrap.php` shared PHP backend utilities
 - `backend/php/data/` local JSON storage for contact messages
 - `backend/node/` optional Node API implementation
+- `backend/sql/` SQL schema and query examples
+- `scripts/python/` Python utility scripts
+- `tools/ts/` TypeScript utility scripts
+- `Dockerfile` and `docker-compose.yml` for containerized runs
 
 ## Architecture
 
@@ -47,6 +52,15 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
    - `php -S localhost:8000 -t public`
 5. Open:
    - `http://localhost:8000`
+
+### Optional Runtime Tooling
+
+- TypeScript type-check: `npm run typecheck`
+- TypeScript build output: `npm run build:ts`
+- TypeScript message statistics report: `npm run stats:messages`
+- Python message report: `npm run python:report`
+- Docker multi-service run: `npm run docker:up`
+- Docker stop: `npm run docker:down`
 
 ## Security Notes
 
@@ -78,9 +92,25 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - Install dependencies: `npm install`
 - Run lint checks: `npm run lint`
 - Run tests: `npm test`
+- Run TypeScript checks: `npm run typecheck`
 - Reset contact demo/test data to defaults: `npm run reset:contact-data`
 - Restore contact data files to the exact tracked Git state: `npm run clean:contact-data`
 - GitHub Actions workflow added at `.github/workflows/ci.yml` to run lint + test on pushes and pull requests.
+
+## Added Languages and Tooling
+
+- TypeScript:
+   - Config: `tsconfig.json`
+   - Example utility: `tools/ts/messageStats.ts`
+- SQL:
+   - Schema: `backend/sql/schema.sql`
+   - Query examples: `backend/sql/queries.sql`
+- Python:
+   - Utility report script: `scripts/python/message_report.py`
+   - Standard-library only setup in `requirements.txt`
+- Docker:
+   - Single image config: `Dockerfile`
+   - Multi-service orchestration: `docker-compose.yml`
 
 ## Keeping Git Status Clean After Demos
 
