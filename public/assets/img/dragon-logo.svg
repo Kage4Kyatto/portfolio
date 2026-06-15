@@ -1,0 +1,102 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .dragon-main { fill: currentColor; }
+      .dragon-line { stroke: currentColor; fill: none; }
+      .dragon-scale { stroke: currentColor; fill: none; stroke-width: 1; }
+    </style>
+  </defs>
+  
+  <!-- Outer decorative spikes -->
+  <g class="dragon-main">
+    <polygon points="45,70 35,55 40,75"/>
+    <polygon points="65,40 62,20 72,45"/>
+    <polygon points="100,35 100,15 110,42"/>
+    <polygon points="135,40 138,20 128,45"/>
+    <polygon points="155,70 165,55 160,75"/>
+    <polygon points="160,120 180,110 165,120"/>
+    <polygon points="158,160 175,155 162,170"/>
+    <polygon points="100,175 98,195 110,180"/>
+    <polygon points="40,160 25,155 38,170"/>
+    <polygon points="40,120 20,110 35,120"/>
+  </g>
+  
+  <!-- Scale patterns around head -->
+  <g class="dragon-scale" stroke-width="1.2" opacity="0.7">
+    <!-- Top scales -->
+    <path d="M 65,60 Q 60,75 72,82"/>
+    <path d="M 78,50 Q 75,72 90,82"/>
+    <path d="M 110,48 Q 113,72 110,82"/>
+    <path d="M 122,50 Q 125,72 110,82"/>
+    <path d="M 135,60 Q 140,75 128,82"/>
+    
+    <!-- Right scales -->
+    <path d="M 148,95 Q 162,95 168,108"/>
+    <path d="M 150,130 Q 168,130 170,145"/>
+    
+    <!-- Left scales -->
+    <path d="M 52,95 Q 38,95 32,108"/>
+    <path d="M 50,130 Q 32,130 30,145"/>
+    
+    <!-- Bottom scales -->
+    <path d="M 70,168 Q 68,178 82,185"/>
+    <path d="M 118,168 Q 132,178 120,185"/>
+  </g>
+  
+  <!-- Main head ellipse -->
+  <ellipse cx="100" cy="110" rx="42" ry="48" class="dragon-main"/>
+  
+  <!-- Head details -->
+  <g class="dragon-line" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Snout definition -->
+    <path d="M 70,115 Q 60,115 55,125"/>
+    
+    <!-- Jaw line definition -->
+    <path d="M 75,100 L 65,105"/>
+    <path d="M 75,130 L 65,125"/>
+    
+    <!-- Mouth snarl -->
+    <path d="M 78,125 Q 100,132 122,125"/>
+  </g>
+  
+  <!-- Lower jaw/spikes -->
+  <g class="dragon-main">
+    <polygon points="70,140 65,162 80,145"/>
+    <polygon points="87,148 85,168 97,150"/>
+    <polygon points="113,148 115,168 103,150"/>
+    <polygon points="130,140 135,162 120,145"/>
+  </g>
+  
+  <!-- Eye - Large and menacing -->
+  <circle cx="110" cy="105" r="8" class="dragon-main"/>
+  <circle cx="111" cy="103" r="4" fill="white"/>
+  <circle cx="112" cy="104" r="2" class="dragon-main"/>
+  
+  <!-- Nostril -->
+  <circle cx="68" cy="118" r="2.5" class="dragon-main"/>
+  
+  <!-- Upper spikes/horns on head -->
+  <g class="dragon-main">
+    <polygon points="90,75 88,55 95,75"/>
+    <polygon points="100,70 100,48 105,70"/>
+    <polygon points="110,75 112,55 105,75"/>
+  </g>
+  
+  <!-- Ridgeline/spikes down center of head -->
+  <g class="dragon-line" stroke-width="1.5">
+    <path d="M 100,75 Q 98,85 100,100"/>
+    <path d="M 100,100 Q 102,115 100,128"/>
+  </g>
+  
+  <!-- Scale details on face -->
+  <g class="dragon-scale" stroke-width="0.8" opacity="0.5">
+    <path d="M 80,105 Q 76,115 80,125"/>
+    <path d="M 120,105 Q 124,115 120,125"/>
+    <path d="M 90,108 L 90,128"/>
+    <path d="M 110,108 L 110,128"/>
+  </g>
+  
+  <!-- Eye area detail/scowl -->
+  <path class="dragon-line" stroke-width="1" d="M 105,98 Q 108,96 112,98"/>
+  <path class="dragon-line" stroke-width="1" d="M 105,112 Q 108,114 112,112"/>
+</svg>

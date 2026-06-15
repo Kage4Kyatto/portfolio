@@ -116,6 +116,15 @@ body {
   border-radius: 999px;
   padding: 8px 11px;
   background: rgba(15, 23, 42, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  color: #dbeafe;
 }
 
 .menu-toggle {
