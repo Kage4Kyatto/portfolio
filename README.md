@@ -64,7 +64,19 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - Install dependencies: `npm install`
 - Run lint checks: `npm run lint`
 - Run tests: `npm test`
+- Reset contact demo/test data to defaults: `npm run reset:contact-data`
+- Restore contact data files to the exact tracked Git state: `npm run clean:contact-data`
 - GitHub Actions workflow added at `.github/workflows/ci.yml` to run lint + test on pushes and pull requests.
+
+## Keeping Git Status Clean After Demos
+
+- Contact form demos update `backend/php/data/messages.json` and `backend/php/data/contact_rate_limits.json`.
+- To clear those runtime files back to defaults, run:
+   - `npm run reset:contact-data`
+- To remove Git status noise from those two files (restore tracked state), run:
+   - `npm run clean:contact-data`
+- Verify with:
+   - `git status --short`
 
 ## API Endpoints
 

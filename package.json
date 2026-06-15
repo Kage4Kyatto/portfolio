@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "lint": "node --check server.js && node --check backend/node/controllers/contactController.js && node --check backend/node/middleware/authMiddleware.js && node --check backend/node/routes/contactRoutes.js && node --check public/assets/js/core/main.js && node --check public/assets/js/pages/contact.js && node --check public/assets/js/pages/admin.js",
-    "test": "node --test"
+    "test": "node --test",
+    "reset:contact-data": "node tools/resetContactData.js",
+    "clean:contact-data": "git restore --worktree backend/php/data/messages.json backend/php/data/contact_rate_limits.json"
   },
   "keywords": [
     "portfolio",
