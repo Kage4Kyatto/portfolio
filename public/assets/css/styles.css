@@ -213,6 +213,16 @@ main {
 
 .site-page .page-panel {
   padding: 26px 24px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.page-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 24px;
+  opacity: 0.9;
 }
 
 .site-page .section-title {

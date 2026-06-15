@@ -1,0 +1,31 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .contact-bg { fill: #030712; }
+      .contact-shape { fill: #7dd3fc; }
+      .contact-accent { fill: #4ade80; }
+      .contact-line { stroke: #dbeafe; stroke-width: 2; fill: none; stroke-linecap: round; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" class="contact-bg"/>
+  
+  <!-- Envelope/Message -->
+  <rect x="40" y="60" width="120" height="80" rx="4" fill="none" class="contact-line" stroke-width="2"/>
+  
+  <!-- Envelope flap -->
+  <path d="M 40 60 L 100 110 L 160 60" fill="none" class="contact-line" stroke-width="2"/>
+  
+  <!-- Message lines inside -->
+  <line x1="55" y1="75" x2="145" y2="75" class="contact-line" opacity="0.6"/>
+  <line x1="55" y1="85" x2="135" y2="85" class="contact-line" opacity="0.6"/>
+  <line x1="55" y1="95" x2="140" y2="95" class="contact-line" opacity="0.6"/>
+  
+  <!-- Decorative chat bubble -->
+  <circle cx="100" cy="140" r="20" fill="none" class="contact-shape" stroke-width="2"/>
+  <path d="M 115 155 L 125 160 L 118 155" class="contact-accent" fill="currentColor"/>
+  
+  <!-- Checkmark inside bubble -->
+  <path d="M 94 140 L 98 144 L 106 136" fill="none" class="contact-accent" stroke-width="2" stroke-linecap="round"/>
+</svg>
