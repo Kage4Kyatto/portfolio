@@ -10,6 +10,7 @@ const pageInfo = document.getElementById("page-info");
 const deliveryStatus = document.getElementById("delivery-status");
 const adminUserInput = document.getElementById("admin-user");
 const adminPassInput = document.getElementById("admin-pass");
+const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
 
@@ -22,6 +23,11 @@ let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
 
 const setDashboardVisibility = (isVisible) => {
+  if (pagePanel) {
+    pagePanel.hidden = !isVisible;
+    pagePanel.style.display = isVisible ? "block" : "none";
+  }
+
   if (adminControls) {
     adminControls.hidden = !isVisible;
     adminControls.style.display = isVisible ? "grid" : "none";
