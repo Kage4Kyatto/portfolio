@@ -68,6 +68,10 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - Admin authentication now requires explicit env vars. No fallback credentials are used.
 - Admin login attempts are throttled and temporarily blocked after repeated failures.
 - Contact submissions have stricter validation and IP-based sliding-window rate limiting.
+- Optional Cloudflare Access gate for admin routes:
+   - `CF_ACCESS_ENABLED=true`
+   - `CF_ACCESS_ALLOWED_EMAILS=you@example.com` (comma-separated for multiple users)
+   - When enabled, `/admin`, `/admin.html`, and `/api/messages` require the Cloudflare Access user email header and (for admin) Basic auth.
 
 ## Contact Email Forwarding
 
@@ -132,6 +136,7 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 
 - URL: `/admin.html`
 - Enter admin username and password to load submissions.
+- If Cloudflare Access mode is enabled, only allowed Cloudflare Access users can reach the admin page/API.
 - Contact form submissions are stored in `backend/php/data/messages.json`.
 - Includes client-side search, pagination, and CSV export for loaded messages.
 
