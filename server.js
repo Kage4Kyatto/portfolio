@@ -42,7 +42,6 @@ loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, ".env.local"));
 
 const contactRoutes = require("./backend/node/routes/contactRoutes");
-const { requireAdminAuth } = require("./backend/node/middleware/authMiddleware");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 
 const app = express();
@@ -57,7 +56,7 @@ app.get("/admin", requireCloudflareAccess, (req, res) => {
   res.redirect("/admin.html");
 });
 
-app.get("/admin.html", requireCloudflareAccess, requireAdminAuth, (req, res) => {
+app.get("/admin.html", requireCloudflareAccess, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
