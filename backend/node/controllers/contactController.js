@@ -17,10 +17,26 @@ const writeMessages = (messages) => {
 };
 
 const getHealth = (req, res) => {
+  const notifyTo = String(process.env.CONTACT_NOTIFY_TO || "").trim();
+  const resendApiKey = String(process.env.RESEND_API_KEY || "").trim();
+  const notifyFrom = String(process.env.CONTACT_NOTIFY_FROM || "").trim();
+
+  let mode = "disabled";
+
+  if (notifyTo) {
+    mode = resendApiKey ? "resend" : "php-mail-fallback";
+  }
+
   res.status(200).json({
     status: "ok",
     service: "portfolio-api",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    notifications: {
+      mode,
+      toConfigured: Boolean(notifyTo),
+      fromConfigured: Boolean(notifyFrom),
+      providerConfigured: Boolean(resendApiKey)
+    }
   });
 };
 

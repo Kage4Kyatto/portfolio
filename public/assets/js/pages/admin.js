@@ -132,7 +132,10 @@ const downloadCsv = (messages) => {
 const fetchJsonWithFallback = async (endpoints, options = {}) => {
   let lastError = new Error("Request failed.");
 
-  for (const endpoint of endpoints) {
+  for (let index = 0; index < endpoints.length; index += 1) {
+    const endpoint = endpoints[index];
+    const hasNextEndpoint = index < endpoints.length - 1;
+
     try {
       const response = await fetch(endpoint, options);
       const bodyText = await response.text();
@@ -147,15 +150,35 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
       }
 
       if (!response.ok) {
-        throw new Error(parsed?.message || "Request failed.");
+        const requestError = new Error(parsed?.message || `Request failed with status ${response.status}.`);
+
+        if ((response.status === 401 || response.status === 403 || response.status === 400) || parsed) {
+          requestError.stopFallback = true;
+        }
+
+        if (!hasNextEndpoint) {
+          requestError.stopFallback = true;
+        }
+
+        throw requestError;
       }
 
       if (!parsed) {
-        throw new Error("API endpoint responded with non-JSON content.");
+        const parseError = new Error("API endpoint responded with non-JSON content.");
+
+        if (!hasNextEndpoint) {
+          parseError.stopFallback = true;
+        }
+
+        throw parseError;
       }
 
       return parsed;
     } catch (error) {
+      if (error.stopFallback) {
+        throw error;
+      }
+
       lastError = error;
     }
   }
