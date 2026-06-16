@@ -50,7 +50,7 @@ if (contactForm && notice) {
           }
 
           if (response.ok) {
-            result = parsed;
+            result = parsed || { success: true };
             break;
           }
 

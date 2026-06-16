@@ -129,6 +129,40 @@ const downloadCsv = (messages) => {
   URL.revokeObjectURL(url);
 };
 
+const fetchJsonWithFallback = async (endpoints, options = {}) => {
+  let lastError = new Error("Request failed.");
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, options);
+      const bodyText = await response.text();
+      let parsed = null;
+
+      if (bodyText) {
+        try {
+          parsed = JSON.parse(bodyText);
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(parsed?.message || "Request failed.");
+      }
+
+      if (!parsed) {
+        throw new Error("API endpoint responded with non-JSON content.");
+      }
+
+      return parsed;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
+};
+
 const loadDeliveryStatus = async () => {
   if (!deliveryStatus) {
     return;
@@ -138,12 +172,7 @@ const loadDeliveryStatus = async () => {
   deliveryStatus.className = "notice";
 
   try {
-    const response = await fetch("/api/health.php");
-    if (!response.ok) {
-      throw new Error("Could not read delivery status.");
-    }
-
-    const data = await response.json();
+    const data = await fetchJsonWithFallback(["/api/health", "/api/health.php"]);
     const mode = data?.notifications?.mode || "disabled";
 
     if (mode === "resend") {
@@ -213,17 +242,12 @@ if (authForm && notice && tableBody) {
     notice.className = "notice";
 
     try {
-      const response = await fetch("/api/messages.php", {
+      allMessages = await fetchJsonWithFallback(["/api/messages", "/api/messages.php"], {
         headers: {
           Authorization: `Basic ${token}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error("Unauthorized or failed to load messages.");
-      }
-
-      allMessages = await response.json();
       currentPage = 1;
       render();
       notice.textContent = `Loaded ${allMessages.length} message(s).`;
