@@ -2,6 +2,11 @@ const toBool = (value) => String(value || "").trim().toLowerCase() === "true";
 
 const isCloudflareAccessEnabled = () => toBool(process.env.CF_ACCESS_ENABLED);
 
+const isLocalRequest = (req) => {
+  const host = String(req.hostname || "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1";
+};
+
 const getAllowedEmails = () =>
   String(process.env.CF_ACCESS_ALLOWED_EMAILS || "")
     .split(",")
@@ -9,6 +14,10 @@ const getAllowedEmails = () =>
     .filter(Boolean);
 
 const requireCloudflareAccess = (req, res, next) => {
+  if (isLocalRequest(req)) {
+    return next();
+  }
+
   if (!isCloudflareAccessEnabled()) {
     return next();
   }
