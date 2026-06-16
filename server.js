@@ -42,6 +42,7 @@ loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, ".env.local"));
 
 const contactRoutes = require("./backend/node/routes/contactRoutes");
+const { requireAdminAuth } = require("./backend/node/middleware/authMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,6 +51,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", contactRoutes);
+
+app.get("/admin", (req, res) => {
+  res.redirect("/admin.html");
+});
+
+app.get("/admin.html", requireAdminAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (req, res) => {
