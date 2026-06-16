@@ -10,6 +10,7 @@ const pageInfo = document.getElementById("page-info");
 const deliveryStatus = document.getElementById("delivery-status");
 const adminUserInput = document.getElementById("admin-user");
 const adminPassInput = document.getElementById("admin-pass");
+const logoutButton = document.getElementById("admin-logout");
 const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
@@ -41,6 +42,11 @@ const setDashboardVisibility = (isVisible) => {
   if (pageInfo) {
     pageInfo.hidden = !isVisible;
     pageInfo.style.display = isVisible ? "block" : "none";
+  }
+
+  if (logoutButton) {
+    logoutButton.hidden = !isVisible;
+    logoutButton.style.display = isVisible ? "inline-block" : "none";
   }
 };
 
@@ -356,5 +362,31 @@ if (authForm && notice && tableBody) {
     downloadCsv(filteredMessages);
     notice.textContent = `Exported ${filteredMessages.length} message(s) to CSV.`;
     notice.className = "notice success";
+  });
+
+  logoutButton?.addEventListener("click", () => {
+    allMessages = [];
+    filteredMessages = [];
+    currentPage = 1;
+
+    if (searchInput) {
+      searchInput.value = "";
+    }
+
+    if (tableBody) {
+      tableBody.innerHTML = '<tr><td colspan="6">No data loaded yet.</td></tr>';
+    }
+
+    if (pageInfo) {
+      pageInfo.textContent = "";
+    }
+
+    if (adminPassInput) {
+      adminPassInput.value = "";
+    }
+
+    setDashboardVisibility(false);
+    notice.textContent = "Logged out.";
+    notice.className = "notice";
   });
 }
