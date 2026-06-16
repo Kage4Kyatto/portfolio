@@ -10,6 +10,8 @@ const pageInfo = document.getElementById("page-info");
 const deliveryStatus = document.getElementById("delivery-status");
 const adminUserInput = document.getElementById("admin-user");
 const adminPassInput = document.getElementById("admin-pass");
+const adminControls = document.querySelector(".admin-controls");
+const tableWrap = document.querySelector(".table-wrap");
 
 let allMessages = [];
 let filteredMessages = [];
@@ -18,6 +20,23 @@ let pageSize = Number(pageSizeSelect?.value || 10);
 let isLoadingMessages = false;
 let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
+
+const setDashboardVisibility = (isVisible) => {
+  if (adminControls) {
+    adminControls.hidden = !isVisible;
+    adminControls.style.display = isVisible ? "grid" : "none";
+  }
+
+  if (tableWrap) {
+    tableWrap.hidden = !isVisible;
+    tableWrap.style.display = isVisible ? "block" : "none";
+  }
+
+  if (pageInfo) {
+    pageInfo.hidden = !isVisible;
+    pageInfo.style.display = isVisible ? "block" : "none";
+  }
+};
 
 const escapeHtml = (value) =>
   String(value ?? "")
@@ -219,6 +238,7 @@ const loadDeliveryStatus = async () => {
 };
 
 if (authForm && notice && tableBody) {
+  setDashboardVisibility(false);
   loadDeliveryStatus();
 
   const scheduleAutoLoad = () => {
@@ -272,10 +292,12 @@ if (authForm && notice && tableBody) {
       });
 
       currentPage = 1;
+      setDashboardVisibility(true);
       render();
       notice.textContent = `Loaded ${allMessages.length} message(s).`;
       notice.className = "notice success";
     } catch (error) {
+      setDashboardVisibility(false);
       tableBody.innerHTML = '<tr><td colspan="6">Could not load messages.</td></tr>';
       allMessages = [];
       filteredMessages = [];
