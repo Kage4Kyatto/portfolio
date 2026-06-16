@@ -14,25 +14,34 @@ const assetDirs = [
   path.join(publicDir, "assets", "js"),
 ];
 
-const walkFiles = (directory: string): string[] => {
-  const entries = fs.readdirSync(directory, { withFileTypes: true });
-  return entries.flatMap((entry) => {
-    const entryPath = path.join(directory, entry.name);
-    return entry.isDirectory() ? walkFiles(entryPath) : [entryPath];
-  });
-};
-
 const summarizeDirectory = (directory: string): AssetSummary => {
-  const files = walkFiles(directory);
-  const extensions = files.reduce<Record<string, number>>((accumulator, filePath) => {
-    const extension = path.extname(filePath) || "[no extension]";
-    accumulator[extension] = (accumulator[extension] ?? 0) + 1;
-    return accumulator;
-  }, {});
+  const extensions: Record<string, number> = {};
+  let fileCount = 0;
+  const pendingDirectories = [directory];
+
+  while (pendingDirectories.length > 0) {
+    const currentDirectory = pendingDirectories.pop();
+    if (!currentDirectory) {
+      continue;
+    }
+
+    const entries = fs.readdirSync(currentDirectory, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryPath = path.join(currentDirectory, entry.name);
+      if (entry.isDirectory()) {
+        pendingDirectories.push(entryPath);
+        continue;
+      }
+
+      fileCount += 1;
+      const extension = path.extname(entryPath) || "[no extension]";
+      extensions[extension] = (extensions[extension] ?? 0) + 1;
+    }
+  }
 
   return {
     directory: path.relative(publicDir, directory),
-    fileCount: files.length,
+    fileCount,
     extensions,
   };
 };

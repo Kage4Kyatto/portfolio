@@ -7,9 +7,7 @@ DATA_FILE = Path(__file__).resolve().parents[2] / "backend" / "php" / "data" / "
 REQUIRED_FIELDS = ["name", "email", "subject", "message", "createdAt"]
 
 
-def main() -> None:
-    messages = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-
+def inspect_messages(messages: list[dict]) -> tuple[int, int, int]:
     total_messages = len(messages)
     incomplete_messages = 0
     longest_message_length = 0
@@ -19,8 +17,14 @@ def main() -> None:
             incomplete_messages += 1
 
         message_length = len(entry.get("message", ""))
-        if message_length > longest_message_length:
-            longest_message_length = message_length
+        longest_message_length = max(longest_message_length, message_length)
+
+    return total_messages, incomplete_messages, longest_message_length
+
+
+def main() -> None:
+    messages = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    total_messages, incomplete_messages, longest_message_length = inspect_messages(messages)
 
     print("Message Health")
     print(f"Total messages: {total_messages}")
