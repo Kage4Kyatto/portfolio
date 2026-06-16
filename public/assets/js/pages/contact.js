@@ -2,6 +2,20 @@ const contactForm = document.getElementById("contact-form");
 const notice = document.getElementById("form-notice");
 const submitButton = document.getElementById("contact-submit");
 
+const getFastifyContactEndpoint = () => {
+  const runtimeConfigUrl = window.PORTFOLIO_FASTIFY_URL?.trim();
+  if (runtimeConfigUrl) {
+    return `${runtimeConfigUrl.replace(/\/$/, "")}/contact`;
+  }
+
+  const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  if (!isLocalHost) {
+    return null;
+  }
+
+  return `http://${window.location.hostname}:4001/contact`;
+};
+
 if (contactForm && notice) {
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -23,7 +37,14 @@ if (contactForm && notice) {
     }
 
     try {
-      const endpoints = ["/api/contact", "/api/contact.php"];
+      const endpoints = [];
+      const fastifyContactEndpoint = getFastifyContactEndpoint();
+
+      if (fastifyContactEndpoint) {
+        endpoints.push(fastifyContactEndpoint);
+      }
+
+      endpoints.push("/api/contact", "/api/contact.php");
       let result = null;
       let lastError = new Error("Failed to send message.");
 

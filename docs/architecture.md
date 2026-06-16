@@ -13,6 +13,16 @@ This project supports two backend runtimes that share the same frontend pages in
   - Uses Express routes under `/api` from `backend/node/routes/`
   - Typical local URL: `http://localhost:3000`
 
+In addition, the repository now includes standalone framework modules:
+
+- React frontend module:
+  - Path: `frontend/react-app/`
+  - Runs on Vite dev server (default `http://localhost:5173`)
+  - Builds to `frontend/react-app/dist` and is served by Express at `/app`
+- Fastify backend module:
+  - Path: `backend/fastify/`
+  - Runs as independent API service (default `http://localhost:4001`)
+
 ## API Compatibility
 
 Contact form submission supports both runtimes via endpoint fallback in `public/assets/js/pages/contact.js`:
@@ -22,11 +32,24 @@ Contact form submission supports both runtimes via endpoint fallback in `public/
 
 This keeps the same frontend behavior across both local server modes.
 
+Contact submission order for `public/contact.html`:
+
+1. Fastify `/contact` (`PORTFOLIO_FASTIFY_URL` or localhost fallback)
+2. Node `/api/contact`
+3. PHP `/api/contact.php`
+
+React dashboard checks use Vite bridge proxies during development:
+
+- `/bridge/fastify/*`
+- `/bridge/node/*`
+- `/bridge/php/*`
+
 ## Backend Layout
 
 - `backend/node/controllers/`: Node route handlers
 - `backend/node/routes/`: Node route definitions
 - `backend/node/middleware/`: Node auth middleware
+- `backend/fastify/src/`: Fastify framework service routes
 - `backend/php/bootstrap.php`: shared PHP helpers
 - `backend/php/data/`: JSON persistence for messages and rate-limits
 
@@ -36,3 +59,4 @@ This keeps the same frontend behavior across both local server modes.
 - `public/assets/css/`: shared styling
 - `public/assets/js/core/`: shared scripts
 - `public/assets/js/pages/`: page-specific logic
+- `frontend/react-app/src/`: React + Vite frontend framework module

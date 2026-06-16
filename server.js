@@ -46,6 +46,7 @@ const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflar
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -59,6 +60,23 @@ app.get("/admin", requireCloudflareAccess, (req, res) => {
 app.get("/admin.html", requireCloudflareAccess, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+
+app.get("/runtime-config.js", (req, res) => {
+  res.type("application/javascript");
+  res.send(
+    `window.PORTFOLIO_FASTIFY_URL = ${JSON.stringify(process.env.PORTFOLIO_FASTIFY_URL || "")};`
+  );
+});
+
+if (fs.existsSync(REACT_DIST_PATH)) {
+  app.use("/app", express.static(REACT_DIST_PATH));
+  app.get("/app", (req, res) => {
+    res.sendFile(path.join(REACT_DIST_PATH, "index.html"));
+  });
+  app.get("/app/*", (req, res) => {
+    res.sendFile(path.join(REACT_DIST_PATH, "index.html"));
+  });
+}
 
 app.use(express.static(path.join(__dirname, "public")));
 

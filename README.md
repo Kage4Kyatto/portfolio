@@ -28,7 +28,9 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - `backend/php/bootstrap.php` shared PHP backend utilities
 - `backend/php/data/` local JSON storage for contact messages
 - `backend/node/` optional Node API implementation
+- `backend/fastify/` Fastify backend framework module
 - `backend/sql/` SQL schema and query examples
+- `frontend/react-app/` React + Vite frontend framework module
 - `scripts/python/` Python utility scripts
 - `tools/ts/` TypeScript utility scripts
 - `Dockerfile` and `docker-compose.yml` for containerized runs
@@ -61,6 +63,55 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - Python message report: `npm run python:report`
 - Docker multi-service run: `npm run docker:up`
 - Docker stop: `npm run docker:down`
+
+## Added Framework Modules
+
+You can now run multiple frameworks in parallel with the existing static/PHP/Express setup.
+
+- Frontend framework module (React + Vite):
+   - Install: `npm run install:react`
+   - Dev server: `npm run dev:react`
+   - Build: `npm run build:react`
+   - Preview build: `npm run preview:react`
+- Backend framework module (Fastify):
+   - Install: `npm run install:fastify`
+   - Dev server: `npm run dev:fastify`
+   - Start server: `npm run start:fastify`
+
+Fastify defaults to port `4001` and exposes:
+
+- `GET /health`
+- `POST /contact`
+
+React app route under the Node runtime:
+
+- Build React assets: `npm run build:app`
+- Start Node server: `npm start`
+- Open: `http://localhost:3000/app`
+
+Contact endpoint order now is:
+
+1. Fastify `/contact` (from `PORTFOLIO_FASTIFY_URL`, localhost default)
+2. Node `/api/contact`
+3. PHP `/api/contact.php`
+
+When running the Node server, `PORTFOLIO_FASTIFY_URL` is exposed to browser scripts through `/runtime-config.js`.
+
+## Shared Environment Strategy
+
+Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` for React-specific values.
+
+- Root `.env.example` includes:
+   - `PORT`
+   - `FASTIFY_PORT`
+   - `PORTFOLIO_FASTIFY_URL`
+   - `VITE_PORT`
+   - `VITE_NODE_RUNTIME_ORIGIN`
+   - `VITE_FASTIFY_RUNTIME_ORIGIN`
+   - `VITE_PHP_RUNTIME_ORIGIN`
+- React `.env.example` includes:
+   - Runtime origins for Node/Fastify/PHP
+   - Health endpoint paths used by the React dashboard
 
 ## Security Notes
 
