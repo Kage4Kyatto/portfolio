@@ -35,27 +35,47 @@ links.forEach((link) => {
 });
 
 const revealItems = document.querySelectorAll(".reveal");
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("show");
-        observer.unobserve(entry.target);
+if (revealItems.length > 0) {
+  const isHomePage = document.body.classList.contains("home-page");
+  const revealStartDelay = isHomePage ? 3950 : 0;
+  const canObserve = "IntersectionObserver" in window;
+
+  const startReveal = () => {
+    revealItems.forEach((item, index) => {
+      item.style.transitionDelay = `${index * 70}ms`;
+
+      if (!canObserve) {
+        item.classList.add("show");
       }
     });
-  },
-  { threshold: 0.1 }
-);
 
-const isHomePage = document.body.classList.contains("home-page");
-const revealStartDelay = isHomePage ? 3950 : 0;
+    if (!canObserve) {
+      return;
+    }
 
-window.setTimeout(() => {
-  revealItems.forEach((item, index) => {
-    item.style.transitionDelay = `${index * 70}ms`;
-    observer.observe(item);
-  });
-}, revealStartDelay);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    revealItems.forEach((item) => {
+      observer.observe(item);
+    });
+  };
+
+  if (revealStartDelay > 0) {
+    window.setTimeout(startReveal, revealStartDelay);
+  } else {
+    startReveal();
+  }
+}
 
 const yearEl = document.getElementById("year");
 if (yearEl) {
@@ -63,34 +83,39 @@ if (yearEl) {
 }
 
 const root = document.documentElement;
-const glowEl = document.createElement("div");
-glowEl.className = "cursor-glow";
-document.body.appendChild(glowEl);
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
 
-let frameId = 0;
-let nextX = window.innerWidth / 2;
-let nextY = window.innerHeight * 0.18;
+if (!prefersReducedMotion && hasFinePointer) {
+  const glowEl = document.createElement("div");
+  glowEl.className = "cursor-glow";
+  document.body.appendChild(glowEl);
 
-const renderGlow = () => {
-  root.style.setProperty("--cursor-x", `${nextX}px`);
-  root.style.setProperty("--cursor-y", `${nextY}px`);
-  frameId = 0;
-};
+  let frameId = 0;
+  let nextX = window.innerWidth / 2;
+  let nextY = window.innerHeight * 0.18;
 
-const queueGlowUpdate = (event) => {
-  nextX = event.clientX;
-  nextY = event.clientY;
-  document.body.style.setProperty("--cursor-glow-opacity", "1");
+  const renderGlow = () => {
+    root.style.setProperty("--cursor-x", `${nextX}px`);
+    root.style.setProperty("--cursor-y", `${nextY}px`);
+    frameId = 0;
+  };
 
-  if (!frameId) {
-    frameId = window.requestAnimationFrame(renderGlow);
-  }
-};
+  const queueGlowUpdate = (event) => {
+    nextX = event.clientX;
+    nextY = event.clientY;
+    document.body.style.setProperty("--cursor-glow-opacity", "1");
 
-window.addEventListener("pointermove", queueGlowUpdate, { passive: true });
-window.addEventListener("pointerleave", () => {
-  document.body.style.setProperty("--cursor-glow-opacity", "0");
-});
-window.addEventListener("blur", () => {
-  document.body.style.setProperty("--cursor-glow-opacity", "0");
-});
+    if (!frameId) {
+      frameId = window.requestAnimationFrame(renderGlow);
+    }
+  };
+
+  window.addEventListener("pointermove", queueGlowUpdate, { passive: true });
+  window.addEventListener("pointerleave", () => {
+    document.body.style.setProperty("--cursor-glow-opacity", "0");
+  });
+  window.addEventListener("blur", () => {
+    document.body.style.setProperty("--cursor-glow-opacity", "0");
+  });
+}

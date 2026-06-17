@@ -2,6 +2,18 @@ const contactForm = document.getElementById("contact-form");
 const notice = document.getElementById("form-notice");
 const submitButton = document.getElementById("contact-submit");
 
+const parseJsonSafely = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
 const getFastifyContactEndpoint = () => {
   const runtimeConfigUrl = window.PORTFOLIO_FASTIFY_URL?.trim();
   if (runtimeConfigUrl) {
@@ -37,38 +49,38 @@ if (contactForm && notice) {
     }
 
     try {
-      const endpoints = [];
+      const endpointSet = new Set();
       const fastifyContactEndpoint = getFastifyContactEndpoint();
 
       if (fastifyContactEndpoint) {
-        endpoints.push(fastifyContactEndpoint);
+        endpointSet.add(fastifyContactEndpoint);
       }
 
-      endpoints.push("/api/contact", "/api/contact.php");
+      endpointSet.add("/api/contact");
+      endpointSet.add("/api/contact.php");
+      const endpoints = [...endpointSet];
+
       let result = null;
       let lastError = new Error("Failed to send message.");
 
       for (const endpoint of endpoints) {
         try {
+          const controller = new AbortController();
+          const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
           const response = await fetch(endpoint, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           });
+          window.clearTimeout(timeoutId);
 
           const contentType = response.headers.get("content-type") || "";
           const bodyText = await response.text();
-          let parsed = null;
-
-          if (bodyText) {
-            try {
-              parsed = JSON.parse(bodyText);
-            } catch {
-              parsed = null;
-            }
-          }
+          const parsed = parseJsonSafely(bodyText);
 
           if (response.ok) {
             result = parsed || { success: true };
@@ -81,7 +93,8 @@ if (contactForm && notice) {
 
           throw new Error(parsed?.message || fallbackMessage);
         } catch (error) {
-          lastError = error;
+          const isAbort = error?.name === "AbortError";
+          lastError = isAbort ? new Error("Request timed out.") : error;
         }
       }
 
@@ -93,7 +106,7 @@ if (contactForm && notice) {
       notice.classList.add("success");
       contactForm.reset();
     } catch (error) {
-      notice.textContent = error.message;
+      notice.textContent = error instanceof Error ? error.message : "Failed to send message.";
       notice.classList.add("error");
     } finally {
       if (submitButton) {

@@ -888,60 +888,6 @@ main {
   }
 }
 
-@keyframes logoWaveSpin {
-  0% {
-    transform: translate(-50%, -50%) scale(0.76) rotate(0deg);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(0.96) rotate(180deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.76) rotate(360deg);
-  }
-}
-
-@keyframes logoBassPulse {
-  0% {
-    opacity: 0.56;
-    filter: saturate(1.15) blur(0.2px) drop-shadow(0 0 8px rgba(96, 165, 250, 0.35));
-  }
-  22% {
-    opacity: 0.86;
-    filter: saturate(1.45) blur(0.35px) drop-shadow(0 0 16px rgba(96, 165, 250, 0.68));
-  }
-  50% {
-    opacity: 0.62;
-    filter: saturate(1.2) blur(0.25px) drop-shadow(0 0 10px rgba(96, 165, 250, 0.45));
-  }
-  78% {
-    opacity: 0.92;
-    filter: saturate(1.5) blur(0.4px) drop-shadow(0 0 18px rgba(96, 165, 250, 0.78));
-  }
-  100% {
-    opacity: 0.56;
-    filter: saturate(1.15) blur(0.2px) drop-shadow(0 0 8px rgba(96, 165, 250, 0.35));
-  }
-}
-
-@keyframes logoBassGlow {
-  0% {
-    transform: translate(-50%, -50%) scale(0.82);
-    opacity: 0.42;
-  }
-  26% {
-    transform: translate(-50%, -50%) scale(0.98);
-    opacity: 0.7;
-  }
-  58% {
-    transform: translate(-50%, -50%) scale(1.06);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.82);
-    opacity: 0.42;
-  }
-}
-
 @keyframes splashFadeOut {
   0% {
     opacity: 1;
