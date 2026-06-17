@@ -195,6 +195,98 @@ router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdmin
 
 /**
  * @swagger
+ * /api/admin/analytics:
+ *   get:
+ *     tags:
+ *       - Admin
+ *     summary: Get detailed analytics
+ *     description: Retrieve advanced analytics including trends, filters, and aggregated data
+ *     security:
+ *       - sessionAuth: []
+ *     parameters:
+ *       - name: range
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, all]
+ *           default: 30d
+ *       - name: filter
+ *         in: query
+ *         schema:
+ *           type: string
+ *           description: Filter by status (read/unread) or category
+ *     responses:
+ *       200:
+ *         description: Analytics data retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 analytics:
+ *                   type: object
+ *       401:
+ *         description: Not authenticated
+ */
+router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
+	try {
+		const metrics = await getSystemMetrics();
+		const range = req.query.range || "30d";
+		const filter = req.query.filter || null;
+
+		const now = Date.now();
+		const ranges = {
+			"24h": 24 * 60 * 60 * 1000,
+			"7d": 7 * 24 * 60 * 60 * 1000,
+			"30d": 30 * 24 * 60 * 60 * 1000,
+			"all": Infinity
+		};
+		const timeRange = ranges[range] || ranges["30d"];
+		const cutoffTime = now - timeRange;
+
+		const filteredMessages = (metrics.messages || []).filter(msg => 
+			new Date(msg.timestamp).getTime() >= cutoffTime
+		);
+
+		if (filter === "unread") {
+			filteredMessages = filteredMessages.filter(msg => !msg.read);
+		}
+
+		const dailyTotals = {};
+		filteredMessages.forEach(msg => {
+			const date = new Date(msg.timestamp).toISOString().split("T")[0];
+			dailyTotals[date] = (dailyTotals[date] || 0) + 1;
+		});
+
+		const sourceBreakdown = {};
+		filteredMessages.forEach(msg => {
+			const source = msg.referrer || "direct";
+			sourceBreakdown[source] = (sourceBreakdown[source] || 0) + 1;
+		});
+
+		res.status(200).json({
+			success: true,
+			analytics: {
+				total: filteredMessages.length,
+				unread: filteredMessages.filter(m => !m.read).length,
+				timeRange: range,
+				dailyTotals,
+				sourceBreakdown,
+				avgMessagesPerDay: (filteredMessages.length / Math.ceil(timeRange / (24 * 60 * 60 * 1000))).toFixed(1)
+			}
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: "Failed to load analytics."
+		});
+	}
+});
+
+/**
+ * @swagger
  * /api/contact:
  *   post:
  *     tags:

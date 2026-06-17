@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const helmet = require("helmet");
 const compression = require("compression");
 const swaggerUi = require("swagger-ui-express");
+const Sentry = require("@sentry/node");
 
 const { sanitizeObject, sanitizeEmail, sanitizeText } = require("./backend/node/utils/sanitize");
 const { apiLimiter, contactLimiter, adminLimiter, authLimiter } = require("./backend/node/utils/rateLimiter");
@@ -49,6 +50,20 @@ const loadEnvFile = (filePath) => {
 loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, ".env.local"));
 
+const SENTRY_DSN = process.env.SENTRY_DSN || "";
+if (SENTRY_DSN && process.env.NODE_ENV === "production") {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+    tracesSampleRate: 0.1,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.OnUncaughtException(),
+      new Sentry.Integrations.OnUnhandledRejection()
+    ]
+  });
+}
+
 const requireEnv = (name) => {
   const value = String(process.env[name] || "").trim();
   if (!value) {
@@ -73,6 +88,11 @@ const { appendTelemetryEvent } = require("./backend/node/data/storage");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+if (SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
 const OPENAPI_PATH = path.join(__dirname, "docs", "openapi.json");
 const JSON_LD_SCRIPT_HASHES = [
@@ -297,6 +317,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("*", (req, res) => {
   res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
 });
+
+if (SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 app.use((error, req, res, next) => {
   console.error(error);
