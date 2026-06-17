@@ -1690,6 +1690,70 @@ body.light-mode .back-nav-btn:hover {
   background: rgba(219, 234, 254, 0.5);
 }
 
+/* Light mode card and icon styling */
+body.light-mode .icon-card {
+  background: rgba(59, 130, 246, 0.08);
+  border-left-color: rgba(14, 165, 233, 0.4);
+}
+
+body.light-mode .icon-card:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-left-color: rgba(74, 222, 128, 0.6);
+}
+
+body.light-mode .icon-card h3 {
+  color: #0f172a;
+}
+
+body.light-mode .icon-card p {
+  color: #475569;
+}
+
+body.light-mode article {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(59, 130, 246, 0.15);
+}
+
+body.light-mode article h3 {
+  color: #0f172a;
+}
+
+body.light-mode article p {
+  color: #334155;
+}
+
+body.light-mode .about-page .card {
+  background: rgba(241, 245, 249, 0.5);
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode .projects-page .card:nth-child(odd) {
+  background: rgba(241, 245, 249, 0.4);
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode .projects-page .card:nth-child(even) {
+  background: rgba(241, 245, 249, 0.5);
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode .contact-page .card {
+  background: rgba(241, 245, 249, 0.55);
+  border-color: rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode .projects-hero-link {
+  background: linear-gradient(180deg, rgba(241, 245, 249, 0.6), rgba(241, 245, 249, 0.4));
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #16a34a;
+}
+
+body.light-mode .projects-hero-link:hover {
+  color: #15803d;
+  border-color: rgba(74, 222, 128, 0.55);
+  background: linear-gradient(180deg, rgba(241, 245, 249, 0.7), rgba(241, 245, 249, 0.55));
+}
+
 /* Theme Toggle Button */
 .theme-toggle {
   background: none;

@@ -590,5 +590,37 @@
     "subject": "Limit",
     "message": "Checking limiter",
     "createdAt": "2026-06-17T20:19:04.909Z"
+  },
+  {
+    "id": 1781727792726,
+    "name": "Rate Test",
+    "email": "rate@example.com",
+    "subject": "Limit",
+    "message": "Checking limiter",
+    "createdAt": "2026-06-17T20:23:12.725Z"
+  },
+  {
+    "id": 1781727792732,
+    "name": "Rate Test",
+    "email": "rate@example.com",
+    "subject": "Limit",
+    "message": "Checking limiter",
+    "createdAt": "2026-06-17T20:23:12.732Z"
+  },
+  {
+    "id": 1781727792738,
+    "name": "Rate Test",
+    "email": "rate@example.com",
+    "subject": "Limit",
+    "message": "Checking limiter",
+    "createdAt": "2026-06-17T20:23:12.737Z"
+  },
+  {
+    "id": 1781727792743,
+    "name": "Rate Test",
+    "email": "rate@example.com",
+    "subject": "Limit",
+    "message": "Checking limiter",
+    "createdAt": "2026-06-17T20:23:12.743Z"
   }
 ]
