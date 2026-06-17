@@ -1,0 +1,22 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "slug": "getting-started-with-static-html",
+    "title": "Getting Started with Static HTML",
+    "excerpt": "Learn the fundamentals of HTML5 and build your first static website from scratch with best practices and semantic markup.",
+    "category": "Web Development",
+    "published_date": "2024-01-15T10:00:00Z",
+    "published": true,
+    "content": "# Getting Started with Static HTML\n\nHTML is the foundation of web development..."
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "slug": "css-layout-techniques",
+    "title": "Modern CSS Layout Techniques",
+    "excerpt": "Explore Flexbox and CSS Grid to create responsive, flexible layouts without relying on frameworks.",
+    "category": "CSS",
+    "published_date": "2024-01-20T14:30:00Z",
+    "published": true,
+    "content": "# Modern CSS Layout Techniques\n\nFlexbox and CSS Grid have revolutionized web layout..."
+  }
+]

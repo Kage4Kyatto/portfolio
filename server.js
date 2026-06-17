@@ -66,6 +66,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const contactRoutes = require("./backend/node/routes/contactRoutes");
+const blogRoutes = require("./backend/node/routes/blogRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 const { appendTelemetryEvent } = require("./backend/node/data/storage");
@@ -90,6 +91,7 @@ const SITEMAP_ROUTES = [
   { loc: "/projects.html", changefreq: "weekly", priority: "0.9", lastmod: SITE_LASTMOD },
   { loc: "/services.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
   { loc: "/contact.html", changefreq: "monthly", priority: "0.8", lastmod: SITE_LASTMOD },
+  { loc: "/blog/", changefreq: "weekly", priority: "0.8", lastmod: SITE_LASTMOD },
   { loc: "/updates.html", changefreq: "weekly", priority: "0.7", lastmod: SITE_LASTMOD },
   { loc: "/privacy.html", changefreq: "yearly", priority: "0.4", lastmod: SITE_LASTMOD },
   { loc: "/project-portfolio-platform.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
@@ -171,6 +173,7 @@ app.use(session({
 }));
 
 app.use("/api", contactRoutes);
+app.use("/api/blog", blogRoutes);
 
 app.get("/api/docs", (req, res) => {
   if (!fs.existsSync(OPENAPI_PATH)) {
