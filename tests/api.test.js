@@ -19,6 +19,8 @@ test("GET /api/health returns service status", async () => {
   assert.equal(response.body.status, "ok");
   assert.equal(response.body.service, "portfolio-api");
   assert.ok(response.body.timestamp);
+  assert.ok(response.headers["content-security-policy"]);
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
 });
 
 test("POST /api/contact rejects incomplete payload", async () => {
@@ -45,6 +47,25 @@ test("GET /sitemap.xml contains lastmod tags", async () => {
 
   assert.equal(response.status, 200);
   assert.match(response.text, /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
+});
+
+test("GET /api/openapi.json returns OpenAPI spec", async () => {
+  const response = await request(app).get("/api/openapi.json");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.openapi, "3.1.0");
+  assert.ok(response.body.paths["/api/contact"]);
+});
+
+test("POST /api/telemetry accepts event payload", async () => {
+  const response = await request(app).post("/api/telemetry").send({
+    event: "pageview",
+    path: "/index.html",
+    locale: "en"
+  });
+
+  assert.equal(response.status, 202);
+  assert.equal(response.body.success, true);
 });
 
 test("GET unknown route returns 404 page", async () => {

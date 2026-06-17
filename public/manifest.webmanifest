@@ -1,0 +1,17 @@
+{
+  "name": "Soeraj Portfolio",
+  "short_name": "Portfolio",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "description": "Portfolio site with public projects and services.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

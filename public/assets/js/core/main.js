@@ -1,5 +1,6 @@
 const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
+const LOCALE_STORAGE_KEY = "portfolio.locale";
 
 const ensureMainLandmark = () => {
   const mainEl = document.querySelector("main");
@@ -32,6 +33,124 @@ const ensureSkipLink = () => {
 };
 
 ensureSkipLink();
+
+const ensureManifestLink = () => {
+  if (document.querySelector("link[rel='manifest']")) {
+    return;
+  }
+
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = "/manifest.webmanifest";
+  document.head.appendChild(link);
+};
+
+const registerServiceWorker = async () => {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register("/service-worker.js");
+  } catch {
+    // Keep silent in production; app should continue to function without PWA features.
+  }
+};
+
+const sendTelemetry = (eventName) => {
+  const payload = {
+    event: eventName,
+    path: window.location.pathname,
+    locale: localStorage.getItem(LOCALE_STORAGE_KEY) || "en"
+  };
+
+  const asJson = JSON.stringify(payload);
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon("/api/telemetry", asJson);
+    return;
+  }
+
+  fetch("/api/telemetry", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    keepalive: true,
+    body: asJson
+  }).catch(() => {});
+};
+
+const applyLocale = (locale, dictionary) => {
+  const languageLabel = document.querySelector(".lang-toggle__label");
+  const languageButton = document.querySelector(".lang-toggle__button");
+
+  if (languageLabel) {
+    languageLabel.textContent = dictionary.menu_label || "Language";
+  }
+
+  if (languageButton) {
+    languageButton.textContent = locale === "nl"
+      ? (dictionary.menu_nl || "NL")
+      : (dictionary.menu_en || "EN");
+  }
+};
+
+const setupLanguageToggle = async () => {
+  if (!navLinks || document.querySelector(".lang-toggle")) {
+    return;
+  }
+
+  const wrapper = document.createElement("li");
+  wrapper.className = "lang-toggle";
+
+  const label = document.createElement("span");
+  label.className = "lang-toggle__label";
+  label.textContent = "Language";
+
+  const button = document.createElement("button");
+  button.className = "lang-toggle__button";
+  button.type = "button";
+
+  const loadLocaleDictionary = async (locale) => {
+    const response = await fetch(`/assets/i18n/${locale}.json`);
+    if (!response.ok) {
+      throw new Error("Locale unavailable");
+    }
+    return response.json();
+  };
+
+  let locale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+  try {
+    const dictionary = await loadLocaleDictionary(locale);
+    applyLocale(locale, dictionary);
+  } catch {
+    locale = "en";
+    const fallback = await loadLocaleDictionary(locale);
+    applyLocale(locale, fallback);
+  }
+
+  button.addEventListener("click", async () => {
+    const nextLocale = locale === "en" ? "nl" : "en";
+    try {
+      const dictionary = await loadLocaleDictionary(nextLocale);
+      locale = nextLocale;
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+      applyLocale(locale, dictionary);
+      sendTelemetry("language_toggle");
+    } catch {
+      // Ignore toggle failure and keep current locale.
+    }
+  });
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(button);
+  navLinks.appendChild(wrapper);
+};
+
+ensureManifestLink();
+registerServiceWorker();
+setupLanguageToggle();
+sendTelemetry("pageview");
 
 if (menuButton && navLinks) {
   if (!navLinks.id) {

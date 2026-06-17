@@ -14,8 +14,10 @@
     "install:fastify": "npm --prefix backend/fastify install",
     "dev:fastify": "npm --prefix backend/fastify run dev",
     "start:fastify": "npm --prefix backend/fastify run start",
-    "lint": "node --check server.js && node --check backend/node/controllers/contactController.js && node --check backend/node/middleware/authMiddleware.js && node --check backend/node/routes/contactRoutes.js && node --check public/assets/js/core/main.js && node --check public/assets/js/pages/contact.js && node --check public/assets/js/pages/admin.js",
+    "lint": "node --check server.js && node --check backend/node/controllers/contactController.js && node --check backend/node/middleware/authMiddleware.js && node --check backend/node/routes/contactRoutes.js && node --check backend/node/services/notificationQueue.js && node --check public/assets/js/core/main.js && node --check public/assets/js/pages/contact.js && node --check public/assets/js/pages/admin.js && node --check playwright.config.js",
     "test": "node --test",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
     "quality": "npm run lint && npm test",
     "lighthouse": "lhci autorun --config=./lighthouserc.json",
     "typecheck": "tsc --noEmit",
@@ -26,6 +28,8 @@
     "python:report": "python scripts/python/message_report.py",
     "python:site-report": "python scripts/python/site_report.py",
     "python:message-health": "python scripts/python/message_health.py",
+    "go:message-summary": "go run tools/go/message_summary.go",
+    "rust:message-summary": "cargo run --manifest-path tools/rust/message_summary/Cargo.toml --",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "reset:contact-data": "node tools/resetContactData.js",
@@ -45,6 +49,7 @@
   "devDependencies": {
     "@types/node": "^25.9.3",
     "@lhci/cli": "^0.14.0",
+    "@playwright/test": "^1.55.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.1",
     "typescript": "^6.0.3"

@@ -43,10 +43,13 @@ loadEnvFile(path.join(__dirname, ".env.local"));
 
 const contactRoutes = require("./backend/node/routes/contactRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
+const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
+const OPENAPI_PATH = path.join(__dirname, "docs", "openapi.json");
+const TELEMETRY_PATH = path.join(__dirname, "backend", "php", "data", "telemetry_events.json");
 const SITE_LASTMOD = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
 const SITEMAP_ROUTES = [
   { loc: "/index.html", changefreq: "weekly", priority: "1.0", lastmod: SITE_LASTMOD, image: "/assets/img/og-image.svg" },
@@ -59,6 +62,52 @@ const SITEMAP_ROUTES = [
   { loc: "/project-portfolio-platform.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
   { loc: "/project-testing-assignment.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD }
 ];
+
+const appendTelemetryEvent = (eventPayload) => {
+  let events = [];
+  try {
+    const current = fs.readFileSync(TELEMETRY_PATH, "utf8");
+    events = JSON.parse(current || "[]");
+    if (!Array.isArray(events)) {
+      events = [];
+    }
+  } catch (error) {
+    events = [];
+  }
+
+  events.push(eventPayload);
+
+  if (events.length > 1000) {
+    events = events.slice(events.length - 1000);
+  }
+
+  fs.writeFileSync(TELEMETRY_PATH, JSON.stringify(events, null, 2));
+};
+
+const buildContentSecurityPolicy = () => {
+  const rules = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "img-src 'self' data: https:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self'"
+  ];
+
+  return rules.join("; ");
+};
+
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=() ");
+  res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  res.set("Content-Security-Policy", buildContentSecurityPolicy());
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -78,6 +127,43 @@ app.get("/runtime-config.js", (req, res) => {
   res.send(
     `window.PORTFOLIO_FASTIFY_URL = ${JSON.stringify(process.env.PORTFOLIO_FASTIFY_URL || "")};`
   );
+});
+
+app.get("/api/openapi.json", (req, res) => {
+  if (!fs.existsSync(OPENAPI_PATH)) {
+    return res.status(404).json({
+      success: false,
+      message: "OpenAPI spec not found."
+    });
+  }
+
+  return res.sendFile(OPENAPI_PATH);
+});
+
+app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"] }), (req, res) => {
+  try {
+    const payload = typeof req.body === "string"
+      ? JSON.parse(req.body || "{}")
+      : (req.body || {});
+
+    const sanitized = {
+      event: String(payload.event || "pageview"),
+      path: String(payload.path || req.path),
+      locale: String(payload.locale || "en"),
+      timestamp: new Date().toISOString()
+    };
+
+    appendTelemetryEvent(sanitized);
+
+    return res.status(202).json({
+      success: true
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid telemetry payload."
+    });
+  }
 });
 
 const getBaseUrl = (req) => {
@@ -147,6 +233,7 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
+  startNotificationWorker();
   app.listen(PORT, () => {
     console.log(`Portfolio server running on http://localhost:${PORT}`);
   });

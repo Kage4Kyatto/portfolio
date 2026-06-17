@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { enqueueNotification } = require("../services/notificationQueue");
 
 const messagesPath = path.join(__dirname, "..", "..", "php", "data", "messages.json");
 const contactRateLimitsPath = path.join(__dirname, "..", "..", "php", "data", "contact_rate_limits.json");
@@ -155,6 +156,11 @@ const submitContact = (req, res) => {
 
   messages.push(newMessage);
   writeMessages(messages);
+  enqueueNotification({
+    type: "contact_message",
+    messageId: newMessage.id,
+    createdAt: newMessage.createdAt
+  });
 
   return res.status(201).json({
     success: true,

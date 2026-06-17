@@ -420,6 +420,35 @@ textarea:focus-visible {
   transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.lang-toggle__label {
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lang-toggle__button {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.5);
+  color: #e2e8f0;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.lang-toggle__button:hover {
+  border-color: rgba(125, 211, 252, 0.6);
+}
+
 .nav-links a:hover,
 .nav-links a.active {
   color: #e2e8f0;
@@ -1430,6 +1459,11 @@ th {
   }
 
   .nav-links a {
+    width: 100%;
+  }
+
+  .lang-toggle {
+    justify-content: space-between;
     width: 100%;
   }
 
