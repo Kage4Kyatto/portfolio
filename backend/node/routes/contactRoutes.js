@@ -246,7 +246,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 		const timeRange = ranges[range] || ranges["30d"];
 		const cutoffTime = now - timeRange;
 
-		const filteredMessages = (metrics.messages || []).filter(msg => 
+		let filteredMessages = (metrics.messages || []).filter(msg => 
 			new Date(msg.timestamp).getTime() >= cutoffTime
 		);
 

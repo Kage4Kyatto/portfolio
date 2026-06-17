@@ -126,3 +126,62 @@ test("admin session login and logout flow works", async () => {
   assert.equal(logoutResponse.status, 200);
   assert.equal(logoutResponse.body.success, true);
 });
+
+test("GET /api/blog/posts returns published posts only", async () => {
+  const response = await request(app).get("/api/blog/posts");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.success, true);
+  assert.ok(Array.isArray(response.body.posts));
+  
+  const allPublished = response.body.posts.every(post => post.published === true);
+  assert.equal(allPublished, true);
+});
+
+test("GET /api/admin/analytics returns time-range filtered data", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+
+  const analyticsResponse = await request(app)
+    .get("/api/admin/analytics?range=30d")
+    .set("Cookie", cookie);
+
+  assert.equal(analyticsResponse.status, 200);
+  assert.equal(analyticsResponse.body.success, true);
+  assert.ok(analyticsResponse.body.analytics);
+  assert.equal(analyticsResponse.body.analytics.timeRange, "30d");
+  assert.ok(typeof analyticsResponse.body.analytics.total === "number");
+  assert.ok(typeof analyticsResponse.body.analytics.unread === "number");
+  assert.ok(analyticsResponse.body.analytics.dailyTotals);
+  assert.ok(analyticsResponse.body.analytics.sourceBreakdown);
+});
+
+test("GET /api/admin/analytics supports range parameter", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+
+  const ranges = ["24h", "7d", "30d", "all"];
+  
+  for (const range of ranges) {
+    const analyticsResponse = await request(app)
+      .get(`/api/admin/analytics?range=${range}`)
+      .set("Cookie", cookie);
+
+    assert.equal(analyticsResponse.status, 200);
+    assert.equal(analyticsResponse.body.analytics.timeRange, range);
+  }
+});
