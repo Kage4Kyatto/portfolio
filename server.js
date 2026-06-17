@@ -50,6 +50,15 @@ const PORT = process.env.PORT || 3000;
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
 const OPENAPI_PATH = path.join(__dirname, "docs", "openapi.json");
 const TELEMETRY_PATH = path.join(__dirname, "backend", "php", "data", "telemetry_events.json");
+const JSON_LD_SCRIPT_HASHES = [
+  "'sha256-7WKXOPhSZZW0/+9GR67no2PUzCLq78mCbn4FD1wEYwQ='",
+  "'sha256-PL99IjC6uRaMSG9gHbDjSHKfzeOkhYYYgrUBj9g2WKo='",
+  "'sha256-qvoON2tS90NVlq08RKFEiKvP72Q0pjOai78k6PeX3rY='",
+  "'sha256-JHAvbuv8svZqF2oy5pgNXsRPsScBvrEd6xVF1KSMhNM='",
+  "'sha256-VERQbRDplsuLPKkWZk2YW0at/tGgmKFsNT3z1hnQUn4='",
+  "'sha256-McEZe2UrE3E2TY7c5l5a17fAFLjiEg8rFfEGm5F2lgU='",
+  "'sha256-ZMgtwJX1tn9V0esW0dzNyYZ6uoizmWRqpqPvAhaBqxI='"
+];
 const SITE_LASTMOD = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
 const SITEMAP_ROUTES = [
   { loc: "/index.html", changefreq: "weekly", priority: "1.0", lastmod: SITE_LASTMOD, image: "/assets/img/og-image.svg" },
@@ -85,6 +94,7 @@ const appendTelemetryEvent = (eventPayload) => {
 };
 
 const buildContentSecurityPolicy = () => {
+  const scriptSources = ["'self'", ...JSON_LD_SCRIPT_HASHES].join(" ");
   const rules = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -92,7 +102,7 @@ const buildContentSecurityPolicy = () => {
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src ${scriptSources}`,
     "connect-src 'self'"
   ];
 

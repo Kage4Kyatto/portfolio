@@ -1,35 +1,8 @@
-const fs = require("fs");
-const path = require("path");
+const { addMessage, getMessages: getStoredMessages, getRateLimits, saveRateLimits } = require("../data/storage");
 const { enqueueNotification } = require("../services/notificationQueue");
 
-const messagesPath = path.join(__dirname, "..", "..", "php", "data", "messages.json");
-const contactRateLimitsPath = path.join(__dirname, "..", "..", "php", "data", "contact_rate_limits.json");
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
-
-const readJsonFile = (filePath, fallback) => {
-  try {
-    const file = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(file || JSON.stringify(fallback));
-  } catch (error) {
-    return fallback;
-  }
-};
-
-const writeJsonFile = (filePath, value) => {
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
-};
-
-const readMessages = () => {
-  return readJsonFile(messagesPath, []);
-};
-
-const writeMessages = (messages) => {
-  writeJsonFile(messagesPath, messages);
-};
-
-const readContactRateLimits = () => readJsonFile(contactRateLimitsPath, {});
-const writeContactRateLimits = (limits) => writeJsonFile(contactRateLimitsPath, limits);
 
 const getClientIp = (req) => {
   const forwardedForHeader = req.headers["x-forwarded-for"];
@@ -40,10 +13,10 @@ const getClientIp = (req) => {
   return forwardedFor || req.ip || "unknown";
 };
 
-const evaluateContactRateLimit = (req) => {
+const evaluateContactRateLimit = async (req) => {
   const now = Date.now();
   const ip = getClientIp(req);
-  const limits = readContactRateLimits();
+  const limits = await getRateLimits();
 
   Object.keys(limits).forEach((key) => {
     const entry = limits[key];
@@ -68,7 +41,7 @@ const evaluateContactRateLimit = (req) => {
       ...base,
       lastAttempt: now
     };
-    writeContactRateLimits(limits);
+    await saveRateLimits(limits);
     return {
       allowed: false,
       retryAfterSec: Math.ceil(retryAfterMs / 1000)
@@ -80,7 +53,7 @@ const evaluateContactRateLimit = (req) => {
     count: Number(base.count || 0) + 1,
     lastAttempt: now
   };
-  writeContactRateLimits(limits);
+  await saveRateLimits(limits);
 
   return {
     allowed: true,
@@ -112,61 +85,70 @@ const getHealth = (req, res) => {
   });
 };
 
-const getMessages = (req, res) => {
-  const messages = readMessages();
-  res.status(200).json(messages);
+const getMessages = async (req, res) => {
+  try {
+    const messages = await getStoredMessages();
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to load messages."
+    });
+  }
 };
 
-const submitContact = (req, res) => {
-  const { name, email, subject, message, website } = req.body;
+const submitContact = async (req, res) => {
+  try {
+    const { name, email, subject, message, website } = req.body;
 
-  if (String(website || "").trim()) {
+    if (String(website || "").trim()) {
+      return res.status(201).json({
+        success: true,
+        message: "Message received successfully."
+      });
+    }
+
+    const contactRateLimit = await evaluateContactRateLimit(req);
+    if (!contactRateLimit.allowed) {
+      res.set("Retry-After", String(contactRateLimit.retryAfterSec));
+      return res.status(429).json({
+        success: false,
+        message: "Too many contact attempts. Please try again later.",
+        retryAfterSec: contactRateLimit.retryAfterSec
+      });
+    }
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required."
+      });
+    }
+
+    const newMessage = await addMessage({
+      name,
+      email,
+      subject,
+      message,
+      createdAt: new Date().toISOString()
+    });
+    enqueueNotification({
+      type: "contact_message",
+      messageId: newMessage.id,
+      createdAt: newMessage.createdAt
+    });
+
     return res.status(201).json({
       success: true,
-      message: "Message received successfully."
+      message: "Message received successfully.",
+      data: newMessage
     });
-  }
-
-  const contactRateLimit = evaluateContactRateLimit(req);
-  if (!contactRateLimit.allowed) {
-    res.set("Retry-After", String(contactRateLimit.retryAfterSec));
-    return res.status(429).json({
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: "Too many contact attempts. Please try again later.",
-      retryAfterSec: contactRateLimit.retryAfterSec
+      message: "Failed to process contact request."
     });
   }
-
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({
-      success: false,
-      message: "All fields are required."
-    });
-  }
-
-  const messages = readMessages();
-  const newMessage = {
-    id: Date.now(),
-    name,
-    email,
-    subject,
-    message,
-    createdAt: new Date().toISOString()
-  };
-
-  messages.push(newMessage);
-  writeMessages(messages);
-  enqueueNotification({
-    type: "contact_message",
-    messageId: newMessage.id,
-    createdAt: newMessage.createdAt
-  });
-
-  return res.status(201).json({
-    success: true,
-    message: "Message received successfully.",
-    data: newMessage
-  });
 };
 
 module.exports = {

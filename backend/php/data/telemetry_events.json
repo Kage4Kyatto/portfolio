@@ -4,5 +4,17 @@
     "path": "/index.html",
     "locale": "en",
     "timestamp": "2026-06-17T18:24:10.122Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/about.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T18:55:52.101Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:03:09.048Z"
   }
 ]
