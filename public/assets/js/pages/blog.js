@@ -1,5 +1,13 @@
 const blogPostsContainer = document.getElementById("blog-posts");
 
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const loadBlogPosts = async () => {
   try {
     const response = await fetch("/api/blog/posts");
@@ -22,10 +30,16 @@ const loadBlogPosts = async () => {
     }
 
     const html = data.posts
-      .map(post => `
+      .map(post => {
+        const tagsHtml = (post.tags || [])
+          .map(tag => `<span class="blog-tag">${escapeHtml(tag)}</span>`)
+          .join("");
+
+        return `
         <article class="blog-post-card" itemscope itemtype="https://schema.org/BlogPosting">
-          <meta itemprop="author" content="Soeraj Balak" />
+          <meta itemprop="author" content="${escapeHtml(post.author || 'Soeraj Balak')}" />
           <meta itemprop="datePublished" content="${post.published_date}" />
+          <meta itemprop="description" content="${escapeHtml(post.description || post.excerpt)}" />
           <h3 itemprop="headline">
             <a href="/blog/${post.slug}/" itemprop="url">${escapeHtml(post.title)}</a>
           </h3>
@@ -38,11 +52,14 @@ const loadBlogPosts = async () => {
               })}
             </time>
             <span class="blog-category" itemprop="keywords">${escapeHtml(post.category || 'General')}</span>
+            ${post.readTimeMinutes ? `<span class="blog-read-time">${post.readTimeMinutes} min read</span>` : ''}
           </p>
+          ${tagsHtml ? `<div class="blog-tags">${tagsHtml}</div>` : ''}
           <p itemprop="description" class="blog-excerpt">${escapeHtml(post.excerpt)}</p>
           <a href="/blog/${post.slug}/" class="read-more">Read More →</a>
         </article>
-      `)
+      `;
+      })
       .join("");
 
     blogPostsContainer.innerHTML = html;
@@ -59,14 +76,6 @@ const loadBlogPosts = async () => {
     }
   }
 };
-
-const escapeHtml = (value) =>
-  String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 
 if (blogPostsContainer) {
   loadBlogPosts();

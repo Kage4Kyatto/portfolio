@@ -124,5 +124,59 @@
     "path": "/index.html",
     "locale": "en",
     "timestamp": "2026-06-17T19:39:22.305Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:40:42.218Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:40:57.998Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:40:58.508Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:40:59.054Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:40:59.686Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:41:00.225Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:41:00.824Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/my-page",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:41:01.329Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:42:23.786Z"
   }
 ]
