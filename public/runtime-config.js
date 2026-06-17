@@ -1,0 +1,1 @@
+window.PORTFOLIO_FASTIFY_URL = "";
