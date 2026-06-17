@@ -93,6 +93,17 @@ const applyLocale = (locale, dictionary) => {
       ? (dictionary.menu_nl || "NL")
       : (dictionary.menu_en || "EN");
   }
+
+  document.documentElement.setAttribute("lang", locale);
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    if (!key || !dictionary[key]) {
+      return;
+    }
+
+    element.textContent = dictionary[key];
+  });
 };
 
 const setupLanguageToggle = async () => {

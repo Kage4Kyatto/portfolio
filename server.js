@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const session = require("express-session");
+const crypto = require("crypto");
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -42,6 +43,22 @@ const loadEnvFile = (filePath) => {
 loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, ".env.local"));
 
+const requireEnv = (name) => {
+  const value = String(process.env[name] || "").trim();
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+};
+
+if (process.env.NODE_ENV === "production") {
+  requireEnv("ADMIN_SESSION_SECRET");
+  requireEnv("ADMIN_USER");
+  if (!process.env.ADMIN_PASS && !process.env.ADMIN_PASS_HASH) {
+    throw new Error("Set either ADMIN_PASS or ADMIN_PASS_HASH in production.");
+  }
+}
+
 const contactRoutes = require("./backend/node/routes/contactRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
@@ -79,6 +96,8 @@ const buildContentSecurityPolicy = () => {
     "default-src 'self'",
     "base-uri 'self'",
     "frame-ancestors 'none'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -88,6 +107,27 @@ const buildContentSecurityPolicy = () => {
 
   return rules.join("; ");
 };
+
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+  res.set("X-Request-Id", requestId);
+
+  const start = Date.now();
+  res.on("finish", () => {
+    const durationMs = Date.now() - start;
+    console.log(JSON.stringify({
+      level: "info",
+      requestId,
+      method: req.method,
+      path: req.originalUrl,
+      status: res.statusCode,
+      durationMs
+    }));
+  });
+
+  next();
+});
 
 app.use((req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");

@@ -112,6 +112,10 @@
             <label for="admin-pass">Password</label>
             <input id="admin-pass" name="admin-pass" type="password" required />
           </div>
+          <div>
+            <label for="admin-otp">OTP (optional)</label>
+            <input id="admin-otp" name="admin-otp" type="text" inputmode="numeric" autocomplete="one-time-code" />
+          </div>
           <div class="auth-action">
             <button class="btn primary" type="submit">Load Messages</button>
             <button id="admin-logout" class="btn secondary" type="button" hidden>Logout</button>

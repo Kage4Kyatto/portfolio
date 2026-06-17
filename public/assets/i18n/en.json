@@ -1,5 +1,13 @@
 {
   "menu_label": "Language",
   "menu_en": "EN",
-  "menu_nl": "NL"
+  "menu_nl": "NL",
+  "home_eyebrow": "Public GitHub Repositories",
+  "home_heading": "I build useful websites and practice repos.",
+  "home_lead": "I am Soeraj Balak, a beginner software developer building public projects like my portfolio website and my testing assignment repository. I work with HTML, CSS, JavaScript, TypeScript, PHP, Python, Symfony, and React.",
+  "home_cta_projects": "View Public Repositories",
+  "home_focus_heading": "Focus Areas",
+  "about_eyebrow": "About Me",
+  "about_heading": "Beginner Software Developer",
+  "about_lead": "I am Soeraj Balak, a beginner software developer focused on building practical, public-facing projects that improve my skills and showcase my progress. I work with HTML, CSS, JavaScript, TypeScript, PHP, Python, Symfony, and React, and I also use AI tools to support learning, development, and productivity."
 }

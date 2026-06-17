@@ -32,6 +32,7 @@
     "rust:message-summary": "cargo run --manifest-path tools/rust/message_summary/Cargo.toml --",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
+    "migrate:db": "node scripts/node/migrateDb.js",
     "reset:contact-data": "node tools/resetContactData.js",
     "clean:contact-data": "git restore --worktree backend/php/data/messages.json backend/php/data/contact_rate_limits.json"
   },
@@ -54,6 +55,7 @@
     "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.55.0",
     "nodemon": "^3.1.10",
+    "wait-on": "^8.0.3",
     "supertest": "^7.1.1",
     "typescript": "^6.0.3"
   }

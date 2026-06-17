@@ -1,5 +1,13 @@
 {
   "menu_label": "Taal",
   "menu_en": "EN",
-  "menu_nl": "NL"
+  "menu_nl": "NL",
+  "home_eyebrow": "Openbare GitHub-repositories",
+  "home_heading": "Ik bouw nuttige websites en oefenrepositories.",
+  "home_lead": "Ik ben Soeraj Balak, een beginnende softwareontwikkelaar die werkt aan openbare projecten zoals mijn portfolio-website en mijn testing-opdracht-repository. Ik werk met HTML, CSS, JavaScript, TypeScript, PHP, Python, Symfony en React.",
+  "home_cta_projects": "Bekijk openbare repositories",
+  "home_focus_heading": "Focusgebieden",
+  "about_eyebrow": "Over mij",
+  "about_heading": "Beginnende softwareontwikkelaar",
+  "about_lead": "Ik ben Soeraj Balak, een beginnende softwareontwikkelaar die zich richt op praktische, publieke projecten waarmee ik mijn vaardigheden verbeter en mijn voortgang laat zien. Ik werk met HTML, CSS, JavaScript, TypeScript, PHP, Python, Symfony en React, en ik gebruik AI-tools ter ondersteuning van leren, ontwikkeling en productiviteit."
 }

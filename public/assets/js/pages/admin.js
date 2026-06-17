@@ -10,6 +10,7 @@ const pageInfo = document.getElementById("page-info");
 const deliveryStatus = document.getElementById("delivery-status");
 const adminUserInput = document.getElementById("admin-user");
 const adminPassInput = document.getElementById("admin-pass");
+const adminOtpInput = document.getElementById("admin-otp");
 const logoutButton = document.getElementById("admin-logout");
 const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
@@ -23,6 +24,8 @@ let isLoadingMessages = false;
 let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
 let csrfToken = "";
+let inactivityTimer = null;
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
 const setDashboardVisibility = (isVisible) => {
   if (pagePanel) {
@@ -271,6 +274,34 @@ const loadAdminMetrics = async () => {
   }
 };
 
+const clearInactivityTimer = () => {
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = null;
+  }
+};
+
+const triggerInactivityLogout = () => {
+  if (!csrfToken || !logoutButton || logoutButton.hidden) {
+    return;
+  }
+
+  notice.textContent = "Session timed out due to inactivity.";
+  notice.className = "notice error";
+  logoutButton.click();
+};
+
+const scheduleInactivityTimeout = () => {
+  clearInactivityTimer();
+  inactivityTimer = setTimeout(triggerInactivityLogout, INACTIVITY_TIMEOUT_MS);
+};
+
+const bindInactivityEvents = () => {
+  ["pointerdown", "keydown", "mousemove", "touchstart"].forEach((eventName) => {
+    window.addEventListener(eventName, scheduleInactivityTimeout, { passive: true });
+  });
+};
+
 const hydrateSessionState = async () => {
   try {
     const state = await fetchJsonWithFallback(["/api/admin/session"]);
@@ -288,8 +319,10 @@ const hydrateSessionState = async () => {
 if (authForm && notice && tableBody) {
   setDashboardVisibility(false);
   loadDeliveryStatus();
+  bindInactivityEvents();
   hydrateSessionState().then((authenticated) => {
     if (authenticated) {
+      scheduleInactivityTimeout();
       authForm.requestSubmit();
     }
   });
@@ -321,6 +354,7 @@ if (authForm && notice && tableBody) {
 
     const username = adminUserInput?.value || "";
     const password = adminPassInput?.value || "";
+    const otp = adminOtpInput?.value?.trim() || "";
     const hasCredentials = Boolean(username && password);
 
     if (!hasCredentials && !csrfToken) {
@@ -343,7 +377,8 @@ if (authForm && notice && tableBody) {
         const loginResponse = await fetch("/api/admin/login", {
           method: "POST",
           headers: {
-            Authorization: `Basic ${token}`
+            Authorization: `Basic ${token}`,
+            ...(otp ? { "X-Admin-OTP": otp } : {})
           }
         });
 
@@ -370,6 +405,7 @@ if (authForm && notice && tableBody) {
       notice.textContent = `Loaded ${allMessages.length} message(s).`;
       notice.className = "notice success";
       loadAdminMetrics();
+      scheduleInactivityTimeout();
     } catch (error) {
       setDashboardVisibility(false);
       tableBody.innerHTML = '<tr><td colspan="6">Could not load messages.</td></tr>';
@@ -458,6 +494,10 @@ if (authForm && notice && tableBody) {
       adminPassInput.value = "";
     }
 
+    if (adminOtpInput) {
+      adminOtpInput.value = "";
+    }
+
     if (autoLoadTimer) {
       clearTimeout(autoLoadTimer);
       autoLoadTimer = null;
@@ -477,6 +517,7 @@ if (authForm && notice && tableBody) {
     }).catch(() => {});
 
     csrfToken = "";
+    clearInactivityTimer();
 
     setDashboardVisibility(false);
     notice.textContent = "Logged out.";

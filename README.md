@@ -50,6 +50,8 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
    - `ADMIN_USER=...`
    - `ADMIN_PASS=...`
    - Optional hash alternative: `ADMIN_PASS_HASH=<sha256-hex>`
+- Optional OTP requirement: `ADMIN_OTP_CODE=<code>`
+- For production Node runtime, set: `ADMIN_SESSION_SECRET`, `ADMIN_USER`, and either `ADMIN_PASS` or `ADMIN_PASS_HASH`
 4. Start local PHP server from project root:
    - `php -S localhost:8000 -t public`
 5. Open:
@@ -57,6 +59,7 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 
 ### Optional Runtime Tooling
 
+- Database migration (PostgreSQL): `npm run migrate:db`
 - TypeScript type-check: `npm run typecheck`
 - TypeScript build output: `npm run build:ts`
 - TypeScript message statistics report: `npm run stats:messages`
@@ -138,9 +141,9 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 
 ## SEO and Performance Notes
 
-- Added canonical and robots meta tags, OG URL metadata, and deferred script loading.
-- Added `public/robots.txt` and `public/sitemap.xml`.
-- Update `https://example.com` inside `public/sitemap.xml` to your real deployed domain.
+- Added canonical and robots meta tags, OG URL metadata, deferred script loading, and dynamic host-aware robots/sitemap responses from the Node runtime.
+- Added `public/robots.txt` and `public/sitemap.xml` static fallbacks for non-Node hosting.
+- Lighthouse CI runs against multiple pages and enforces score thresholds in `lighthouserc.json`.
 
 ## Tests and CI
 
@@ -150,7 +153,8 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 - Run TypeScript checks: `npm run typecheck`
 - Reset contact demo/test data to defaults: `npm run reset:contact-data`
 - Restore contact data files to the exact tracked Git state: `npm run clean:contact-data`
-- GitHub Actions workflow added at `.github/workflows/ci.yml` to run lint + test on pushes and pull requests.
+- GitHub Actions quality workflow: `.github/workflows/quality.yml`
+- GitHub Actions release workflow: `.github/workflows/release.yml`
 
 ## Added Languages and Tooling
 

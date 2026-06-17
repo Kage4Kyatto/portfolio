@@ -72,6 +72,15 @@
       "post": {
         "summary": "Start admin session",
         "security": [{ "basicAuth": [] }],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Admin-OTP",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Optional one-time code when ADMIN_OTP_CODE is configured"
+          }
+        ],
         "responses": {
           "200": { "description": "Session started" },
           "401": { "description": "Unauthorized" },
@@ -82,6 +91,15 @@
     "/api/admin/logout": {
       "post": {
         "summary": "Close admin session",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "CSRF token issued by /api/admin/session or /api/admin/login"
+          }
+        ],
         "responses": {
           "200": { "description": "Session closed" },
           "403": { "description": "Invalid CSRF token" }

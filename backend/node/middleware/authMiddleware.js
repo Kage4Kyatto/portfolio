@@ -130,6 +130,8 @@ const requireAdminAuth = async (req, res, next) => {
   const validUser = process.env.ADMIN_USER || "";
   const validPass = process.env.ADMIN_PASS || "";
   const validPassHash = process.env.ADMIN_PASS_HASH || "";
+  const validOtp = String(process.env.ADMIN_OTP_CODE || "").trim();
+  const providedOtp = String(req.headers["x-admin-otp"] || "").trim();
 
   if (!validUser || (!validPass && !validPassHash)) {
     return res.status(500).json({
@@ -144,8 +146,9 @@ const requireAdminAuth = async (req, res, next) => {
     credentials &&
     Boolean(validPassHash) &&
     safeEqual(toSha256Hex(credentials.password), validPassHash.toLowerCase());
+  const otpValid = !validOtp || (providedOtp && safeEqual(providedOtp, validOtp));
 
-  if (!usernameValid || (!plainPasswordValid && !hashedPasswordValid)) {
+  if (!usernameValid || (!plainPasswordValid && !hashedPasswordValid) || !otpValid) {
     const lockState = await registerFailedAttempt(req);
     res.set("WWW-Authenticate", 'Basic realm="Portfolio Admin"');
     if (lockState.locked) {
