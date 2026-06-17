@@ -472,5 +472,47 @@
     "path": "/index.html",
     "locale": "en",
     "timestamp": "2026-06-17T20:23:12.712Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/my-page",
+    "locale": "en",
+    "timestamp": "2026-06-17T20:33:59.918Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T20:34:01.286Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:34:09.149Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:35:33.396Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:36:06.977Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:36:17.398Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:36:21.464Z"
   }
 ]
