@@ -1560,6 +1560,9 @@ body.light-mode {
   --bg-elev: rgba(241, 245, 249, 0.9);
   --ink: #0f172a;
   --muted: #475569;
+  --line: rgba(15, 24, 42, 0.12);
+  --brand: #0ea5e9;
+  --brand-alt: #1e40af;
   color: var(--ink);
   background:
     radial-gradient(circle at 20% 0%, rgba(96, 165, 250, 0.06), transparent 24%),
@@ -1567,11 +1570,60 @@ body.light-mode {
     linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 42%, #f8fafc 100%);
 }
 
+/* Light mode text color overrides */
+body.light-mode .eyebrow {
+  color: #0ea5e9;
+}
+
+body.light-mode .site-header .logo,
+body.light-mode .site-header .logo-icon {
+  color: #1e40af;
+}
+
+body.light-mode .nav-links a {
+  color: #475569;
+}
+
+body.light-mode .nav-links a:hover,
+body.light-mode .nav-links a.active {
+  color: #0f172a;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode h6 {
+  color: #0f172a;
+}
+
 body.light-mode .site-header,
 body.light-mode .site-footer,
 body.light-mode .card {
   background: var(--bg-elev);
   border-color: rgba(15, 24, 42, 0.1);
+  color: #0f172a;
+}
+
+body.light-mode .site-header .nav-links a.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(14, 165, 233, 0.08));
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #1e40af;
+  box-shadow:
+    0 2px 8px rgba(59, 130, 246, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+body.light-mode .nav-links .github-link,
+body.light-mode .nav-links .guns-link {
+  color: #059669;
+}
+
+body.light-mode .nav-links .github-link:hover,
+body.light-mode .nav-links .guns-link:hover {
+  color: #047857;
 }
 
 body.light-mode a {
@@ -1580,6 +1632,62 @@ body.light-mode a {
 
 body.light-mode a:hover {
   color: #1d4ed8;
+}
+
+body.light-mode .btn {
+  color: #0f172a;
+}
+
+body.light-mode .btn:hover {
+  color: #000;
+}
+
+body.light-mode .lang-toggle__button {
+  color: #0f172a;
+  border-color: rgba(15, 24, 42, 0.2);
+  background: rgba(241, 245, 249, 0.7);
+}
+
+body.light-mode .lang-toggle__label {
+  color: #475569;
+}
+
+body.light-mode pre,
+body.light-mode code {
+  background: rgba(15, 24, 42, 0.05);
+  color: #0f172a;
+  border-color: rgba(15, 24, 42, 0.1);
+}
+
+body.light-mode .hero h1 {
+  color: transparent;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0f172a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+body.light-mode .lead {
+  color: #334155;
+}
+
+body.light-mode p {
+  color: #334155;
+}
+
+body.light-mode li {
+  color: #334155;
+}
+
+body.light-mode .back-nav-btn {
+  color: #334155;
+  border-color: rgba(15, 24, 42, 0.15);
+  background: rgba(241, 245, 249, 0.6);
+}
+
+body.light-mode .back-nav-btn:hover {
+  color: #0f172a;
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(219, 234, 254, 0.5);
 }
 
 /* Theme Toggle Button */
