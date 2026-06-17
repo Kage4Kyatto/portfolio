@@ -45,6 +45,73 @@ body {
   font-size: 16px;
 }
 
+.home-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(125, 211, 252, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(8, 15, 30, 0.98));
+  animation: splashFadeOut 3.8s cubic-bezier(0.65, 0, 0.35, 1) 0.12s forwards;
+}
+
+.home-splash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 32%, rgba(255, 255, 255, 0.08) 46%, rgba(125, 211, 252, 0.18) 50%, rgba(255, 255, 255, 0.08) 54%, transparent 68%);
+  transform: translateX(-22%) skewX(-14deg);
+  opacity: 0;
+  animation: splashSweep 3.2s ease-in-out 0.26s forwards;
+  pointer-events: none;
+}
+
+.home-splash__frame {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+  position: relative;
+  padding: 28px 34px 30px;
+}
+
+.home-splash__frame::before {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: min(62vw, 320px);
+  height: min(62vw, 320px);
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.1) 0%, rgba(59, 130, 246, 0.03) 38%, transparent 72%);
+  transform: translate(-50%, -50%) scale(0.86);
+  opacity: 0;
+  filter: blur(1px);
+  animation: splashPulse 3.2s cubic-bezier(0.45, 0, 0.25, 1) 0.1s forwards;
+}
+
+.home-splash__mark {
+  width: min(42vw, 220px);
+  height: auto;
+  opacity: 0;
+  transform: scale(0.78) rotate(-4deg);
+  filter: drop-shadow(0 32px 64px rgba(59, 130, 246, 0.34));
+  animation: splashMark 3.2s cubic-bezier(0.55, 0, 0.2, 1) 0.16s forwards;
+}
+
+.home-splash__label {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.72);
+  opacity: 0;
+  animation: splashLabel 3.2s cubic-bezier(0.55, 0, 0.2, 1) 0.22s forwards;
+}
+
 .cursor-glow {
   position: fixed;
   top: 0;
@@ -612,6 +679,172 @@ main {
   margin-top: 16px;
 }
 
+.projects-code-panel {
+  margin-top: 6px;
+}
+
+.projects-code-panel .lead {
+  margin-bottom: 20px;
+}
+
+.code-card {
+  padding: 22px 20px 18px;
+  max-width: 860px;
+}
+
+.code-card h3 {
+  margin-bottom: 14px;
+}
+
+.code-snippet {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  overflow-x: auto;
+  color: #cbd5e1;
+}
+
+.code-snippet code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.home-page main > * {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: homeContentIn 0.92s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.home-page main > *:nth-child(1) {
+  animation-delay: 3.35s;
+}
+
+.home-page main > *:nth-child(2) {
+  animation-delay: 3.5s;
+}
+
+.home-page main > *:nth-child(3) {
+  animation-delay: 3.65s;
+}
+
+.home-page main > *:nth-child(4) {
+  animation-delay: 3.8s;
+}
+
+.home-page main > *:nth-child(5) {
+  animation-delay: 3.95s;
+}
+
+@keyframes splashMark {
+  0% {
+    opacity: 0;
+    transform: scale(0.76) rotate(-5deg);
+  }
+  16% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.16) rotate(2deg);
+  }
+}
+
+@keyframes splashLabel {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  76% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes splashPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.78);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes splashFadeOut {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  82% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+@keyframes splashSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-28%) skewX(-14deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.55;
+    transform: translateX(10%) skewX(-14deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(28%) skewX(-14deg);
+  }
+}
+
+@keyframes homeContentIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 .admin-page .page-panel {
   padding: 32px;
 }
@@ -1049,6 +1282,33 @@ th {
   .projects-page .page-panel {
     padding-right: 96px;
   }
+
+  .code-sample {
+    font-size: 0.8rem;
+  }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .home-splash,
+  .home-splash__mark,
+  .home-splash__frame::before,
+  .home-splash::after,
+  .home-splash__label,
+  .bg-blob,
+  .home-page main > * {
+    animation: none !important;
+  }
+
+  .home-splash {
+    display: none;
+  }
+
+  .home-page main > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
 
   .projects-hero-link .github-icon {
     width: 34px;

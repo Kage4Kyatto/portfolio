@@ -144,6 +144,20 @@
           <p><strong>Focus:</strong> semantic HTML, reusable CSS patterns, and interactive JavaScript UI behavior</p>
         </article>
       </section>
+
+      <section class="page-panel reveal projects-code-panel">
+        <p class="eyebrow">Behind the Scenes</p>
+        <h2 class="section-title">One compact implementation sample</h2>
+        <p class="lead">This keeps the page focused while still showing a small slice of the real code behind the site.</p>
+
+        <article class="card reveal code-card">
+          <span class="tag">Server Route</span>
+          <h3>Custom page routing</h3>
+          <div class="code-snippet" aria-label="Example code snippet">
+            <code>app.get(&quot;/my-page&quot;, (req, res) =&gt; res.sendFile(path.join(__dirname, &quot;public&quot;, &quot;my-page.html&quot;)));</code>
+          </div>
+        </article>
+      </section>
     </main>
 
     <footer class="site-footer">
