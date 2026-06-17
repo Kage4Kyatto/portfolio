@@ -52,6 +52,44 @@
 
       <section class="grid-3">
         <article class="card reveal">
+          <span class="tag">Purpose</span>
+          <h3>Why Testing Repo Exists</h3>
+          <p>Provides a low-risk environment to experiment with code patterns, test deployment strategies, and validate new approaches before applying them to production repositories.</p>
+          <ul class="clean">
+            <li>Safe space for experimentation</li>
+            <li>Validation ground for new ideas</li>
+            <li>Learning lab for tools and frameworks</li>
+            <li>Pattern proof-of-concept repository</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Practice</span>
+          <h3>Development Workflow</h3>
+          <p>Uses a disciplined approach to changes with validation at each step, ensuring that any adopted pattern is production-ready before wider application.</p>
+          <ul class="clean">
+            <li>Write code and run lint checks</li>
+            <li>Execute full test suite</li>
+            <li>Review changes and commit with intent</li>
+            <li>Document learnings and outcomes</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Results</span>
+          <h3>Benefits Over Time</h3>
+          <p>This disciplined approach has resulted in cleaner production repositories, fewer regressions, and more confident deployments across all projects.</p>
+          <ul class="clean">
+            <li>✅ Reduced production bugs</li>
+            <li>✅ Proven deployment patterns</li>
+            <li>✅ Reusable code components</li>
+            <li>✅ Documented best practices</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid-3">
+        <article class="card reveal">
           <span class="tag">Focus</span>
           <h3>What gets practiced</h3>
           <ul class="clean">
@@ -81,6 +119,87 @@
             <li>Keeps project quality steady over time</li>
           </ul>
         </article>
+      </section>
+
+      <section class="page-panel reveal">
+        <p class="eyebrow">Key Practices</p>
+        <h2>Development Disciplines</h2>
+        <p class="lead">The testing repository enforces a set of practices that have proven effective across multiple projects.</p>
+      </section>
+
+      <section class="grid-2">
+        <article class="card reveal">
+          <span class="tag">Code Quality</span>
+          <h3>Ensuring Reliability</h3>
+          <ul class="clean">
+            <li><strong>Linting:</strong> Catch syntax errors early with node --check</li>
+            <li><strong>Testing:</strong> Validate behavior with unit and integration tests</li>
+            <li><strong>Type Checking:</strong> Use JSDoc types for better IDE support</li>
+            <li><strong>Code Review:</strong> Self-review before committing changes</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Git Workflow</span>
+          <h3>Clean History and Intent</h3>
+          <ul class="clean">
+            <li><strong>Atomic Commits:</strong> One feature or fix per commit</li>
+            <li><strong>Clear Messages:</strong> Descriptive commit messages with context</li>
+            <li><strong>Feature Branches:</strong> Separate work for easier isolation</li>
+            <li><strong>Regular Pushes:</strong> Keep remote repository in sync</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid-2">
+        <article class="card reveal">
+          <h3>Pattern Validation</h3>
+          <ul class="clean">
+            <li>Test framework integrations (Jest, Playwright, etc.)</li>
+            <li>Security patterns (CORS, rate limiting, validation)</li>
+            <li>Performance optimizations (caching, lazy loading, compression)</li>
+            <li>Accessibility practices (ARIA, semantic HTML, keyboard nav)</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <h3>Lessons Captured</h3>
+          <ul class="clean">
+            <li>What patterns work in real scenarios</li>
+            <li>Common pitfalls and how to avoid them</li>
+            <li>Performance characteristics of different approaches</li>
+            <li>Tools and configurations that improve DX</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="page-panel reveal">
+        <p class="eyebrow">Integration Strategy</p>
+        <h2>From Testing to Production</h2>
+        <p class="lead">Successful patterns from this repository are carefully selected and integrated into main projects with documentation.</p>
+      </section>
+
+      <section class="card reveal">
+        <h3>Promotion Criteria</h3>
+        <p style="margin: 12px 0;">Patterns are promoted to production projects when they meet these standards:</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+          <div>
+            <h4>Proven Reliable</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Tested across multiple scenarios with zero regressions and full test coverage.</p>
+          </div>
+          <div>
+            <h4>Well Documented</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Clear implementation guides and inline comments explain the pattern's purpose.</p>
+          </div>
+          <div>
+            <h4>Performance Vetted</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Measured and acceptable performance impact with no unexpected side effects.</p>
+          </div>
+          <div>
+            <h4>Maintainable Code</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Clean, idiomatic code that follows project conventions and best practices.</p>
+          </div>
+        </div>
       </section>
 
       <section class="page-panel reveal">

@@ -52,6 +52,43 @@
 
       <section class="grid-3">
         <article class="card reveal">
+          <span class="tag">Challenge</span>
+          <h3>The Problem</h3>
+          <p>Building a portfolio that demonstrates full-stack capabilities while remaining secure, maintainable, and showcasing best practices in modern web development.</p>
+          <ul class="clean">
+            <li>Needed multi-layer security (authentication, rate limiting, XSS prevention)</li>
+            <li>Required message persistence and admin management</li>
+            <li>Had to work across multiple runtime environments</li>
+            <li>Demanded production-ready error tracking</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Solution</span>
+          <h3>The Approach</h3>
+          <p>A polyglot architecture combining static content delivery with protected API endpoints, layered security middleware, and comprehensive monitoring.</p>
+          <ul class="clean">
+            <li>Express server with Helmet security headers</li>
+            <li>Session-based admin authentication with OTP support</li>
+            <li>Per-endpoint rate limiting and input sanitization</li>
+            <li>Sentry error tracking for production monitoring</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Results</span>
+          <h3>Key Metrics</h3>
+          <ul class="clean">
+            <li>✅ Zero critical security vulnerabilities</li>
+            <li>✅ 100% test pass rate (9/9 tests)</li>
+            <li>✅ Admin dashboard with analytics and filtering</li>
+            <li>✅ Production-ready deployment configs</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid-3">
+        <article class="card reveal">
           <span class="tag">Stack</span>
           <h3>Core technologies</h3>
           <ul class="clean">
@@ -81,6 +118,93 @@
             <li>Admin lockout for repeated failed auth attempts</li>
           </ul>
         </article>
+      </section>
+
+      <section class="page-panel reveal">
+        <p class="eyebrow">Architecture</p>
+        <h2>System Design Overview</h2>
+        <p class="lead">The platform uses a layered approach with clear separation of concerns.</p>
+      </section>
+
+      <section class="grid-2">
+        <article class="card reveal">
+          <span class="tag">Security Layers</span>
+          <h3>Defense in Depth</h3>
+          <ul class="clean">
+            <li><strong>Transport:</strong> HTTPS with Helmet security headers</li>
+            <li><strong>Authentication:</strong> Session-based with credential validation</li>
+            <li><strong>Rate Limiting:</strong> Per-endpoint sliding window counters</li>
+            <li><strong>Input Validation:</strong> XSS sanitization and email validation</li>
+            <li><strong>Monitoring:</strong> Sentry error tracking and performance tracing</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <span class="tag">Feature Stack</span>
+          <h3>Core Capabilities</h3>
+          <ul class="clean">
+            <li><strong>Admin Dashboard:</strong> Real-time analytics and message management</li>
+            <li><strong>Contact API:</strong> Form submission with validation and persistence</li>
+            <li><strong>Blog System:</strong> Dynamic post management with pagination</li>
+            <li><strong>Dark Mode:</strong> Client-side theme toggle with localStorage</li>
+            <li><strong>Notifications:</strong> Toast system with accessibility support</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="page-panel reveal">
+        <p class="eyebrow">Development Journey</p>
+        <h2>Lessons Learned</h2>
+        <p class="lead">Building this portfolio revealed key insights about web development practices.</p>
+      </section>
+
+      <section class="grid-2">
+        <article class="card reveal">
+          <h3>What Worked Well</h3>
+          <ul class="clean">
+            <li>Layered validation (client + server) catches errors early</li>
+            <li>Test-driven development prevented regressions</li>
+            <li>Modular middleware design made security easy to reason about</li>
+            <li>Clear separation of concerns simplified debugging</li>
+          </ul>
+        </article>
+
+        <article class="card reveal">
+          <h3>Key Improvements</h3>
+          <ul class="clean">
+            <li>Image lazy loading reduced initial bundle size</li>
+            <li>Per-endpoint rate limiting is better than global limits</li>
+            <li>Schema.org structured data improves SEO and accessibility</li>
+            <li>Admin analytics reveal actual user patterns</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="page-panel reveal">
+        <p class="eyebrow">Deployment</p>
+        <h2>Production Readiness</h2>
+        <p class="lead">The platform is configured for multiple deployment environments.</p>
+      </section>
+
+      <section class="card reveal">
+        <h3>Deployment Targets</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px;">
+          <div>
+            <h4>Render.com</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin: 8px 0;">Cloud platform with built-in CI/CD, automatic deployments from GitHub, and managed PostgreSQL.</p>
+            <code style="font-size: 0.85rem; background: var(--bg-secondary); padding: 8px; border-radius: 4px; display: block;">render.yaml</code>
+          </div>
+          <div>
+            <h4>Railway</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin: 8px 0;">Infrastructure platform with Docker support, environment variables, and easy scaling.</p>
+            <code style="font-size: 0.85rem; background: var(--bg-secondary); padding: 8px; border-radius: 4px; display: block;">railway.json</code>
+          </div>
+          <div>
+            <h4>Docker</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin: 8px 0;">Containerized deployment with Docker Compose for local development and production environments.</p>
+            <code style="font-size: 0.85rem; background: var(--bg-secondary); padding: 8px; border-radius: 4px; display: block;">Dockerfile</code>
+          </div>
+        </div>
       </section>
 
       <section class="page-panel reveal">
