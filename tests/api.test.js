@@ -93,3 +93,36 @@ test("POST /api/contact applies rate limiting", async () => {
   assert.equal(lastResponse.status, 429);
   assert.equal(lastResponse.body.success, false);
 });
+
+test("admin session login and logout flow works", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  assert.equal(loginResponse.status, 200);
+  assert.equal(loginResponse.body.success, true);
+  assert.ok(loginResponse.body.csrfToken);
+
+  const cookie = loginResponse.headers["set-cookie"];
+  assert.ok(cookie);
+
+  const metricsResponse = await request(app)
+    .get("/api/admin/metrics")
+    .set("Cookie", cookie);
+
+  assert.equal(metricsResponse.status, 200);
+  assert.equal(metricsResponse.body.success, true);
+  assert.ok(metricsResponse.body.metrics);
+
+  const logoutResponse = await request(app)
+    .post("/api/admin/logout")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", loginResponse.body.csrfToken);
+
+  assert.equal(logoutResponse.status, 200);
+  assert.equal(logoutResponse.body.success, true);
+});

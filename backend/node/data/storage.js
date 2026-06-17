@@ -3,6 +3,9 @@ const path = require("path");
 
 const messagesPath = path.join(__dirname, "..", "..", "php", "data", "messages.json");
 const contactRateLimitsPath = path.join(__dirname, "..", "..", "php", "data", "contact_rate_limits.json");
+const adminAuthAttemptsPath = path.join(__dirname, "..", "..", "php", "data", "admin_auth_attempts.json");
+const notificationQueuePath = path.join(__dirname, "..", "..", "php", "data", "notification_queue.json");
+const telemetryPath = path.join(__dirname, "..", "..", "php", "data", "telemetry_events.json");
 
 const databaseUrl = String(process.env.PORTFOLIO_DATABASE_URL || process.env.DATABASE_URL || "").trim();
 const shouldUseDatabase = Boolean(databaseUrl);
@@ -53,6 +56,35 @@ const ensureDb = async () => {
           count INTEGER NOT NULL,
           window_start BIGINT NOT NULL,
           last_attempt BIGINT NOT NULL
+        );
+      `);
+
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS admin_auth_attempts (
+          ip TEXT PRIMARY KEY,
+          count INTEGER NOT NULL,
+          first_attempt_at BIGINT NOT NULL,
+          last_attempt_at BIGINT NOT NULL,
+          locked_until BIGINT NOT NULL
+        );
+      `);
+
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS notification_queue (
+          id BIGINT PRIMARY KEY,
+          payload JSONB NOT NULL,
+          attempts INTEGER NOT NULL,
+          next_attempt_at BIGINT NOT NULL
+        );
+      `);
+
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS telemetry_events (
+          id BIGSERIAL PRIMARY KEY,
+          event TEXT NOT NULL,
+          path TEXT NOT NULL,
+          locale TEXT NOT NULL,
+          timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
       `);
     })();
@@ -173,9 +205,152 @@ const saveRateLimits = async (limits) => {
   await writeJsonFile(contactRateLimitsPath, limits);
 };
 
+const getAuthAttempts = async () => {
+  if (await ensureDb()) {
+    const db = getPool();
+    const result = await db.query("SELECT ip, count, first_attempt_at, last_attempt_at, locked_until FROM admin_auth_attempts");
+
+    return result.rows.reduce((acc, row) => {
+      acc[row.ip] = {
+        count: Number(row.count),
+        firstAttemptAt: Number(row.first_attempt_at),
+        lastAttemptAt: Number(row.last_attempt_at),
+        lockedUntil: Number(row.locked_until)
+      };
+      return acc;
+    }, {});
+  }
+
+  return readJsonFile(adminAuthAttemptsPath, {});
+};
+
+const saveAuthAttempts = async (attempts) => {
+  if (await ensureDb()) {
+    const db = getPool();
+    await db.query("DELETE FROM admin_auth_attempts");
+
+    const ips = Object.keys(attempts);
+    for (const ip of ips) {
+      const entry = attempts[ip];
+      await db.query(
+        `
+          INSERT INTO admin_auth_attempts (ip, count, first_attempt_at, last_attempt_at, locked_until)
+          VALUES ($1, $2, $3, $4, $5)
+        `,
+        [
+          ip,
+          Number(entry.count || 0),
+          Number(entry.firstAttemptAt || 0),
+          Number(entry.lastAttemptAt || 0),
+          Number(entry.lockedUntil || 0)
+        ]
+      );
+    }
+
+    return;
+  }
+
+  await writeJsonFile(adminAuthAttemptsPath, attempts);
+};
+
+const getNotificationQueue = async () => {
+  if (await ensureDb()) {
+    const db = getPool();
+    const result = await db.query(
+      "SELECT id, payload, attempts, next_attempt_at FROM notification_queue ORDER BY next_attempt_at ASC, id ASC"
+    );
+
+    return result.rows.map((row) => ({
+      id: Number(row.id),
+      payload: row.payload,
+      attempts: Number(row.attempts),
+      nextAttemptAt: Number(row.next_attempt_at)
+    }));
+  }
+
+  return readJsonFile(notificationQueuePath, []);
+};
+
+const saveNotificationQueue = async (queue) => {
+  if (await ensureDb()) {
+    const db = getPool();
+    await db.query("DELETE FROM notification_queue");
+
+    for (const job of queue) {
+      await db.query(
+        `
+          INSERT INTO notification_queue (id, payload, attempts, next_attempt_at)
+          VALUES ($1, $2::jsonb, $3, $4)
+        `,
+        [
+          Number(job.id),
+          JSON.stringify(job.payload || {}),
+          Number(job.attempts || 0),
+          Number(job.nextAttemptAt || 0)
+        ]
+      );
+    }
+
+    return;
+  }
+
+  await writeJsonFile(notificationQueuePath, queue);
+};
+
+const appendTelemetryEvent = async (eventPayload) => {
+  if (await ensureDb()) {
+    const db = getPool();
+    await db.query(
+      `
+        INSERT INTO telemetry_events (event, path, locale, timestamp)
+        VALUES ($1, $2, $3, $4)
+      `,
+      [
+        String(eventPayload.event || "pageview"),
+        String(eventPayload.path || "/"),
+        String(eventPayload.locale || "en"),
+        eventPayload.timestamp || new Date().toISOString()
+      ]
+    );
+    return;
+  }
+
+  let events = await readJsonFile(telemetryPath, []);
+  events.push(eventPayload);
+  if (events.length > 1000) {
+    events = events.slice(events.length - 1000);
+  }
+  await writeJsonFile(telemetryPath, events);
+};
+
+const getSystemMetrics = async () => {
+  const [messages, rateLimits, authAttempts, queue] = await Promise.all([
+    getMessages(),
+    getRateLimits(),
+    getAuthAttempts(),
+    getNotificationQueue()
+  ]);
+
+  const activeRateLimits = Object.keys(rateLimits).length;
+  const lockedAuthIps = Object.values(authAttempts).filter((entry) => Number(entry.lockedUntil || 0) > Date.now()).length;
+
+  return {
+    messageCount: messages.length,
+    activeRateLimits,
+    lockedAuthIps,
+    queueDepth: queue.length
+  };
+};
+
 module.exports = {
   getMessages,
   addMessage,
   getRateLimits,
-  saveRateLimits
+  saveRateLimits,
+  getAuthAttempts,
+  saveAuthAttempts,
+  getNotificationQueue,
+  saveNotificationQueue,
+  appendTelemetryEvent,
+  getSystemMetrics
 };

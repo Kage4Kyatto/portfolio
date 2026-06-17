@@ -22,6 +22,7 @@ let pageSize = Number(pageSizeSelect?.value || 10);
 let isLoadingMessages = false;
 let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
+let csrfToken = "";
 
 const setDashboardVisibility = (isVisible) => {
   if (pagePanel) {
@@ -252,9 +253,46 @@ const loadDeliveryStatus = async () => {
   }
 };
 
+const loadAdminMetrics = async () => {
+  if (!deliveryStatus) {
+    return;
+  }
+
+  try {
+    const result = await fetchJsonWithFallback(["/api/admin/metrics"]);
+    const metrics = result?.metrics;
+    if (!metrics) {
+      return;
+    }
+
+    deliveryStatus.textContent = `${deliveryStatus.textContent} | Queue: ${metrics.queueDepth} | Lockouts: ${metrics.lockedAuthIps}`;
+  } catch {
+    // Metrics are optional and should not block page functionality.
+  }
+};
+
+const hydrateSessionState = async () => {
+  try {
+    const state = await fetchJsonWithFallback(["/api/admin/session"]);
+    csrfToken = state?.csrfToken || "";
+    if (state?.authenticated) {
+      return true;
+    }
+  } catch {
+    // Ignore session bootstrap errors and allow manual login.
+  }
+
+  return false;
+};
+
 if (authForm && notice && tableBody) {
   setDashboardVisibility(false);
   loadDeliveryStatus();
+  hydrateSessionState().then((authenticated) => {
+    if (authenticated) {
+      authForm.requestSubmit();
+    }
+  });
 
   const scheduleAutoLoad = () => {
     const username = adminUserInput?.value?.trim() || "";
@@ -283,8 +321,9 @@ if (authForm && notice && tableBody) {
 
     const username = adminUserInput?.value || "";
     const password = adminPassInput?.value || "";
+    const hasCredentials = Boolean(username && password);
 
-    if (!username || !password) {
+    if (!hasCredentials && !csrfToken) {
       notice.textContent = "Username and password are required.";
       notice.className = "notice error";
       return;
@@ -300,17 +339,37 @@ if (authForm && notice && tableBody) {
     notice.className = "notice";
 
     try {
-      allMessages = await fetchJsonWithFallback(["/api/messages", "/api/messages.php"], {
-        headers: {
-          Authorization: `Basic ${token}`
+      if (hasCredentials) {
+        const loginResponse = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${token}`
+          }
+        });
+
+        if (!loginResponse.ok && loginResponse.status !== 401 && loginResponse.status !== 429) {
+          throw new Error(`Admin login failed with status ${loginResponse.status}.`);
         }
-      });
+
+        const loginBody = await loginResponse.json().catch(() => null);
+        if (!loginResponse.ok) {
+          const error = new Error(loginBody?.message || "Unauthorized");
+          error.retryAfterSec = loginBody?.retryAfterSec;
+          error.attemptsRemaining = loginBody?.attemptsRemaining;
+          throw error;
+        }
+
+        csrfToken = loginBody?.csrfToken || csrfToken;
+      }
+
+      allMessages = await fetchJsonWithFallback(["/api/messages", "/api/messages.php"]);
 
       currentPage = 1;
       setDashboardVisibility(true);
       render();
       notice.textContent = `Loaded ${allMessages.length} message(s).`;
       notice.className = "notice success";
+      loadAdminMetrics();
     } catch (error) {
       setDashboardVisibility(false);
       tableBody.innerHTML = '<tr><td colspan="6">Could not load messages.</td></tr>';
@@ -406,6 +465,18 @@ if (authForm && notice && tableBody) {
 
     lastAttemptFingerprint = "";
     isLoadingMessages = false;
+    const tokenForLogout = csrfToken;
+
+    fetch("/api/admin/logout", {
+      method: "POST",
+      headers: tokenForLogout
+        ? {
+          "X-CSRF-Token": tokenForLogout
+        }
+        : {}
+    }).catch(() => {});
+
+    csrfToken = "";
 
     setDashboardVisibility(false);
     notice.textContent = "Logged out.";

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Portfolio API",
-    "version": "1.1.0",
-    "description": "API for contact submissions, health, admin message retrieval, and telemetry ingestion."
+    "version": "1.2.0",
+    "description": "API for contact submissions, health, admin session flows, message retrieval, metrics, and telemetry ingestion."
   },
   "servers": [
     {
@@ -57,6 +57,43 @@
           "200": { "description": "Message list" },
           "401": { "description": "Unauthorized" },
           "429": { "description": "Locked out" }
+        }
+      }
+    },
+    "/api/admin/session": {
+      "get": {
+        "summary": "Get admin session state",
+        "responses": {
+          "200": { "description": "Session state" }
+        }
+      }
+    },
+    "/api/admin/login": {
+      "post": {
+        "summary": "Start admin session",
+        "security": [{ "basicAuth": [] }],
+        "responses": {
+          "200": { "description": "Session started" },
+          "401": { "description": "Unauthorized" },
+          "429": { "description": "Locked out" }
+        }
+      }
+    },
+    "/api/admin/logout": {
+      "post": {
+        "summary": "Close admin session",
+        "responses": {
+          "200": { "description": "Session closed" },
+          "403": { "description": "Invalid CSRF token" }
+        }
+      }
+    },
+    "/api/admin/metrics": {
+      "get": {
+        "summary": "Get admin diagnostics metrics",
+        "responses": {
+          "200": { "description": "Metrics payload" },
+          "401": { "description": "Unauthorized" }
         }
       }
     },

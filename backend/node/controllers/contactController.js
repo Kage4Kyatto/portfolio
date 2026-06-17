@@ -136,7 +136,7 @@ const submitContact = async (req, res) => {
       type: "contact_message",
       messageId: newMessage.id,
       createdAt: newMessage.createdAt
-    });
+    }).catch(() => {});
 
     return res.status(201).json({
       success: true,

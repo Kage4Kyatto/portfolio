@@ -16,5 +16,47 @@
     "path": "/index.html",
     "locale": "en",
     "timestamp": "2026-06-17T19:03:09.048Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/about.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:04:18.080Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:04:21.989Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:04:32.497Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:04:33.822Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:04:34.491Z"
+  },
+  {
+    "event": "language_toggle",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:04:35.054Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:08:22.349Z"
   }
 ]

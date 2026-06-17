@@ -1,24 +1,11 @@
 const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
+const { getAuthAttempts, saveAuthAttempts } = require("../data/storage");
 
-const adminAuthAttemptsPath = path.join(__dirname, "..", "..", "php", "data", "admin_auth_attempts.json");
 const ADMIN_AUTH_WINDOW_MS = Number(process.env.ADMIN_AUTH_WINDOW_MS || 15 * 60 * 1000);
 const ADMIN_AUTH_MAX_ATTEMPTS = Number(process.env.ADMIN_AUTH_MAX_ATTEMPTS || 8);
 const ADMIN_AUTH_LOCK_MS = Number(process.env.ADMIN_AUTH_LOCK_MS || 15 * 60 * 1000);
-
-const readAuthAttempts = () => {
-  try {
-    const file = fs.readFileSync(adminAuthAttemptsPath, "utf8");
-    return JSON.parse(file || "{}");
-  } catch (error) {
-    return {};
-  }
-};
-
-const writeAuthAttempts = (attempts) => {
-  fs.writeFileSync(adminAuthAttemptsPath, JSON.stringify(attempts, null, 2));
-};
+const SESSION_KEY = "portfolioAdmin";
+const CSRF_KEY = "portfolioCsrfToken";
 
 const getClientIp = (req) => {
   const forwardedForHeader = req.headers["x-forwarded-for"];
@@ -53,8 +40,8 @@ const getActiveAttemptEntry = (attempts, ip, now) => {
   return current;
 };
 
-const registerFailedAttempt = (req) => {
-  const attempts = readAuthAttempts();
+const registerFailedAttempt = async (req) => {
+  const attempts = await getAuthAttempts();
   const now = Date.now();
   const ip = getClientIp(req);
   const active = getActiveAttemptEntry(attempts, ip, now);
@@ -65,7 +52,7 @@ const registerFailedAttempt = (req) => {
       ...active,
       lastAttemptAt: now
     };
-    writeAuthAttempts(attempts);
+    await saveAuthAttempts(attempts);
     return {
       locked: true,
       retryAfterSec: Math.ceil((Number(active.lockedUntil || now) - now) / 1000),
@@ -85,7 +72,7 @@ const registerFailedAttempt = (req) => {
     lockedUntil
   };
 
-  writeAuthAttempts(attempts);
+  await saveAuthAttempts(attempts);
 
   return {
     locked: shouldLock,
@@ -94,13 +81,13 @@ const registerFailedAttempt = (req) => {
   };
 };
 
-const clearFailedAttempts = (req) => {
-  const attempts = readAuthAttempts();
+const clearFailedAttempts = async (req) => {
+  const attempts = await getAuthAttempts();
   const ip = getClientIp(req);
 
   if (attempts[ip]) {
     delete attempts[ip];
-    writeAuthAttempts(attempts);
+    await saveAuthAttempts(attempts);
   }
 };
 
@@ -136,7 +123,7 @@ const safeEqual = (left, right) => {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 };
 
-const requireAdminAuth = (req, res, next) => {
+const requireAdminAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const credentials = decodeCredentials(authHeader);
 
@@ -159,7 +146,7 @@ const requireAdminAuth = (req, res, next) => {
     safeEqual(toSha256Hex(credentials.password), validPassHash.toLowerCase());
 
   if (!usernameValid || (!plainPasswordValid && !hashedPasswordValid)) {
-    const lockState = registerFailedAttempt(req);
+    const lockState = await registerFailedAttempt(req);
     res.set("WWW-Authenticate", 'Basic realm="Portfolio Admin"');
     if (lockState.locked) {
       res.set("Retry-After", String(lockState.retryAfterSec));
@@ -175,11 +162,81 @@ const requireAdminAuth = (req, res, next) => {
     });
   }
 
-  clearFailedAttempts(req);
+  await clearFailedAttempts(req);
 
   return next();
 };
 
+const createCsrfToken = () => crypto.randomBytes(24).toString("hex");
+
+const isSessionAuthenticated = (req) => Boolean(req.session && req.session[SESSION_KEY]);
+
+const requireAdminSession = (req, res, next) => {
+  if (!isSessionAuthenticated(req)) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized"
+    });
+  }
+
+  return next();
+};
+
+const requireAdminSessionOrBasic = async (req, res, next) => {
+  if (isSessionAuthenticated(req)) {
+    return next();
+  }
+
+  return requireAdminAuth(req, res, next);
+};
+
+const requireCsrfToken = (req, res, next) => {
+  const sessionToken = req.session?.[CSRF_KEY];
+  const requestToken = req.headers["x-csrf-token"];
+
+  if (!sessionToken || !requestToken || !safeEqual(String(sessionToken), String(requestToken))) {
+    return res.status(403).json({
+      success: false,
+      message: "Invalid CSRF token."
+    });
+  }
+
+  return next();
+};
+
+const startAdminSession = (req) => {
+  if (!req.session) {
+    return null;
+  }
+
+  req.session[SESSION_KEY] = true;
+  req.session[CSRF_KEY] = createCsrfToken();
+  return req.session[CSRF_KEY];
+};
+
+const endAdminSession = (req, callback) => {
+  if (!req.session) {
+    callback();
+    return;
+  }
+
+  req.session.destroy(() => callback());
+};
+
+const getAdminSessionState = (req) => {
+  const authenticated = isSessionAuthenticated(req);
+  return {
+    authenticated,
+    csrfToken: authenticated ? req.session?.[CSRF_KEY] : null
+  };
+};
+
 module.exports = {
-  requireAdminAuth
+  requireAdminAuth,
+  requireAdminSession,
+  requireAdminSessionOrBasic,
+  requireCsrfToken,
+  startAdminSession,
+  endAdminSession,
+  getAdminSessionState
 };

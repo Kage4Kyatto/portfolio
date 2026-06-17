@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const session = require("express-session");
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -44,12 +45,12 @@ loadEnvFile(path.join(__dirname, ".env.local"));
 const contactRoutes = require("./backend/node/routes/contactRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
+const { appendTelemetryEvent } = require("./backend/node/data/storage");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
 const OPENAPI_PATH = path.join(__dirname, "docs", "openapi.json");
-const TELEMETRY_PATH = path.join(__dirname, "backend", "php", "data", "telemetry_events.json");
 const JSON_LD_SCRIPT_HASHES = [
   "'sha256-7WKXOPhSZZW0/+9GR67no2PUzCLq78mCbn4FD1wEYwQ='",
   "'sha256-PL99IjC6uRaMSG9gHbDjSHKfzeOkhYYYgrUBj9g2WKo='",
@@ -71,27 +72,6 @@ const SITEMAP_ROUTES = [
   { loc: "/project-portfolio-platform.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
   { loc: "/project-testing-assignment.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD }
 ];
-
-const appendTelemetryEvent = (eventPayload) => {
-  let events = [];
-  try {
-    const current = fs.readFileSync(TELEMETRY_PATH, "utf8");
-    events = JSON.parse(current || "[]");
-    if (!Array.isArray(events)) {
-      events = [];
-    }
-  } catch (error) {
-    events = [];
-  }
-
-  events.push(eventPayload);
-
-  if (events.length > 1000) {
-    events = events.slice(events.length - 1000);
-  }
-
-  fs.writeFileSync(TELEMETRY_PATH, JSON.stringify(events, null, 2));
-};
 
 const buildContentSecurityPolicy = () => {
   const scriptSources = ["'self'", ...JSON_LD_SCRIPT_HASHES].join(" ");
@@ -121,6 +101,18 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  name: "portfolio.sid",
+  secret: process.env.ADMIN_SESSION_SECRET || "change-this-session-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
 
 app.use("/api", contactRoutes);
 
@@ -150,7 +142,7 @@ app.get("/api/openapi.json", (req, res) => {
   return res.sendFile(OPENAPI_PATH);
 });
 
-app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"] }), (req, res) => {
+app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"] }), async (req, res) => {
   try {
     const payload = typeof req.body === "string"
       ? JSON.parse(req.body || "{}")
@@ -163,7 +155,7 @@ app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain
       timestamp: new Date().toISOString()
     };
 
-    appendTelemetryEvent(sanitized);
+    await appendTelemetryEvent(sanitized);
 
     return res.status(202).json({
       success: true

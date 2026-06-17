@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const AxeBuilder = require("@axe-core/playwright").default;
 
 test("home page loads and nav works", async ({ page }) => {
   await page.goto("/index.html");
@@ -34,4 +35,13 @@ test("contact form submits successfully", async ({ page }) => {
   await page.locator("#message").fill("Testing the contact submit flow.");
   await page.getByRole("button", { name: /submit/i }).click();
   await expect(page.locator("#form-notice")).toContainText(/thanks|sent/i);
+});
+
+test("homepage has no serious accessibility violations", async ({ page }) => {
+  await page.goto("/index.html");
+  const accessibilityScanResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+
+  expect(accessibilityScanResults.violations).toEqual([]);
 });
