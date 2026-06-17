@@ -78,6 +78,10 @@ if (fs.existsSync(REACT_DIST_PATH)) {
   });
 }
 
+app.get("/my-page", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "my-page.html"));
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (req, res) => {

@@ -10,9 +10,26 @@ if (menuButton && navLinks) {
 const path = window.location.pathname;
 const links = document.querySelectorAll(".nav-links a");
 
+const normalizePath = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  return value === "/" ? "/" : value.replace(/\/+$/, "");
+};
+
+const currentPath = normalizePath(path);
+
 links.forEach((link) => {
   const href = link.getAttribute("href");
-  if (href && (path.endsWith(href) || (path === "/" && href === "/index.html"))) {
+  const normalizedHref = normalizePath(href);
+  const isHomeLink = normalizedHref === "/index.html";
+  const isHomePath = currentPath === "/";
+  const isActive =
+    (isHomePath && isHomeLink) ||
+    normalizedHref === currentPath;
+
+  if (normalizedHref && isActive) {
     link.classList.add("active");
   }
 });
