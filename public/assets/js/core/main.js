@@ -119,3 +119,123 @@ if (!prefersReducedMotion && hasFinePointer) {
     document.body.style.setProperty("--cursor-glow-opacity", "0");
   });
 }
+
+const initCalmModePlayer = () => {
+  const storageKeys = {
+    enabled: "portfolio.calmMode.enabled",
+    volume: "portfolio.calmMode.volume"
+  };
+  const trackUrl = "https://upload.wikimedia.org/wikipedia/commons/7/70/Erik_Satie_-_Gnossienne_No._1.ogg";
+  const savedEnabled = window.localStorage.getItem(storageKeys.enabled) === "true";
+  const parsedVolume = Number.parseFloat(window.localStorage.getItem(storageKeys.volume) || "0.35");
+  const savedVolume = Number.isFinite(parsedVolume) ? Math.min(Math.max(parsedVolume, 0), 1) : 0.35;
+
+  const panel = document.createElement("section");
+  panel.className = "calm-player";
+  panel.setAttribute("aria-label", "Background calm music controls");
+
+  panel.innerHTML = `
+    <button type="button" class="calm-player__toggle" aria-pressed="false">Calm Mode: Off</button>
+    <label class="calm-player__volume-wrap" for="calm-volume-input">
+      <span class="calm-player__volume-label">Volume</span>
+      <input id="calm-volume-input" class="calm-player__volume" type="range" min="0" max="1" step="0.05" value="${savedVolume}" />
+    </label>
+    <p class="calm-player__status" aria-live="polite">Tap Calm Mode to start music.</p>
+  `;
+
+  document.body.appendChild(panel);
+
+  const toggleButton = panel.querySelector(".calm-player__toggle");
+  const volumeInput = panel.querySelector(".calm-player__volume");
+  const status = panel.querySelector(".calm-player__status");
+
+  if (!toggleButton || !volumeInput || !status) {
+    return;
+  }
+
+  const audio = new Audio(trackUrl);
+  audio.loop = true;
+  audio.preload = "none";
+  audio.volume = savedVolume;
+
+  let isEnabled = savedEnabled;
+
+  const setStatus = (message) => {
+    status.textContent = message;
+  };
+
+  const syncToggleUi = () => {
+    toggleButton.setAttribute("aria-pressed", String(isEnabled));
+    toggleButton.textContent = isEnabled ? "Calm Mode: On" : "Calm Mode: Off";
+    panel.classList.toggle("is-on", isEnabled);
+  };
+
+  const saveEnabledState = () => {
+    window.localStorage.setItem(storageKeys.enabled, String(isEnabled));
+  };
+
+  const startPlayback = async () => {
+    try {
+      await audio.play();
+      setStatus("Playing calm instrumental background music.");
+      return true;
+    } catch {
+      setStatus("Audio blocked until interaction. Tap Calm Mode again.");
+      return false;
+    }
+  };
+
+  const stopPlayback = () => {
+    audio.pause();
+    setStatus("Calm music paused.");
+  };
+
+  toggleButton.addEventListener("click", async () => {
+    isEnabled = !isEnabled;
+    syncToggleUi();
+    saveEnabledState();
+
+    if (isEnabled) {
+      await startPlayback();
+      return;
+    }
+
+    stopPlayback();
+  });
+
+  volumeInput.addEventListener("input", () => {
+    const nextVolume = Number.parseFloat(volumeInput.value);
+
+    if (!Number.isFinite(nextVolume)) {
+      return;
+    }
+
+    audio.volume = Math.min(Math.max(nextVolume, 0), 1);
+    window.localStorage.setItem(storageKeys.volume, String(audio.volume));
+  });
+
+  audio.addEventListener("error", () => {
+    setStatus("Could not load track. Check connection or replace the music URL.");
+    isEnabled = false;
+    syncToggleUi();
+    saveEnabledState();
+  });
+
+  syncToggleUi();
+
+  if (isEnabled) {
+    setStatus("Calm Mode is on. Tap anywhere if playback is blocked.");
+    const tryResume = async () => {
+      const started = await startPlayback();
+      if (started) {
+        window.removeEventListener("pointerdown", tryResume);
+        window.removeEventListener("keydown", tryResume);
+      }
+    };
+
+    window.addEventListener("pointerdown", tryResume, { once: true, passive: true });
+    window.addEventListener("keydown", tryResume, { once: true });
+  }
+};
+
+initCalmModePlayer();
