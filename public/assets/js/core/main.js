@@ -125,7 +125,7 @@ const initCalmModePlayer = () => {
     enabled: "portfolio.calmMode.enabled",
     volume: "portfolio.calmMode.volume"
   };
-  const trackUrl = "https://upload.wikimedia.org/wikipedia/commons/7/70/Erik_Satie_-_Gnossienne_No._1.ogg";
+  const trackUrl = "/assets/audio/calm-mode.wav";
   const savedEnabled = window.localStorage.getItem(storageKeys.enabled) === "true";
   const parsedVolume = Number.parseFloat(window.localStorage.getItem(storageKeys.volume) || "0.35");
   const savedVolume = Number.isFinite(parsedVolume) ? Math.min(Math.max(parsedVolume, 0), 1) : 0.35;
