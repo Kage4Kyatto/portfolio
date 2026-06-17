@@ -130,48 +130,48 @@
     <main class="container site-page contact-page">
       <section class="page-panel reveal">
         <img src="/assets/img/contact-icon.svg" alt="Contact" class="page-icon" width="100" height="100" loading="lazy" decoding="async"/>
-        <p class="eyebrow">Public Repositories</p>
-        <h1>Start a project conversation</h1>
-        <p class="lead">Use this form to send a message about my public repositories, a portfolio build, or another beginner-friendly web project. The backend API stores submissions in a local JSON file.</p>
+        <p class="eyebrow" data-i18n="contact_eyebrow">Public Repositories</p>
+        <h1 data-i18n="contact_heading">Start a project conversation</h1>
+        <p class="lead" data-i18n="contact_lead">Use this form to send a message about my public repositories, a portfolio build, or another beginner-friendly web project. The backend API stores submissions in a local JSON file.</p>
       </section>
 
       <section class="two-col section-title">
         <article class="card reveal">
-          <h3>Send a message</h3>
+          <h3 data-i18n="contact_form_title">Send a message</h3>
           <form id="contact-form">
             <div class="hp-field" aria-hidden="true">
               <label for="website">Website</label>
               <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
             </div>
             <div class="form-field">
-              <label for="name">Name</label>
+              <label for="name" data-i18n="contact_form_label_name">Name</label>
               <input id="name" name="name" type="text" required />
             </div>
             <div class="form-field">
-              <label for="email">Email</label>
+              <label for="email" data-i18n="contact_form_label_email">Email</label>
               <input id="email" name="email" type="email" required />
             </div>
             <div class="form-field">
-              <label for="subject">Subject</label>
+              <label for="subject" data-i18n="contact_form_label_subject">Subject</label>
               <input id="subject" name="subject" type="text" required />
             </div>
             <div class="form-field">
-              <label for="message">Message</label>
+              <label for="message" data-i18n="contact_form_label_message">Message</label>
               <textarea id="message" name="message" required></textarea>
             </div>
-            <button id="contact-submit" class="btn primary" type="submit">Submit</button>
+            <button id="contact-submit" class="btn primary" type="submit" data-i18n="contact_form_submit">Submit</button>
             <p id="form-notice" class="notice"></p>
           </form>
         </article>
 
         <article class="card reveal">
-          <h3>Quick Details</h3>
+          <h3 data-i18n="contact_details_title">Quick Details</h3>
           <ul class="clean">
-            <li>Email: soeraj_balak@hotmail.com</li>
-            <li>Discord: Shadow4Cat</li>
-            <li>Location: Zuid-Holland, Netherlands</li>
-            <li>Availability: Open for freelance projects</li>
-            <li>Typical response time: within 24 hours</li>
+            <li data-i18n="contact_details_email">Email: soeraj_balak@hotmail.com</li>
+            <li data-i18n="contact_details_discord">Discord: Shadow4Cat</li>
+            <li data-i18n="contact_details_location">Location: Zuid-Holland, Netherlands</li>
+            <li data-i18n="contact_details_availability">Availability: Open for freelance projects</li>
+            <li data-i18n="contact_details_response">Typical response time: within 24 hours</li>
           </ul>
         </article>
       </section>
@@ -181,26 +181,26 @@
       <div class="container footer-stack">
         <div class="footer-grid">
           <section class="footer-block">
-            <h4 class="footer-title">Personal Touch</h4>
-            <p class="footer-text">"Small steps every day still move you forward." Current vibe: focused, calm, and building.</p>
+            <h4 class="footer-title" data-i18n="footer_personal_title">Personal Touch</h4>
+            <p class="footer-text" data-i18n="footer_personal_text">"Small steps every day still move you forward." Current vibe: focused, calm, and building.</p>
           </section>
           <section class="footer-block">
-            <h4 class="footer-title">Build Metadata</h4>
-            <p class="footer-text">Version v2.6<br />Built with HTML, CSS, JavaScript, Node.js, and PHP.</p>
+            <h4 class="footer-title" data-i18n="footer_metadata_title">Build Metadata</h4>
+            <p class="footer-text" data-i18n="footer_metadata_text">Version v2.6<br />Built with HTML, CSS, JavaScript, Node.js, and PHP.</p>
           </section>
           <section class="footer-block">
-            <h4 class="footer-title">Recent Updates</h4>
+            <h4 class="footer-title" data-i18n="footer_updates_title">Recent Updates</h4>
             <ul class="footer-links">
-              <li><a href="/updates.html">See Recent Changes</a></li>
-              <li><a href="/projects.html">View Public Repositories</a></li>
+              <li><a href="/updates.html" data-i18n="footer_updates_link1">See Recent Changes</a></li>
+              <li><a href="/projects.html" data-i18n="footer_updates_link2">View Public Repositories</a></li>
             </ul>
           </section>
           <section class="footer-block">
-            <h4 class="footer-title">Legal and Trust</h4>
+            <h4 class="footer-title" data-i18n="footer_legal_title">Legal and Trust</h4>
             <ul class="footer-links">
-              <li><a href="/privacy.html">Privacy</a></li>
-              <li><a href="/robots.txt">Robots</a></li>
-              <li><a href="/sitemap.xml">Sitemap</a></li>
+              <li><a href="/privacy.html" data-i18n="footer_legal_privacy">Privacy</a></li>
+              <li><a href="/robots.txt" data-i18n="footer_legal_robots">Robots</a></li>
+              <li><a href="/sitemap.xml" data-i18n="footer_legal_sitemap">Sitemap</a></li>
             </ul>
           </section>
         </div>

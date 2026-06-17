@@ -514,5 +514,11 @@
     "path": "/index.html",
     "locale": "nl",
     "timestamp": "2026-06-17T20:36:21.464Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/about.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T20:38:01.594Z"
   }
 ]
