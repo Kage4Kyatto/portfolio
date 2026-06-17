@@ -47,6 +47,16 @@ const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflar
 const app = express();
 const PORT = process.env.PORT || 3000;
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
+const SITEMAP_ROUTES = [
+  { loc: "/index.html", changefreq: "weekly", priority: "1.0" },
+  { loc: "/about.html", changefreq: "monthly", priority: "0.8" },
+  { loc: "/projects.html", changefreq: "weekly", priority: "0.9" },
+  { loc: "/services.html", changefreq: "monthly", priority: "0.7" },
+  { loc: "/contact.html", changefreq: "monthly", priority: "0.8" },
+  { loc: "/my-page", changefreq: "monthly", priority: "0.7" },
+  { loc: "/updates.html", changefreq: "monthly", priority: "0.6" },
+  { loc: "/privacy.html", changefreq: "yearly", priority: "0.4" }
+];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -78,6 +88,16 @@ const getBaseUrl = (req) => {
   return `${protocol}://${req.get("host")}`;
 };
 
+const buildSitemapXml = (baseUrl) => {
+  const urls = SITEMAP_ROUTES
+    .map(
+      (route) => `  <url>\n    <loc>${baseUrl}${route.loc}</loc>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>\n  </url>`
+    )
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+};
+
 app.get("/robots.txt", (req, res) => {
   const baseUrl = getBaseUrl(req);
   res.type("text/plain");
@@ -86,25 +106,8 @@ app.get("/robots.txt", (req, res) => {
 
 app.get("/sitemap.xml", (req, res) => {
   const baseUrl = getBaseUrl(req);
-  const routes = [
-    { loc: "/index.html", changefreq: "weekly", priority: "1.0" },
-    { loc: "/about.html", changefreq: "monthly", priority: "0.8" },
-    { loc: "/projects.html", changefreq: "weekly", priority: "0.9" },
-    { loc: "/services.html", changefreq: "monthly", priority: "0.7" },
-    { loc: "/contact.html", changefreq: "monthly", priority: "0.8" },
-    { loc: "/my-page", changefreq: "monthly", priority: "0.7" },
-    { loc: "/updates.html", changefreq: "monthly", priority: "0.6" },
-    { loc: "/privacy.html", changefreq: "yearly", priority: "0.4" }
-  ];
-
-  const urls = routes
-    .map(
-      (route) => `  <url>\n    <loc>${baseUrl}${route.loc}</loc>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>\n  </url>`
-    )
-    .join("\n");
-
   res.type("application/xml");
-  res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
+  res.send(buildSitemapXml(baseUrl));
 });
 
 if (fs.existsSync(REACT_DIST_PATH)) {

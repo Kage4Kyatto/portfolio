@@ -14,6 +14,15 @@ const parseJsonSafely = (value) => {
   }
 };
 
+const setSubmitState = (isSubmitting) => {
+  if (!submitButton) {
+    return;
+  }
+
+  submitButton.disabled = isSubmitting;
+  submitButton.textContent = isSubmitting ? "Sending..." : "Submit";
+};
+
 const getFastifyContactEndpoint = () => {
   const runtimeConfigUrl = window.PORTFOLIO_FASTIFY_URL?.trim();
   if (runtimeConfigUrl) {
@@ -43,10 +52,7 @@ if (contactForm && notice) {
 
     notice.textContent = "Sending...";
     notice.className = "notice";
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = "Sending...";
-    }
+    setSubmitState(true);
 
     try {
       const endpointSet = new Set();
@@ -64,9 +70,10 @@ if (contactForm && notice) {
       let lastError = new Error("Failed to send message.");
 
       for (const endpoint of endpoints) {
+        let timeoutId = 0;
         try {
           const controller = new AbortController();
-          const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+          timeoutId = window.setTimeout(() => controller.abort(), 8000);
 
           const response = await fetch(endpoint, {
             method: "POST",
@@ -76,7 +83,6 @@ if (contactForm && notice) {
             body: JSON.stringify(payload),
             signal: controller.signal
           });
-          window.clearTimeout(timeoutId);
 
           const contentType = response.headers.get("content-type") || "";
           const bodyText = await response.text();
@@ -95,6 +101,10 @@ if (contactForm && notice) {
         } catch (error) {
           const isAbort = error?.name === "AbortError";
           lastError = isAbort ? new Error("Request timed out.") : error;
+        } finally {
+          if (timeoutId) {
+            window.clearTimeout(timeoutId);
+          }
         }
       }
 
@@ -109,10 +119,7 @@ if (contactForm && notice) {
       notice.textContent = error instanceof Error ? error.message : "Failed to send message.";
       notice.classList.add("error");
     } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.textContent = "Submit";
-      }
+      setSubmitState(false);
     }
   });
 }

@@ -278,8 +278,8 @@ if (authForm && notice && tableBody) {
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const username = document.getElementById("admin-user")?.value || "";
-    const password = document.getElementById("admin-pass")?.value || "";
+    const username = adminUserInput?.value || "";
+    const password = adminPassInput?.value || "";
 
     if (!username || !password) {
       notice.textContent = "Username and password are required.";
@@ -288,10 +288,10 @@ if (authForm && notice && tableBody) {
     }
 
     const token = btoa(`${username}:${password}`);
-  const currentFingerprint = `${username}:${password}`;
+    const currentFingerprint = `${username}:${password}`;
 
-  isLoadingMessages = true;
-  lastAttemptFingerprint = currentFingerprint;
+    isLoadingMessages = true;
+    lastAttemptFingerprint = currentFingerprint;
 
     notice.textContent = "Loading messages...";
     notice.className = "notice";
@@ -384,6 +384,14 @@ if (authForm && notice && tableBody) {
     if (adminPassInput) {
       adminPassInput.value = "";
     }
+
+    if (autoLoadTimer) {
+      clearTimeout(autoLoadTimer);
+      autoLoadTimer = null;
+    }
+
+    lastAttemptFingerprint = "";
+    isLoadingMessages = false;
 
     setDashboardVisibility(false);
     notice.textContent = "Logged out.";
