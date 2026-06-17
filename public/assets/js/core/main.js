@@ -7,6 +7,20 @@ if (menuButton && navLinks) {
   });
 }
 
+const backButtons = document.querySelectorAll("[data-go-back]");
+backButtons.forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.href = "/index.html";
+  });
+});
+
 const path = window.location.pathname;
 const links = document.querySelectorAll(".nav-links a");
 
