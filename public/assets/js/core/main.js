@@ -98,12 +98,34 @@ const applyLocale = (locale, dictionary) => {
 
   document.querySelectorAll("[data-i18n]").forEach((element) => {
     const key = element.getAttribute("data-i18n");
-    if (!key || !dictionary[key]) {
+    if (!key || !(key in dictionary)) {
       return;
     }
 
     element.textContent = dictionary[key];
   });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    if (!key || !(key in dictionary)) {
+      return;
+    }
+
+    element.setAttribute("placeholder", dictionary[key]);
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-title");
+    if (!key || !(key in dictionary)) {
+      return;
+    }
+
+    element.setAttribute("title", dictionary[key]);
+  });
+
+  window.dispatchEvent(new CustomEvent("portfolio:locale-changed", {
+    detail: { locale, dictionary }
+  }));
 };
 
 const setupLanguageToggle = async () => {
@@ -123,7 +145,7 @@ const setupLanguageToggle = async () => {
   button.type = "button";
 
   const loadLocaleDictionary = async (locale) => {
-    const response = await fetch(`/assets/i18n/${locale}.json`);
+    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
     if (!response.ok) {
       throw new Error("Locale unavailable");
     }

@@ -16,6 +16,8 @@ const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
 
+const LOCALE_STORAGE_KEY = "portfolio.locale";
+
 let allMessages = [];
 let filteredMessages = [];
 let currentPage = 1;
@@ -25,7 +27,25 @@ let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
 let csrfToken = "";
 let inactivityTimer = null;
+let activeLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+let localeDictionary = {};
+let deliveryMode = "checking";
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
+
+const t = (key, fallback) => localeDictionary[key] || fallback;
+
+const loadLocaleDictionary = async (locale) => {
+  try {
+    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
+    if (!response.ok) {
+      return;
+    }
+
+    localeDictionary = await response.json();
+  } catch {
+    // Ignore translation loading errors and keep fallback text.
+  }
+};
 
 const setDashboardVisibility = (isVisible) => {
   if (pagePanel) {
@@ -54,6 +74,90 @@ const setDashboardVisibility = (isVisible) => {
   }
 };
 
+const syncSearchPlaceholder = () => {
+  if (!searchInput) {
+    return;
+  }
+
+  searchInput.setAttribute(
+    "placeholder",
+    t(
+      "admin_search_placeholder",
+      activeLocale === "nl"
+        ? "Zoek op naam, e-mail, onderwerp, bericht"
+        : "Find by name, email, subject, message"
+    )
+  );
+};
+
+const syncDeliveryStatusText = (mode = "checking", metrics = null) => {
+  if (!deliveryStatus) {
+    return;
+  }
+
+  let message = "";
+  let className = "notice";
+
+  if (mode === "checking") {
+    message = t(
+      "admin_delivery_checking",
+      activeLocale === "nl"
+        ? "E-mailbezorgstatus: controleren..."
+        : "Email delivery status: checking..."
+    );
+  } else if (mode === "resend") {
+    message = t(
+      "admin_delivery_resend",
+      activeLocale === "nl"
+        ? "E-mailbezorgmodus: Resend API"
+        : "Email delivery mode: Resend API"
+    );
+    className = "notice success";
+  } else if (mode === "php") {
+    message = t(
+      "admin_delivery_php",
+      activeLocale === "nl"
+        ? "E-mailbezorgmodus: PHP mail()-fallback"
+        : "Email delivery mode: PHP mail() fallback"
+    );
+  } else if (mode === "disabled") {
+    message = t(
+      "admin_delivery_disabled",
+      activeLocale === "nl"
+        ? "E-mailbezorgmodus: Uitgeschakeld (CONTACT_NOTIFY_TO niet ingesteld)"
+        : "Email delivery mode: Disabled (CONTACT_NOTIFY_TO not set)"
+    );
+    className = "notice error";
+  } else if (mode === "unavailable") {
+    message = t(
+      "admin_delivery_unavailable",
+      activeLocale === "nl"
+        ? "E-mailbezorgstatus niet beschikbaar."
+        : "Email delivery status unavailable."
+    );
+    className = "notice error";
+  }
+
+  if (metrics) {
+    const queueLabel = t("admin_metrics_queue", activeLocale === "nl" ? "Wachtrij" : "Queue");
+    const lockoutsLabel = t("admin_metrics_lockouts", activeLocale === "nl" ? "Blokkades" : "Lockouts");
+    message = `${message} | ${queueLabel}: ${metrics.queueDepth} | ${lockoutsLabel}: ${metrics.lockedAuthIps}`;
+  }
+
+  deliveryStatus.textContent = message;
+  deliveryStatus.className = className;
+};
+
+window.addEventListener("portfolio:locale-changed", (event) => {
+  activeLocale = event.detail?.locale || activeLocale;
+  localeDictionary = event.detail?.dictionary || localeDictionary;
+  syncSearchPlaceholder();
+
+  if (!isLoadingMessages) {
+    updatePagerUi();
+  }
+});
+
 const escapeCell = (value) => String(value ?? "").replace(/[\r\n]+/g, " ").trim();
 
 const getVisibleMessages = () => {
@@ -71,7 +175,12 @@ const updatePagerUi = () => {
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(totalItems, currentPage * pageSize);
 
-  pageInfo.textContent = `Showing ${startItem}-${endItem} of ${totalItems} message(s) | Page ${currentPage}/${totalPages}`;
+  const showingLabel = t("admin_pager_showing", activeLocale === "nl" ? "Toont" : "Showing");
+  const ofLabel = t("admin_pager_of", activeLocale === "nl" ? "van" : "of");
+  const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
+  const pageLabel = t("admin_pager_page", activeLocale === "nl" ? "Pagina" : "Page");
+
+  pageInfo.textContent = `${showingLabel} ${startItem}-${endItem} ${ofLabel} ${totalItems} ${messagesLabel} | ${pageLabel} ${currentPage}/${totalPages}`;
   prevButton.disabled = currentPage <= 1;
   nextButton.disabled = currentPage >= totalPages;
 };
@@ -102,7 +211,7 @@ const renderRows = (messages) => {
   }
 
   if (!messages.length) {
-    tableBody.innerHTML = '<tr><td colspan="6">No messages found.</td></tr>';
+    tableBody.innerHTML = `<tr><td colspan="6">${t("admin_no_messages_found", activeLocale === "nl" ? "Geen berichten gevonden." : "No messages found.")}</td></tr>`;
     return;
   }
 
@@ -157,7 +266,7 @@ const downloadCsv = (messages) => {
 };
 
 const fetchJsonWithFallback = async (endpoints, options = {}) => {
-  let lastError = new Error("Request failed.");
+  let lastError = new Error(t("admin_request_failed", activeLocale === "nl" ? "Aanvraag mislukt." : "Request failed."));
 
   for (let index = 0; index < endpoints.length; index += 1) {
     const endpoint = endpoints[index];
@@ -177,7 +286,11 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
       }
 
       if (!response.ok) {
-        const requestError = new Error(parsed?.message || `Request failed with status ${response.status}.`);
+        const requestError = new Error(
+          parsed?.message || t("admin_request_failed_status", activeLocale === "nl"
+            ? `Aanvraag mislukt met status ${response.status}.`
+            : `Request failed with status ${response.status}.`)
+        );
         requestError.status = response.status;
         requestError.attemptsRemaining = parsed?.attemptsRemaining;
         requestError.retryAfterSec = parsed?.retryAfterSec;
@@ -194,7 +307,7 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
       }
 
       if (!parsed) {
-        const parseError = new Error("API endpoint responded with non-JSON content.");
+        const parseError = new Error(t("admin_non_json", activeLocale === "nl" ? "API-eindpunt reageerde met geen JSON-inhoud." : "API endpoint responded with non-JSON content."));
 
         if (!hasNextEndpoint) {
           parseError.stopFallback = true;
@@ -221,30 +334,29 @@ const loadDeliveryStatus = async () => {
     return;
   }
 
-  deliveryStatus.textContent = "Email delivery status: checking...";
-  deliveryStatus.className = "notice";
+  syncDeliveryStatusText("checking");
 
   try {
     const data = await fetchJsonWithFallback(["/api/health", "/api/health.php"]);
     const mode = data?.notifications?.mode || "disabled";
 
     if (mode === "resend") {
-      deliveryStatus.textContent = "Email delivery mode: Resend API";
-      deliveryStatus.className = "notice success";
+      deliveryMode = "resend";
+      syncDeliveryStatusText(deliveryMode);
       return;
     }
 
     if (mode === "php-mail-fallback") {
-      deliveryStatus.textContent = "Email delivery mode: PHP mail() fallback";
-      deliveryStatus.className = "notice";
+      deliveryMode = "php";
+      syncDeliveryStatusText(deliveryMode);
       return;
     }
 
-    deliveryStatus.textContent = "Email delivery mode: Disabled (CONTACT_NOTIFY_TO not set)";
-    deliveryStatus.className = "notice error";
-  } catch (error) {
-    deliveryStatus.textContent = "Email delivery status unavailable.";
-    deliveryStatus.className = "notice error";
+    deliveryMode = "disabled";
+    syncDeliveryStatusText(deliveryMode);
+  } catch {
+    deliveryMode = "unavailable";
+    syncDeliveryStatusText(deliveryMode);
   }
 };
 
@@ -260,7 +372,7 @@ const loadAdminMetrics = async () => {
       return;
     }
 
-    deliveryStatus.textContent = `${deliveryStatus.textContent} | Queue: ${metrics.queueDepth} | Lockouts: ${metrics.lockedAuthIps}`;
+    syncDeliveryStatusText(deliveryMode, metrics);
   } catch {
     // Metrics are optional and should not block page functionality.
   }
@@ -278,10 +390,17 @@ const triggerInactivityLogout = () => {
     return;
   }
 
-  notice.textContent = "Session timed out due to inactivity.";
+  const timeoutMessage = t(
+    "admin_session_timeout",
+    activeLocale === "nl"
+      ? "Sessie is verlopen door inactiviteit."
+      : "Session timed out due to inactivity."
+  );
+
+  notice.textContent = timeoutMessage;
   notice.className = "notice error";
   if (window.toast) {
-    window.toast.error("Session timed out due to inactivity.");
+    window.toast.error(timeoutMessage);
   }
   logoutButton.click();
 };
@@ -318,6 +437,11 @@ const hydrateSessionState = async () => {
 };
 
 if (authForm && notice && tableBody) {
+  loadLocaleDictionary(activeLocale).finally(() => {
+    syncSearchPlaceholder();
+    updatePagerUi();
+  });
+
   setDashboardVisibility(false);
   loadDeliveryStatus();
   bindInactivityEvents();
@@ -359,7 +483,12 @@ if (authForm && notice && tableBody) {
     const hasCredentials = Boolean(username && password);
 
     if (!hasCredentials && !csrfToken) {
-      notice.textContent = "Username and password are required.";
+      notice.textContent = t(
+        "admin_credentials_required",
+        activeLocale === "nl"
+          ? "Gebruikersnaam en wachtwoord zijn verplicht."
+          : "Username and password are required."
+      );
       notice.className = "notice error";
       return;
     }
@@ -370,7 +499,7 @@ if (authForm && notice && tableBody) {
     isLoadingMessages = true;
     lastAttemptFingerprint = currentFingerprint;
 
-    notice.textContent = "Loading messages...";
+    notice.textContent = t("admin_loading_messages", activeLocale === "nl" ? "Berichten laden..." : "Loading messages...");
     notice.className = "notice";
 
     try {
@@ -384,12 +513,14 @@ if (authForm && notice && tableBody) {
         });
 
         if (!loginResponse.ok && loginResponse.status !== 401 && loginResponse.status !== 429) {
-          throw new Error(`Admin login failed with status ${loginResponse.status}.`);
+          throw new Error(t("admin_login_failed_status", activeLocale === "nl"
+            ? `Admin-aanmelding mislukt met status ${loginResponse.status}.`
+            : `Admin login failed with status ${loginResponse.status}.`));
         }
 
         const loginBody = await loginResponse.json().catch(() => null);
         if (!loginResponse.ok) {
-          const error = new Error(loginBody?.message || "Unauthorized");
+          const error = new Error(loginBody?.message || t("admin_unauthorized", activeLocale === "nl" ? "Niet geautoriseerd" : "Unauthorized"));
           error.retryAfterSec = loginBody?.retryAfterSec;
           error.attemptsRemaining = loginBody?.attemptsRemaining;
           throw error;
@@ -403,13 +534,15 @@ if (authForm && notice && tableBody) {
       currentPage = 1;
       setDashboardVisibility(true);
       render();
-      notice.textContent = `Loaded ${allMessages.length} message(s).`;
+      const loadedLabel = t("admin_loaded_messages", activeLocale === "nl" ? "Geladen" : "Loaded");
+      const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
+      notice.textContent = `${loadedLabel} ${allMessages.length} ${messagesLabel}.`;
       notice.className = "notice success";
       loadAdminMetrics();
       scheduleInactivityTimeout();
     } catch (error) {
       setDashboardVisibility(false);
-      tableBody.innerHTML = '<tr><td colspan="6">Could not load messages.</td></tr>';
+      tableBody.innerHTML = `<tr><td colspan="6">${t("admin_could_not_load_messages", activeLocale === "nl" ? "Kon berichten niet laden." : "Could not load messages.")}</td></tr>`;
       allMessages = [];
       filteredMessages = [];
       const retryAfter = Number(error?.retryAfterSec || 0);
@@ -418,9 +551,12 @@ if (authForm && notice && tableBody) {
         : null;
 
       if (retryAfter > 0) {
-        notice.textContent = `${error.message} Retry in about ${retryAfter} second(s).`;
+        const retryLabel = t("admin_retry_in", activeLocale === "nl" ? "Opnieuw proberen over ongeveer" : "Retry in about");
+        const secLabel = t("admin_seconds", activeLocale === "nl" ? "seconde(n)" : "second(s)");
+        notice.textContent = `${error.message} ${retryLabel} ${retryAfter} ${secLabel}.`;
       } else if (attemptsRemaining !== null && attemptsRemaining >= 0) {
-        notice.textContent = `${error.message} Attempts remaining: ${attemptsRemaining}.`;
+        const attemptsLabel = t("admin_attempts_remaining", activeLocale === "nl" ? "Pogingen over" : "Attempts remaining");
+        notice.textContent = `${error.message} ${attemptsLabel}: ${attemptsRemaining}.`;
       } else {
         notice.textContent = error.message;
       }
@@ -464,13 +600,21 @@ if (authForm && notice && tableBody) {
 
   exportButton?.addEventListener("click", () => {
     if (!filteredMessages.length) {
-      notice.textContent = "No messages available to export.";
+      notice.textContent = t(
+        "admin_no_messages_export",
+        activeLocale === "nl"
+          ? "Geen berichten beschikbaar om te exporteren."
+          : "No messages available to export."
+      );
       notice.className = "notice error";
       return;
     }
 
     downloadCsv(filteredMessages);
-    notice.textContent = `Exported ${filteredMessages.length} message(s) to CSV.`;
+    const exportedLabel = t("admin_exported", activeLocale === "nl" ? "Geëxporteerd" : "Exported");
+    const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
+    const toCsvLabel = t("admin_to_csv", activeLocale === "nl" ? "naar CSV" : "to CSV");
+    notice.textContent = `${exportedLabel} ${filteredMessages.length} ${messagesLabel} ${toCsvLabel}.`;
     notice.className = "notice success";
   });
 
@@ -484,7 +628,7 @@ if (authForm && notice && tableBody) {
     }
 
     if (tableBody) {
-      tableBody.innerHTML = '<tr><td colspan="6">No data loaded yet.</td></tr>';
+      tableBody.innerHTML = `<tr><td colspan="6">${t("admin_table_empty", activeLocale === "nl" ? "Nog geen gegevens geladen." : "No data loaded yet.")}</td></tr>`;
     }
 
     if (pageInfo) {
@@ -522,10 +666,10 @@ if (authForm && notice && tableBody) {
     unbindInactivityEvents();
 
     setDashboardVisibility(false);
-    notice.textContent = "Logged out.";
+    notice.textContent = t("admin_logged_out", activeLocale === "nl" ? "Uitgelogd." : "Logged out.");
     notice.className = "notice";
     if (window.toast) {
-      window.toast.info("Logged out successfully.");
+      window.toast.info(t("admin_logged_out_success", activeLocale === "nl" ? "Succesvol uitgelogd." : "Logged out successfully."));
     }
   });
 }

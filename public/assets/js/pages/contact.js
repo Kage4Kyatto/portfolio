@@ -1,6 +1,34 @@
 const contactForm = document.getElementById("contact-form");
 const notice = document.getElementById("form-notice");
 const submitButton = document.getElementById("contact-submit");
+const LOCALE_STORAGE_KEY = "portfolio.locale";
+
+let activeLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+let localeDictionary = {};
+
+const t = (key, fallback) => localeDictionary[key] || fallback;
+
+const loadLocaleDictionary = async (locale) => {
+  try {
+    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
+    if (!response.ok) {
+      return;
+    }
+
+    localeDictionary = await response.json();
+  } catch {
+    // Ignore translation loading errors and keep fallback text.
+  }
+};
+
+window.addEventListener("portfolio:locale-changed", (event) => {
+  activeLocale = event.detail?.locale || activeLocale;
+  localeDictionary = event.detail?.dictionary || localeDictionary;
+
+  if (submitButton && !submitButton.disabled) {
+    submitButton.textContent = t("contact_form_submit", activeLocale === "nl" ? "Verzenden" : "Submit");
+  }
+});
 
 const parseJsonSafely = (value) => {
   if (!value) {
@@ -21,7 +49,9 @@ const setSubmitState = (isSubmitting) => {
 
   submitButton.disabled = isSubmitting;
   submitButton.classList.toggle("loading", isSubmitting);
-  submitButton.textContent = isSubmitting ? "Sending..." : "Submit";
+  submitButton.textContent = isSubmitting
+    ? t("contact_runtime_sending", activeLocale === "nl" ? "Verzenden..." : "Sending...")
+    : t("contact_form_submit", activeLocale === "nl" ? "Verzenden" : "Submit");
 };
 
 const getFastifyContactEndpoint = () => {
@@ -39,6 +69,12 @@ const getFastifyContactEndpoint = () => {
 };
 
 if (contactForm && notice) {
+  loadLocaleDictionary(activeLocale).finally(() => {
+    if (!submitButton?.disabled) {
+      submitButton.textContent = t("contact_form_submit", activeLocale === "nl" ? "Verzenden" : "Submit");
+    }
+  });
+
   if (window.validation) {
     window.validation.setupLiveValidation(contactForm);
   }
@@ -64,12 +100,12 @@ if (contactForm && notice) {
             window.validation.showFieldError(input, message);
           }
         }
-        window.toast?.error("Please correct the form errors.");
+        window.toast?.error(t("contact_runtime_fix_errors", activeLocale === "nl" ? "Corrigeer de formulierfouten." : "Please correct the form errors."));
         return;
       }
     }
 
-    notice.textContent = "Sending...";
+    notice.textContent = t("contact_runtime_sending", activeLocale === "nl" ? "Verzenden..." : "Sending...");
     notice.className = "notice";
     setSubmitState(true);
 
@@ -86,7 +122,7 @@ if (contactForm && notice) {
       const endpoints = [...endpointSet];
 
       let result = null;
-      let lastError = new Error("Failed to send message.");
+      let lastError = new Error(t("contact_runtime_failed_send", activeLocale === "nl" ? "Bericht verzenden mislukt." : "Failed to send message."));
 
       for (const endpoint of endpoints) {
         let timeoutId = 0;
@@ -113,13 +149,15 @@ if (contactForm && notice) {
           }
 
           const fallbackMessage = contentType.includes("application/json")
-            ? "Failed to send message."
-            : "API endpoint responded with non-JSON content.";
+            ? t("contact_runtime_failed_send", activeLocale === "nl" ? "Bericht verzenden mislukt." : "Failed to send message.")
+            : t("contact_runtime_non_json", activeLocale === "nl" ? "API-eindpunt reageerde met geen JSON-inhoud." : "API endpoint responded with non-JSON content.");
 
           throw new Error(parsed?.message || fallbackMessage);
         } catch (error) {
           const isAbort = error?.name === "AbortError";
-          lastError = isAbort ? new Error("Request timed out.") : error;
+          lastError = isAbort
+            ? new Error(t("contact_runtime_timeout", activeLocale === "nl" ? "Time-out van aanvraag." : "Request timed out."))
+            : error;
         } finally {
           if (timeoutId) {
             window.clearTimeout(timeoutId);
@@ -131,14 +169,16 @@ if (contactForm && notice) {
         throw lastError;
       }
 
-      notice.textContent = "Thanks. Your message has been sent.";
+      notice.textContent = t("contact_runtime_sent_notice", activeLocale === "nl" ? "Bedankt. Je bericht is verzonden." : "Thanks. Your message has been sent.");
       notice.classList.add("success");
       if (window.toast) {
-        window.toast.success("Message sent successfully!");
+        window.toast.success(t("contact_runtime_sent_toast", activeLocale === "nl" ? "Bericht succesvol verzonden!" : "Message sent successfully!"));
       }
       contactForm.reset();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send message.";
+      const errorMessage = error instanceof Error
+        ? error.message
+        : t("contact_runtime_failed_send", activeLocale === "nl" ? "Bericht verzenden mislukt." : "Failed to send message.");
       notice.textContent = errorMessage;
       notice.classList.add("error");
       if (window.toast) {
