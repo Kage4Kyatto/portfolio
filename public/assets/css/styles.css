@@ -315,6 +315,47 @@ body {
   padding: 0;
 }
 
+@media (min-width: 901px) {
+  .site-header {
+    background: transparent;
+    border-bottom-color: transparent;
+    box-shadow: none;
+    transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-bottom-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .site-header .nav-wrap {
+    position: relative;
+    justify-content: flex-start;
+  }
+
+  .site-header:hover,
+  .site-header:focus-within {
+    background: rgba(2, 6, 23, 0.9);
+    border-bottom-color: rgba(148, 163, 184, 0.12);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  .site-header .nav-links {
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(calc(-50% - 10px));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .site-header:hover .nav-links,
+  .site-header:focus-within .nav-links {
+    transform: translateY(-50%);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
 .nav-links a {
   text-decoration: none;
   color: var(--muted);
