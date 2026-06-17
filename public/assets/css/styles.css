@@ -221,14 +221,17 @@ body {
   letter-spacing: 0.14em;
   color: #dbeafe;
   text-decoration: none;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(15, 23, 42, 0.55);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  position: relative !important;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  z-index: 0;
 }
 
 .site-header .logo::before,
@@ -243,92 +246,52 @@ body {
 }
 
 .site-header .logo::before {
-  width: 56px;
-  height: 56px;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(148, 163, 184, 0.95) 0deg 3deg,
-      transparent 3deg 8deg,
-      rgba(96, 165, 250, 0.9) 8deg 11deg,
-      transparent 11deg 16deg,
-      rgba(203, 213, 225, 0.88) 16deg 19deg,
-      transparent 19deg 24deg
-    );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(50% - 6px), #000 calc(50% - 5px), #000 calc(50% + 5px), transparent calc(50% + 6px));
-  mask: radial-gradient(farthest-side, transparent calc(50% - 6px), #000 calc(50% - 5px), #000 calc(50% + 5px), transparent calc(50% + 6px));
-  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.25));
-  opacity: 0.78;
-  animation: logoWaveSpin 2.4s linear infinite, logoWavePulse 1.2s steps(2, end) infinite;
-  transform-origin: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  opacity: 0.72;
+  animation: logoRingPulse 1.95s ease-in-out infinite;
   z-index: -2;
 }
 
 .site-header .logo::after {
-  width: 70px;
-  height: 70px;
-  background:
-    repeating-conic-gradient(
-      from 18deg,
-      rgba(148, 163, 184, 0.7) 0deg 2deg,
-      transparent 2deg 9deg,
-      rgba(148, 163, 184, 0.42) 9deg 11deg,
-      transparent 11deg 18deg
-    );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(50% - 2px), #000 calc(50% - 1px), #000 calc(50% + 1px), transparent calc(50% + 2px));
-  mask: radial-gradient(farthest-side, transparent calc(50% - 2px), #000 calc(50% - 1px), #000 calc(50% + 1px), transparent calc(50% + 2px));
-  filter: drop-shadow(0 0 6px rgba(148, 163, 184, 0.16));
-  opacity: 0.5;
-  animation: logoWaveSpinReverse 3.6s linear infinite, logoWavePulseSoft 1.8s steps(2, end) infinite;
-  transform-origin: center;
+  width: 66px;
+  height: 66px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  opacity: 0.44;
+  animation: logoRingPulseAlt 2.6s ease-in-out infinite;
   z-index: -1;
 }
 
 .site-header .logo-icon {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   color: #dbeafe;
   position: relative;
   z-index: 1;
 }
 
-@keyframes logoWaveSpin {
-  0%, 100% {
-    transform: translate(-50%, -50%) rotate(0deg) scale(0.94);
-    opacity: 0.62;
+@keyframes logoRingPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.96);
+    opacity: 0.58;
   }
   50% {
-    transform: translate(-50%, -50%) rotate(180deg) scale(1.06);
-    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.88;
   }
 }
 
-@keyframes logoWaveSpinReverse {
-  0%, 100% {
-    transform: translate(-50%, -50%) rotate(0deg) scale(0.96);
-    opacity: 0.34;
+@keyframes logoRingPulseAlt {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.98);
+    opacity: 0.3;
   }
   50% {
-    transform: translate(-50%, -50%) rotate(-180deg) scale(1.08);
-    opacity: 0.64;
-  }
-}
-
-@keyframes logoWavePulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 5px rgba(96, 165, 250, 0.22));
-  }
-  50% {
-    filter: drop-shadow(0 0 14px rgba(96, 165, 250, 0.48));
-  }
-}
-
-@keyframes logoWavePulseSoft {
-  0%, 100% {
-    filter: drop-shadow(0 0 4px rgba(148, 163, 184, 0.14));
-  }
-  50% {
-    filter: drop-shadow(0 0 11px rgba(148, 163, 184, 0.28));
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.58;
   }
 }
 
@@ -475,7 +438,7 @@ main {
 }
 
 .site-page .card {
-  padding: 24px 20px 8px;
+  padding: 24px 24px 16px;
 }
 
 .site-page .button-row {
@@ -541,6 +504,10 @@ main {
   min-height: 220px;
   display: flex;
   flex-direction: column;
+}
+
+.hero-panel {
+  padding: 24px 24px 20px;
 }
 
 .hero-panel::before,
@@ -784,23 +751,23 @@ main {
 }
 
 .home-page main > *:nth-child(1) {
-  animation-delay: 3.35s;
+  animation-delay: 4.15s;
 }
 
 .home-page main > *:nth-child(2) {
-  animation-delay: 3.5s;
+  animation-delay: 4.3s;
 }
 
 .home-page main > *:nth-child(3) {
-  animation-delay: 3.65s;
+  animation-delay: 4.45s;
 }
 
 .home-page main > *:nth-child(4) {
-  animation-delay: 3.8s;
+  animation-delay: 4.6s;
 }
 
 .home-page main > *:nth-child(5) {
-  animation-delay: 3.95s;
+  animation-delay: 4.75s;
 }
 
 @keyframes splashMark {
@@ -1183,7 +1150,7 @@ ul.clean {
 }
 
 ul.clean li {
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid rgba(148, 163, 184, 0.16);
   color: #94a3b8;
 }
@@ -1464,6 +1431,8 @@ th {
     font-size: 0.8rem;
   }
 
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   .home-splash,
@@ -1542,7 +1511,6 @@ th {
     right: 3vw;
     min-width: 200px;
   }
-}
 
 @keyframes float {
   0% {

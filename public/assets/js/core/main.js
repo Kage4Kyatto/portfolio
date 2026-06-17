@@ -47,10 +47,15 @@ const observer = new IntersectionObserver(
   { threshold: 0.1 }
 );
 
-revealItems.forEach((item, index) => {
-  item.style.transitionDelay = `${index * 70}ms`;
-  observer.observe(item);
-});
+const isHomePage = document.body.classList.contains("home-page");
+const revealStartDelay = isHomePage ? 3950 : 0;
+
+window.setTimeout(() => {
+  revealItems.forEach((item, index) => {
+    item.style.transitionDelay = `${index * 70}ms`;
+    observer.observe(item);
+  });
+}, revealStartDelay);
 
 const yearEl = document.getElementById("year");
 if (yearEl) {
