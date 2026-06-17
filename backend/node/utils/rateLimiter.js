@@ -20,34 +20,40 @@ const createLimiter = (options = {}) => {
   });
 };
 
-const apiLimiter = createLimiter({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many API requests"
-});
+// Centralized rate limiter configuration
+const limiterConfig = {
+  api: {
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: "Too many API requests"
+  },
+  contact: {
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: "Too many contact submissions, please try again later.",
+    keyGenerator: (req) => req.ip || req.connection.remoteAddress
+  },
+  admin: {
+    windowMs: 5 * 60 * 1000,
+    max: 10,
+    message: "Too many admin requests"
+  },
+  auth: {
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: "Too many login attempts, please try again later.",
+    skipSuccessfulRequests: true
+  }
+};
 
-const contactLimiter = createLimiter({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  message: "Too many contact submissions, please try again later.",
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress
-});
-
-const adminLimiter = createLimiter({
-  windowMs: 5 * 60 * 1000,
-  max: 10,
-  message: "Too many admin requests"
-});
-
-const authLimiter = createLimiter({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: "Too many login attempts, please try again later.",
-  skipSuccessfulRequests: true
-});
+const apiLimiter = createLimiter(limiterConfig.api);
+const contactLimiter = createLimiter(limiterConfig.contact);
+const adminLimiter = createLimiter(limiterConfig.admin);
+const authLimiter = createLimiter(limiterConfig.auth);
 
 module.exports = {
   createLimiter,
+  limiterConfig,
   apiLimiter,
   contactLimiter,
   adminLimiter,

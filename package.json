@@ -48,25 +48,26 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "express-rate-limit": "^7.1.5",
-    "helmet": "^7.1.0",
-    "xss": "^1.0.14",
+    "@sentry/node": "^7.90.0",
     "compression": "^1.7.4",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.18.1",
+    "helmet": "^7.1.0",
     "pg": "^8.13.1",
-    "swagger-ui-express": "^5.0.0",
     "swagger-jsdoc": "^6.2.8",
-    "@sentry/node": "^7.90.0"
+    "swagger-ui-express": "^5.0.0",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
-    "@types/node": "^25.9.3",
     "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.55.0",
+    "@types/node": "^25.9.3",
     "nodemon": "^3.1.10",
-    "wait-on": "^8.0.3",
     "supertest": "^7.1.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wait-on": "^8.0.3"
   }
 }

@@ -15,6 +15,23 @@
   --cursor-x: 50vw;
   --cursor-y: 18vh;
   --cursor-glow-opacity: 0;
+  
+  /* Color palette for consistent theming */
+  --cyan-primary: 125, 211, 252;
+  --blue-primary: 59, 130, 246;
+  --blue-secondary: 96, 165, 250;
+  --blue-tertiary: 14, 165, 233;
+  --slate-border: 148, 163, 184;
+  --slate-muted: 226, 232, 240;
+  --dark-bg: 15, 23, 42;
+  --dark-bg-2: 2, 6, 23;
+  --dark-bg-3: 30, 41, 59;
+  --dark-bg-4: 8, 47, 73;
+  --dark-bg-5: 14, 64, 99;
+  --white: 255, 255, 255;
+  --red-accent: 220, 38, 38;
+  --green-accent: 74, 222, 128;
+  --green-light: 134, 239, 172;
 }
 
 * {

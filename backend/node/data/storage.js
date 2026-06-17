@@ -24,6 +24,9 @@ const getPool = () => {
     const { Pool } = require("pg");
     pool = new Pool({
       connectionString: databaseUrl,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
       ssl: process.env.DB_SSL === "false" ? false : undefined
     });
   }
@@ -107,24 +110,28 @@ const writeJsonFile = async (filePath, value) => {
   await fs.promises.writeFile(filePath, JSON.stringify(value, null, 2));
 };
 
-const getMessages = async () => {
+// Helper to abstract DB vs JSON branching pattern
+const useDbOrJson = async (dbFn, jsonFn) => {
   if (await ensureDb()) {
-    const db = getPool();
-    const result = await db.query(
-      "SELECT id, name, email, subject, message, created_at FROM contact_messages ORDER BY id ASC"
-    );
+    return dbFn(getPool());
+  }
+  return jsonFn();
+};
 
-    return result.rows.map((row) => ({
+const getMessages = async () => {
+  return useDbOrJson(
+    (db) => db.query(
+      "SELECT id, name, email, subject, message, created_at FROM contact_messages ORDER BY id ASC"
+    ).then((result) => result.rows.map((row) => ({
       id: Number(row.id),
       name: row.name,
       email: row.email,
       subject: row.subject,
       message: row.message,
       createdAt: new Date(row.created_at).toISOString()
-    }));
-  }
-
-  return readJsonFile(messagesPath, []);
+    }))),
+    () => readJsonFile(messagesPath, [])
+  );
 };
 
 const addMessage = async ({ name, email, subject, message, createdAt }) => {
