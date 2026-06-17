@@ -54,14 +54,6 @@ const setDashboardVisibility = (isVisible) => {
   }
 };
 
-const escapeHtml = (value) =>
-  String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
 const escapeCell = (value) => String(value ?? "").replace(/[\r\n]+/g, " ").trim();
 
 const getVisibleMessages = () => {
@@ -305,6 +297,12 @@ const bindInactivityEvents = () => {
   });
 };
 
+const unbindInactivityEvents = () => {
+  ["pointerdown", "keydown", "mousemove", "touchstart"].forEach((eventName) => {
+    window.removeEventListener(eventName, scheduleInactivityTimeout, { passive: true });
+  });
+};
+
 const hydrateSessionState = async () => {
   try {
     const state = await fetchJsonWithFallback(["/api/admin/session"]);
@@ -521,6 +519,7 @@ if (authForm && notice && tableBody) {
 
     csrfToken = "";
     clearInactivityTimer();
+    unbindInactivityEvents();
 
     setDashboardVisibility(false);
     notice.textContent = "Logged out.";

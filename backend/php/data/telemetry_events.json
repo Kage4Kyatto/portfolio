@@ -226,5 +226,59 @@
     "path": "/index.html",
     "locale": "en",
     "timestamp": "2026-06-17T19:45:16.450Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/projects.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:45:55.412Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/project-portfolio-platform.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:45:58.480Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/blog/",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:46:00.562Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/api/blog/posts",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:46:10.324Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:46:23.599Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "nl",
+    "timestamp": "2026-06-17T19:47:59.680Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:52:04.417Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:53:03.660Z"
+  },
+  {
+    "event": "pageview",
+    "path": "/index.html",
+    "locale": "en",
+    "timestamp": "2026-06-17T19:53:51.520Z"
   }
 ]

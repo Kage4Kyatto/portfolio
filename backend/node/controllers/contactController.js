@@ -1,18 +1,10 @@
 const { addMessage, getMessages: getStoredMessages, getRateLimits, saveRateLimits } = require("../data/storage");
 const { enqueueNotification } = require("../services/notificationQueue");
 const { sanitizeText, sanitizeEmail } = require("../utils/sanitize");
+const getClientIp = require("../utils/getClientIp");
 
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
-
-const getClientIp = (req) => {
-  const forwardedForHeader = req.headers["x-forwarded-for"];
-  const forwardedFor = Array.isArray(forwardedForHeader)
-    ? forwardedForHeader[0]
-    : String(forwardedForHeader || "").split(",")[0].trim();
-
-  return forwardedFor || req.ip || "unknown";
-};
 
 const evaluateContactRateLimit = async (req) => {
   const now = Date.now();

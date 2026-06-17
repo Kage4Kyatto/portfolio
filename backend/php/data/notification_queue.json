@@ -1,82 +1,42 @@
 [
   {
-    "id": 1781725511415,
+    "id": 1781726031538,
     "payload": {
       "type": "contact_message",
-      "messageId": 1781725511411,
-      "createdAt": "2026-06-17T19:45:11.410Z"
+      "messageId": 1781726031534,
+      "createdAt": "2026-06-17T19:53:51.533Z"
     },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
+    "attempts": 0,
+    "nextAttemptAt": 1781726031538
   },
   {
-    "id": 1781725511423,
+    "id": 1781726031543,
     "payload": {
       "type": "contact_message",
-      "messageId": 1781725511416,
-      "createdAt": "2026-06-17T19:45:11.416Z"
+      "messageId": 1781726031539,
+      "createdAt": "2026-06-17T19:53:51.539Z"
     },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
+    "attempts": 0,
+    "nextAttemptAt": 1781726031543
   },
   {
-    "id": 1781725511429,
+    "id": 1781726031549,
     "payload": {
       "type": "contact_message",
-      "messageId": 1781725511425,
-      "createdAt": "2026-06-17T19:45:11.424Z"
+      "messageId": 1781726031545,
+      "createdAt": "2026-06-17T19:53:51.545Z"
     },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
+    "attempts": 0,
+    "nextAttemptAt": 1781726031549
   },
   {
-    "id": 1781725511436,
+    "id": 1781726031559,
     "payload": {
       "type": "contact_message",
-      "messageId": 1781725511430,
-      "createdAt": "2026-06-17T19:45:11.430Z"
+      "messageId": 1781726031551,
+      "createdAt": "2026-06-17T19:53:51.550Z"
     },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
-  },
-  {
-    "id": 1781725516467,
-    "payload": {
-      "type": "contact_message",
-      "messageId": 1781725516463,
-      "createdAt": "2026-06-17T19:45:16.462Z"
-    },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
-  },
-  {
-    "id": 1781725516472,
-    "payload": {
-      "type": "contact_message",
-      "messageId": 1781725516468,
-      "createdAt": "2026-06-17T19:45:16.468Z"
-    },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
-  },
-  {
-    "id": 1781725516476,
-    "payload": {
-      "type": "contact_message",
-      "messageId": 1781725516473,
-      "createdAt": "2026-06-17T19:45:16.472Z"
-    },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
-  },
-  {
-    "id": 1781725516483,
-    "payload": {
-      "type": "contact_message",
-      "messageId": 1781725516477,
-      "createdAt": "2026-06-17T19:45:16.477Z"
-    },
-    "attempts": 1,
-    "nextAttemptAt": 1781725529515
+    "attempts": 0,
+    "nextAttemptAt": 1781726031559
   }
 ]

@@ -1,20 +1,12 @@
 const crypto = require("crypto");
 const { getAuthAttempts, saveAuthAttempts } = require("../data/storage");
+const getClientIp = require("../utils/getClientIp");
 
 const ADMIN_AUTH_WINDOW_MS = Number(process.env.ADMIN_AUTH_WINDOW_MS || 15 * 60 * 1000);
 const ADMIN_AUTH_MAX_ATTEMPTS = Number(process.env.ADMIN_AUTH_MAX_ATTEMPTS || 8);
 const ADMIN_AUTH_LOCK_MS = Number(process.env.ADMIN_AUTH_LOCK_MS || 15 * 60 * 1000);
 const SESSION_KEY = "portfolioAdmin";
 const CSRF_KEY = "portfolioCsrfToken";
-
-const getClientIp = (req) => {
-  const forwardedForHeader = req.headers["x-forwarded-for"];
-  const forwardedFor = Array.isArray(forwardedForHeader)
-    ? forwardedForHeader[0]
-    : String(forwardedForHeader || "").split(",")[0].trim();
-
-  return forwardedFor || req.ip || "unknown";
-};
 
 const getActiveAttemptEntry = (attempts, ip, now) => {
   const current = attempts[ip];

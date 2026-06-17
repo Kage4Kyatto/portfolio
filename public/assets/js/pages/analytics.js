@@ -4,14 +4,6 @@ const analyticsFilter = document.getElementById("analytics-filter");
 
 let currentAnalytics = null;
 
-const escapeHtml = (value) =>
-  String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
 const loadAnalytics = async (range = "30d", filter = null) => {
   try {
     let url = `/api/admin/analytics?range=${encodeURIComponent(range)}`;
@@ -50,59 +42,71 @@ const renderAnalytics = () => {
     return;
   }
 
-  const dailyChartData = Object.entries(currentAnalytics.dailyTotals || {})
-    .map(([date, count]) => `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line);">
-      <span>${escapeHtml(date)}</span>
-      <strong>${count}</strong>
-    </div>`)
-    .join("");
-
-  const sourceData = Object.entries(currentAnalytics.sourceBreakdown || {})
-    .sort(([, a], [, b]) => b - a)
-    .map(([source, count]) => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
-      <span>${escapeHtml(source === "direct" ? "Direct / No Referrer" : source)}</span>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 150px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden;">
-          <div style="width: ${(count / currentAnalytics.total) * 100}%; height: 100%; background: var(--accent);"></div>
+  // Ensure container structure exists to avoid full DOM rebuild
+  if (!analyticsContainer.querySelector('[data-section="summary"]')) {
+    analyticsContainer.innerHTML = `
+      <section data-section="summary" style="margin-bottom: 32px;">
+        <h3 style="margin-bottom: 16px;">Summary</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Total Messages</p><p data-metric="total" style="font-size: 2rem; font-weight: 700; color: var(--accent);"></p></div>
+          <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Unread</p><p data-metric="unread" style="font-size: 2rem; font-weight: 700; color: var(--warning);"></p></div>
+          <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Avg/Day</p><p data-metric="avgPerDay" style="font-size: 2rem; font-weight: 700; color: var(--success);"></p></div>
         </div>
-        <span style="min-width: 40px; text-align: right;"><strong>${count}</strong></span>
-      </div>
-    </div>`)
-    .join("");
+      </section>
+      <section data-section="daily" style="margin-bottom: 32px;">
+        <h3 style="margin-bottom: 16px;">Daily Activity (<span data-range></span>)</h3>
+        <div class="card" style="padding: 16px;" data-chart="daily"></div>
+      </section>
+      <section data-section="sources">
+        <h3 style="margin-bottom: 16px;">Message Sources</h3>
+        <div class="card" style="padding: 16px;" data-chart="sources"></div>
+      </section>
+    `;
+  }
 
-  analyticsContainer.innerHTML = `
-    <section style="margin-bottom: 32px;">
-      <h3 style="margin-bottom: 16px;">Summary</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <div class="card" style="padding: 16px;">
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Total Messages</p>
-          <p style="font-size: 2rem; font-weight: 700; color: var(--accent);">${currentAnalytics.total}</p>
-        </div>
-        <div class="card" style="padding: 16px;">
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Unread</p>
-          <p style="font-size: 2rem; font-weight: 700; color: var(--warning);">${currentAnalytics.unread}</p>
-        </div>
-        <div class="card" style="padding: 16px;">
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">Avg/Day</p>
-          <p style="font-size: 2rem; font-weight: 700; color: var(--success);">${currentAnalytics.avgMessagesPerDay}</p>
-        </div>
-      </div>
-    </section>
+  // Update summary metrics
+  const summarySection = analyticsContainer.querySelector('[data-section="summary"]');
+  if (summarySection) {
+    summarySection.querySelector('[data-metric="total"]').textContent = currentAnalytics.total;
+    summarySection.querySelector('[data-metric="unread"]').textContent = currentAnalytics.unread;
+    summarySection.querySelector('[data-metric="avgPerDay"]').textContent = currentAnalytics.avgMessagesPerDay;
+  }
 
-    <section style="margin-bottom: 32px;">
-      <h3 style="margin-bottom: 16px;">Daily Activity (${currentAnalytics.timeRange})</h3>
-      <div class="card" style="padding: 16px;">
-        ${dailyChartData || '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No data available</p>'}
-      </div>
-    </section>
+  // Update time range label
+  const rangeSpan = analyticsContainer.querySelector('[data-range]');
+  if (rangeSpan) {
+    rangeSpan.textContent = currentAnalytics.timeRange;
+  }
 
-    <section>
-      <h3 style="margin-bottom: 16px;">Message Sources</h3>
-      <div class="card" style="padding: 16px;">
-        ${sourceData || '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No source data available</p>'}
-      </div>
-    </section>
-  `;
+  // Update daily chart
+  const dailyChartContainer = analyticsContainer.querySelector('[data-chart="daily"]');
+  if (dailyChartContainer) {
+    const dailyChartData = Object.entries(currentAnalytics.dailyTotals || {})
+      .map(([date, count]) => `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line);">
+        <span>${escapeHtml(date)}</span>
+        <strong>${count}</strong>
+      </div>`)
+      .join("");
+    dailyChartContainer.innerHTML = dailyChartData || '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No data available</p>';
+  }
+
+  // Update source chart
+  const sourceChartContainer = analyticsContainer.querySelector('[data-chart="sources"]');
+  if (sourceChartContainer) {
+    const sourceData = Object.entries(currentAnalytics.sourceBreakdown || {})
+      .sort(([, a], [, b]) => b - a)
+      .map(([source, count]) => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+        <span>${escapeHtml(source === "direct" ? "Direct / No Referrer" : source)}</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 150px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden;">
+            <div style="width: ${(count / currentAnalytics.total) * 100}%; height: 100%; background: var(--accent);"></div>
+          </div>
+          <span style="min-width: 40px; text-align: right;"><strong>${count}</strong></span>
+        </div>
+      </div>`)
+      .join("");
+    sourceChartContainer.innerHTML = sourceData || '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No source data available</p>';
+  }
 };
 
 if (analyticsContainer && analyticsRange && analyticsFilter) {

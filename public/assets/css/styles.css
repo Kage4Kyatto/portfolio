@@ -1443,6 +1443,10 @@ th {
   pointer-events: auto;
   box-shadow: var(--shadow-soft);
   word-break: break-word;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .toast--visible {
@@ -1472,6 +1476,33 @@ th {
   background: rgba(245, 158, 11, 0.9);
   color: #fffbeb;
   border-left: 4px solid #f59e0b;
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.toast-dismiss:hover {
+  opacity: 1;
+}
+
+.toast-dismiss:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 /* Loading Spinner */
