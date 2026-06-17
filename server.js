@@ -3,6 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const session = require("express-session");
 const crypto = require("crypto");
+const helmet = require("helmet");
+const compression = require("compression");
+const swaggerUi = require("swagger-ui-express");
+
+const { sanitizeObject, sanitizeEmail, sanitizeText } = require("./backend/node/utils/sanitize");
+const { apiLimiter, contactLimiter, adminLimiter, authLimiter } = require("./backend/node/utils/rateLimiter");
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -129,6 +135,15 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(helmet({
+  contentSecurityPolicy: false,
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
+}));
+
+app.use(compression());
+
+app.use(apiLimiter);
+
 app.use((req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
   res.set("X-Frame-Options", "DENY");
@@ -141,6 +156,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(session({
   name: "portfolio.sid",
   secret: process.env.ADMIN_SESSION_SECRET || "change-this-session-secret",
@@ -155,6 +171,21 @@ app.use(session({
 }));
 
 app.use("/api", contactRoutes);
+
+app.get("/api/docs", (req, res) => {
+  if (!fs.existsSync(OPENAPI_PATH)) {
+    return res.status(404).send("OpenAPI spec not found.");
+  }
+  const spec = JSON.parse(fs.readFileSync(OPENAPI_PATH, "utf8"));
+  res.send(swaggerUi.generateHTML(spec));
+});
+
+app.get("/api/swagger.json", (req, res) => {
+  if (!fs.existsSync(OPENAPI_PATH)) {
+    return res.status(404).json({ error: "OpenAPI spec not found" });
+  }
+  res.sendFile(OPENAPI_PATH);
+});
 
 app.get("/admin", requireCloudflareAccess, (req, res) => {
   res.redirect("/admin.html");

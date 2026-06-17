@@ -11,6 +11,7 @@ const {
 } = require("../middleware/authMiddleware");
 const { requireCloudflareAccess } = require("../middleware/cloudflareAccessMiddleware");
 const { getSystemMetrics } = require("../data/storage");
+const { contactLimiter, adminLimiter, authLimiter } = require("../utils/rateLimiter");
 
 const router = express.Router();
 
@@ -21,8 +22,7 @@ router.get("/admin/session", requireCloudflareAccess, (req, res) => {
 	});
 });
 
-router.post("/admin/login", requireCloudflareAccess, requireAdminAuth, (req, res) => {
-	const csrfToken = startAdminSession(req);
+router.post("/admin/login", requireCloudflareAccess, authLimiter, requireAdminAuth, (req, res) => {	const csrfToken = startAdminSession(req);
 	if (!csrfToken) {
 		return res.status(500).json({
 			success: false,
@@ -37,7 +37,7 @@ router.post("/admin/login", requireCloudflareAccess, requireAdminAuth, (req, res
 	});
 });
 
-router.post("/admin/logout", requireCloudflareAccess, requireAdminSession, requireCsrfToken, (req, res) => {
+router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireAdminSession, requireCsrfToken, (req, res) => {
 	endAdminSession(req, () => {
 		res.status(200).json({
 			success: true,
@@ -46,7 +46,7 @@ router.post("/admin/logout", requireCloudflareAccess, requireAdminSession, requi
 	});
 });
 
-router.get("/admin/metrics", requireCloudflareAccess, requireAdminSession, async (req, res) => {
+router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
 	try {
 		const metrics = await getSystemMetrics();
 		res.status(200).json({
@@ -62,7 +62,7 @@ router.get("/admin/metrics", requireCloudflareAccess, requireAdminSession, async
 });
 
 router.get("/health", getHealth);
-router.get("/messages", requireCloudflareAccess, requireAdminSessionOrBasic, getMessages);
-router.post("/contact", submitContact);
+router.get("/messages", requireCloudflareAccess, adminLimiter, requireAdminSessionOrBasic, getMessages);
+router.post("/contact", contactLimiter, submitContact);
 
 module.exports = router;

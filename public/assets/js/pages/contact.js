@@ -20,6 +20,7 @@ const setSubmitState = (isSubmitting) => {
   }
 
   submitButton.disabled = isSubmitting;
+  submitButton.classList.toggle("loading", isSubmitting);
   submitButton.textContent = isSubmitting ? "Sending..." : "Submit";
 };
 
@@ -38,6 +39,10 @@ const getFastifyContactEndpoint = () => {
 };
 
 if (contactForm && notice) {
+  if (window.validation) {
+    window.validation.setupLiveValidation(contactForm);
+  }
+
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -49,6 +54,20 @@ if (contactForm && notice) {
       message: formData.get("message")?.toString().trim(),
       website: formData.get("website")?.toString().trim()
     };
+
+    if (window.validation) {
+      const validation = window.validation.validateForm(payload);
+      if (!validation.valid) {
+        for (const [field, message] of Object.entries(validation.errors)) {
+          const input = contactForm.querySelector(`[name="${field}"]`);
+          if (input) {
+            window.validation.showFieldError(input, message);
+          }
+        }
+        window.toast?.error("Please correct the form errors.");
+        return;
+      }
+    }
 
     notice.textContent = "Sending...";
     notice.className = "notice";
@@ -114,10 +133,17 @@ if (contactForm && notice) {
 
       notice.textContent = "Thanks. Your message has been sent.";
       notice.classList.add("success");
+      if (window.toast) {
+        window.toast.success("Message sent successfully!");
+      }
       contactForm.reset();
     } catch (error) {
-      notice.textContent = error instanceof Error ? error.message : "Failed to send message.";
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message.";
+      notice.textContent = errorMessage;
       notice.classList.add("error");
+      if (window.toast) {
+        window.toast.error(errorMessage);
+      }
     } finally {
       setSubmitState(false);
     }

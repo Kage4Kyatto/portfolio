@@ -1,5 +1,6 @@
 const { addMessage, getMessages: getStoredMessages, getRateLimits, saveRateLimits } = require("../data/storage");
 const { enqueueNotification } = require("../services/notificationQueue");
+const { sanitizeText, sanitizeEmail } = require("../utils/sanitize");
 
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
@@ -125,11 +126,23 @@ const submitContact = async (req, res) => {
       });
     }
 
+    const sanitizedName = sanitizeText(name);
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedSubject = sanitizeText(subject);
+    const sanitizedMessage = sanitizeText(message);
+
+    if (!sanitizedName || !sanitizedEmail || !sanitizedSubject || !sanitizedMessage) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid input values."
+      });
+    }
+
     const newMessage = await addMessage({
-      name,
-      email,
-      subject,
-      message,
+      name: sanitizedName,
+      email: sanitizedEmail,
+      subject: sanitizedSubject,
+      message: sanitizedMessage,
       createdAt: new Date().toISOString()
     });
     enqueueNotification({

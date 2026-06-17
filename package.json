@@ -33,6 +33,9 @@
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "migrate:db": "node scripts/node/migrateDb.js",
+    "setup": "node scripts/node/setupDev.js",
+    "blog:new": "node scripts/node/createBlogPost.js",
+    "docs": "swagger-jsdoc -d docs/swagger-config.js -o docs/swagger.json",
     "reset:contact-data": "node tools/resetContactData.js",
     "clean:contact-data": "git restore --worktree backend/php/data/messages.json backend/php/data/contact_rate_limits.json"
   },
@@ -47,7 +50,14 @@
   "dependencies": {
     "express": "^4.21.2",
     "express-session": "^1.18.1",
-    "pg": "^8.13.1"
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "xss": "^1.0.14",
+    "compression": "^1.7.4",
+    "pg": "^8.13.1",
+    "swagger-ui-express": "^5.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "@sentry/node": "^7.90.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
