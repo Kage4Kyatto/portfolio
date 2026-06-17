@@ -68,6 +68,45 @@ app.get("/runtime-config.js", (req, res) => {
   );
 });
 
+const getBaseUrl = (req) => {
+  const forwardedProtoHeader = req.headers["x-forwarded-proto"];
+  const forwardedProto = Array.isArray(forwardedProtoHeader)
+    ? forwardedProtoHeader[0]
+    : (forwardedProtoHeader || "").split(",")[0].trim();
+  const protocol = forwardedProto || req.protocol || "http";
+
+  return `${protocol}://${req.get("host")}`;
+};
+
+app.get("/robots.txt", (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  res.type("text/plain");
+  res.send(`User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: ${baseUrl}/sitemap.xml\n`);
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  const baseUrl = getBaseUrl(req);
+  const routes = [
+    { loc: "/index.html", changefreq: "weekly", priority: "1.0" },
+    { loc: "/about.html", changefreq: "monthly", priority: "0.8" },
+    { loc: "/projects.html", changefreq: "weekly", priority: "0.9" },
+    { loc: "/services.html", changefreq: "monthly", priority: "0.7" },
+    { loc: "/contact.html", changefreq: "monthly", priority: "0.8" },
+    { loc: "/my-page", changefreq: "monthly", priority: "0.7" },
+    { loc: "/updates.html", changefreq: "monthly", priority: "0.6" },
+    { loc: "/privacy.html", changefreq: "yearly", priority: "0.4" }
+  ];
+
+  const urls = routes
+    .map(
+      (route) => `  <url>\n    <loc>${baseUrl}${route.loc}</loc>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>\n  </url>`
+    )
+    .join("\n");
+
+  res.type("application/xml");
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
+});
+
 if (fs.existsSync(REACT_DIST_PATH)) {
   app.use("/app", express.static(REACT_DIST_PATH));
   app.get("/app", (req, res) => {
