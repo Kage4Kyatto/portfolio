@@ -1204,7 +1204,65 @@ textarea {
 
 .site-footer {
   border-top: 1px solid rgba(148, 163, 184, 0.14);
-  padding: 22px 0 34px;
+  padding: 24px 0 34px;
+  color: #94a3b8;
+}
+
+.footer-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.footer-block {
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.footer-title {
+  margin: 0 0 8px;
+  color: #e2e8f0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.footer-text {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.87rem;
+  line-height: 1.6;
+}
+
+.footer-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.footer-links a {
+  color: #7dd3fc;
+  text-decoration: none;
+  font-size: 0.82rem;
+}
+
+.footer-links a:hover {
+  color: #bae6fd;
+}
+
+.footer-meta {
+  margin: 0;
+  font-size: 0.78rem;
   color: #94a3b8;
 }
 
@@ -1354,6 +1412,10 @@ th {
   .site-page .grid-3 {
     gap: 20px;
   }
+
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -1408,6 +1470,10 @@ th {
     width: 72px;
     height: 72px;
     border-radius: 20px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
   }
 
   .projects-page .page-panel {
