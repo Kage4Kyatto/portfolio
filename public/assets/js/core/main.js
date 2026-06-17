@@ -1,9 +1,80 @@
 const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
 
+const ensureMainLandmark = () => {
+  const mainEl = document.querySelector("main");
+  if (!mainEl) {
+    return null;
+  }
+
+  if (!mainEl.id) {
+    mainEl.id = "main-content";
+  }
+
+  if (!mainEl.hasAttribute("tabindex")) {
+    mainEl.setAttribute("tabindex", "-1");
+  }
+
+  return mainEl;
+};
+
+const ensureSkipLink = () => {
+  const mainEl = ensureMainLandmark();
+  if (!mainEl || document.querySelector(".skip-link")) {
+    return;
+  }
+
+  const skipLink = document.createElement("a");
+  skipLink.className = "skip-link";
+  skipLink.href = `#${mainEl.id}`;
+  skipLink.textContent = "Skip to content";
+  document.body.insertBefore(skipLink, document.body.firstChild);
+};
+
+ensureSkipLink();
+
 if (menuButton && navLinks) {
+  if (!navLinks.id) {
+    navLinks.id = "primary-navigation";
+  }
+
+  menuButton.setAttribute("aria-expanded", "false");
+  menuButton.setAttribute("aria-controls", navLinks.id);
+
+  const setMenuOpen = (isOpen) => {
+    navLinks.classList.toggle("open", isOpen);
+    menuButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  };
+
   menuButton.addEventListener("click", () => {
-    navLinks.classList.toggle("open");
+    const isOpen = navLinks.classList.contains("open");
+    setMenuOpen(!isOpen);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!navLinks.classList.contains("open")) {
+      return;
+    }
+
+    const clickedInsideNav = navLinks.contains(event.target) || menuButton.contains(event.target);
+    if (!clickedInsideNav) {
+      setMenuOpen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && navLinks.classList.contains("open")) {
+      setMenuOpen(false);
+      menuButton.focus();
+    }
+  });
+
+  navLinks.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        setMenuOpen(false);
+      }
+    });
   });
 }
 

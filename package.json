@@ -16,6 +16,8 @@
     "start:fastify": "npm --prefix backend/fastify run start",
     "lint": "node --check server.js && node --check backend/node/controllers/contactController.js && node --check backend/node/middleware/authMiddleware.js && node --check backend/node/routes/contactRoutes.js && node --check public/assets/js/core/main.js && node --check public/assets/js/pages/contact.js && node --check public/assets/js/pages/admin.js",
     "test": "node --test",
+    "quality": "npm run lint && npm test",
+    "lighthouse": "lhci autorun --config=./lighthouserc.json",
     "typecheck": "tsc --noEmit",
     "build:ts": "tsc",
     "stats:messages": "node dist-tools/tools/ts/messageStats.js",
@@ -42,6 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "@lhci/cli": "^0.14.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.1",
     "typescript": "^6.0.3"

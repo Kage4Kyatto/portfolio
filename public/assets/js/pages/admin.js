@@ -182,6 +182,9 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
 
       if (!response.ok) {
         const requestError = new Error(parsed?.message || `Request failed with status ${response.status}.`);
+        requestError.status = response.status;
+        requestError.attemptsRemaining = parsed?.attemptsRemaining;
+        requestError.retryAfterSec = parsed?.retryAfterSec;
 
         if ((response.status === 401 || response.status === 403 || response.status === 400) || parsed) {
           requestError.stopFallback = true;
@@ -313,7 +316,18 @@ if (authForm && notice && tableBody) {
       tableBody.innerHTML = '<tr><td colspan="6">Could not load messages.</td></tr>';
       allMessages = [];
       filteredMessages = [];
-      notice.textContent = error.message;
+      const retryAfter = Number(error?.retryAfterSec || 0);
+      const attemptsRemaining = Number.isFinite(error?.attemptsRemaining)
+        ? Number(error.attemptsRemaining)
+        : null;
+
+      if (retryAfter > 0) {
+        notice.textContent = `${error.message} Retry in about ${retryAfter} second(s).`;
+      } else if (attemptsRemaining !== null && attemptsRemaining >= 0) {
+        notice.textContent = `${error.message} Attempts remaining: ${attemptsRemaining}.`;
+      } else {
+        notice.textContent = error.message;
+      }
       notice.className = "notice error";
       if (pageInfo) {
         pageInfo.textContent = "";

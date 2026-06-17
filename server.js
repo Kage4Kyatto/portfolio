@@ -47,15 +47,17 @@ const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflar
 const app = express();
 const PORT = process.env.PORT || 3000;
 const REACT_DIST_PATH = path.join(__dirname, "frontend", "react-app", "dist");
+const SITE_LASTMOD = process.env.SITEMAP_LASTMOD || new Date().toISOString().slice(0, 10);
 const SITEMAP_ROUTES = [
-  { loc: "/index.html", changefreq: "weekly", priority: "1.0" },
-  { loc: "/about.html", changefreq: "monthly", priority: "0.8" },
-  { loc: "/projects.html", changefreq: "weekly", priority: "0.9" },
-  { loc: "/services.html", changefreq: "monthly", priority: "0.7" },
-  { loc: "/contact.html", changefreq: "monthly", priority: "0.8" },
-  { loc: "/my-page", changefreq: "monthly", priority: "0.7" },
-  { loc: "/updates.html", changefreq: "monthly", priority: "0.6" },
-  { loc: "/privacy.html", changefreq: "yearly", priority: "0.4" }
+  { loc: "/index.html", changefreq: "weekly", priority: "1.0", lastmod: SITE_LASTMOD, image: "/assets/img/og-image.svg" },
+  { loc: "/about.html", changefreq: "monthly", priority: "0.8", lastmod: SITE_LASTMOD },
+  { loc: "/projects.html", changefreq: "weekly", priority: "0.9", lastmod: SITE_LASTMOD },
+  { loc: "/services.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
+  { loc: "/contact.html", changefreq: "monthly", priority: "0.8", lastmod: SITE_LASTMOD },
+  { loc: "/updates.html", changefreq: "weekly", priority: "0.7", lastmod: SITE_LASTMOD },
+  { loc: "/privacy.html", changefreq: "yearly", priority: "0.4", lastmod: SITE_LASTMOD },
+  { loc: "/project-portfolio-platform.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD },
+  { loc: "/project-testing-assignment.html", changefreq: "monthly", priority: "0.7", lastmod: SITE_LASTMOD }
 ];
 
 app.use(express.json());
@@ -90,18 +92,22 @@ const getBaseUrl = (req) => {
 
 const buildSitemapXml = (baseUrl) => {
   const urls = SITEMAP_ROUTES
-    .map(
-      (route) => `  <url>\n    <loc>${baseUrl}${route.loc}</loc>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>\n  </url>`
-    )
+    .map((route) => {
+      const imageTag = route.image
+        ? `\n    <image:image>\n      <image:loc>${baseUrl}${route.image}</image:loc>\n    </image:image>`
+        : "";
+
+      return `  <url>\n    <loc>${baseUrl}${route.loc}</loc>\n    <lastmod>${route.lastmod}</lastmod>\n    <changefreq>${route.changefreq}</changefreq>\n    <priority>${route.priority}</priority>${imageTag}\n  </url>`;
+    })
     .join("\n");
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls}\n</urlset>\n`;
 };
 
 app.get("/robots.txt", (req, res) => {
   const baseUrl = getBaseUrl(req);
   res.type("text/plain");
-  res.send(`User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: ${baseUrl}/sitemap.xml\n`);
+  res.send(`User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /my-page\n\nSitemap: ${baseUrl}/sitemap.xml\n`);
 });
 
 app.get("/sitemap.xml", (req, res) => {
@@ -127,7 +133,17 @@ app.get("/my-page", (req, res) => {
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
+});
+
+app.use((error, req, res, next) => {
+  console.error(error);
+
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  return res.status(500).sendFile(path.join(__dirname, "public", "500.html"));
 });
 
 if (require.main === module) {
