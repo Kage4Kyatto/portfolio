@@ -288,6 +288,9 @@ const triggerInactivityLogout = () => {
 
   notice.textContent = "Session timed out due to inactivity.";
   notice.className = "notice error";
+  if (window.toast) {
+    window.toast.error("Session timed out due to inactivity.");
+  }
   logoutButton.click();
 };
 
@@ -522,5 +525,8 @@ if (authForm && notice && tableBody) {
     setDashboardVisibility(false);
     notice.textContent = "Logged out.";
     notice.className = "notice";
+    if (window.toast) {
+      window.toast.info("Logged out successfully.");
+    }
   });
 }
