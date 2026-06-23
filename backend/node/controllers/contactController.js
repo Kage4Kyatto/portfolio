@@ -6,47 +6,66 @@ const getClientIp = require("../utils/getClientIp");
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
 
+// In-memory atomic rate limit tracking to prevent race conditions
+const rateLimitMemory = new Map();
+let lastFlushTime = Date.now();
+const FLUSH_INTERVAL_MS = 10000; // Flush to storage every 10 seconds
+
+const flushRateLimitsToStorage = async () => {
+  const now = Date.now();
+  if (now - lastFlushTime < FLUSH_INTERVAL_MS) {
+    return;
+  }
+
+  try {
+    const limitsObj = {};
+    for (const [ip, entry] of rateLimitMemory.entries()) {
+      limitsObj[ip] = entry;
+    }
+    await saveRateLimits(limitsObj);
+    lastFlushTime = now;
+  } catch (error) {
+    console.error("[RateLimit] Failed to flush to storage:", error);
+  }
+};
+
 const evaluateContactRateLimit = async (req) => {
   const now = Date.now();
   const ip = getClientIp(req);
-  const limits = await getRateLimits();
-
-  Object.keys(limits).forEach((key) => {
-    const entry = limits[key];
-    if (!entry || now - Number(entry.lastAttempt || 0) > CONTACT_RATE_LIMIT_WINDOW_MS * 2) {
-      delete limits[key];
-    }
-  });
-
-  const current = limits[ip];
-  const isExpired = !current || now - Number(current.windowStart || 0) >= CONTACT_RATE_LIMIT_WINDOW_MS;
-  const base = isExpired
-    ? {
+  
+  // Use in-memory tracking for atomic operations
+  let entry = rateLimitMemory.get(ip);
+  const isExpired = !entry || now - entry.windowStart >= CONTACT_RATE_LIMIT_WINDOW_MS;
+  
+  if (isExpired) {
+    entry = {
       count: 0,
       windowStart: now,
       lastAttempt: now
-    }
-    : current;
-
-  if (base.count >= CONTACT_RATE_LIMIT_MAX) {
-    const retryAfterMs = Math.max(1000, CONTACT_RATE_LIMIT_WINDOW_MS - (now - Number(base.windowStart || now)));
-    limits[ip] = {
-      ...base,
-      lastAttempt: now
     };
-    await saveRateLimits(limits);
+  }
+
+  if (entry.count >= CONTACT_RATE_LIMIT_MAX) {
+    const retryAfterMs = Math.max(1000, CONTACT_RATE_LIMIT_WINDOW_MS - (now - entry.windowStart));
+    entry.lastAttempt = now;
+    rateLimitMemory.set(ip, entry);
+    
+    // Flush periodically in background
+    flushRateLimitsToStorage().catch(() => {});
+    
     return {
       allowed: false,
       retryAfterSec: Math.ceil(retryAfterMs / 1000)
     };
   }
 
-  limits[ip] = {
-    ...base,
-    count: Number(base.count || 0) + 1,
-    lastAttempt: now
-  };
-  await saveRateLimits(limits);
+  // Increment count atomically in memory
+  entry.count += 1;
+  entry.lastAttempt = now;
+  rateLimitMemory.set(ip, entry);
+  
+  // Flush periodically in background
+  flushRateLimitsToStorage().catch(() => {});
 
   return {
     allowed: true,
@@ -170,8 +189,28 @@ const submitContact = async (req, res) => {
   }
 };
 
+// Initialize rate limits from persistent storage on startup
+const initializeRateLimits = async () => {
+  try {
+    const stored = await getRateLimits();
+    const now = Date.now();
+    
+    for (const [ip, entry] of Object.entries(stored)) {
+      // Only restore non-expired entries
+      if (entry && now - entry.lastAttempt < CONTACT_RATE_LIMIT_WINDOW_MS * 2) {
+        rateLimitMemory.set(ip, entry);
+      }
+    }
+    
+    console.log("[RateLimit] Initialized with", rateLimitMemory.size, "tracked IPs");
+  } catch (error) {
+    console.warn("[RateLimit] Failed to initialize from storage:", error.message);
+  }
+};
+
 module.exports = {
   getHealth,
   getMessages,
-  submitContact
+  submitContact,
+  initializeRateLimits
 };

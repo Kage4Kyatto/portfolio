@@ -120,15 +120,6 @@ if (contactForm && notice) {
       if (fastifyContactEndpoint) {
         endpointSet.add(fastifyContactEndpoint);
       }
-
-      // Try endpoints in preferred order: prefer primary backend with fallbacks
-      const endpointSet = new Set();
-      
-      // Primary endpoint: Fastify if available and external, otherwise Node Express
-      const fastifyContactEndpoint = getFastifyContactEndpoint();
-      if (fastifyContactEndpoint) {
-        endpointSet.add(fastifyContactEndpoint);
-      }
       
       // Primary fallback: Node Express API
       endpointSet.add("/api/contact");

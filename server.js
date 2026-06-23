@@ -54,6 +54,7 @@ const blogRoutes = require("./backend/node/routes/blogRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 const { appendTelemetryEvent } = require("./backend/node/data/storage");
+const { initializeRateLimits } = require("./backend/node/controllers/contactController");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -303,6 +304,9 @@ app.use((error, req, res, next) => {
 
 if (require.main === module) {
   startNotificationWorker();
+  initializeRateLimits().catch((error) => {
+    console.error("Failed to initialize rate limits:", error);
+  });
   app.listen(PORT, () => {
     console.log(`Portfolio server running on http://localhost:${PORT}`);
   });
