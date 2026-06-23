@@ -47,13 +47,23 @@ const ensureManifestLink = () => {
 
 const registerServiceWorker = async () => {
   if (!("serviceWorker" in navigator)) {
+    console.debug("Service Workers not supported in this browser");
     return;
   }
 
   try {
-    await navigator.serviceWorker.register("/service-worker.js");
-  } catch {
-    // Keep silent in production; app should continue to function without PWA features.
+    const registration = await navigator.serviceWorker.register("/service-worker.js");
+    console.info("Service Worker registered successfully:", registration.scope);
+    
+    // Check for updates periodically (every minute)
+    setInterval(() => {
+      registration.update().catch((err) => {
+        console.warn("Service Worker update check failed:", err.message);
+      });
+    }, 60000);
+  } catch (error) {
+    console.warn("Service Worker registration failed:", error.message);
+    // App continues without PWA features - not fatal
   }
 };
 

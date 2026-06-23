@@ -1,4 +1,5 @@
 const rateLimit = require("express-rate-limit");
+const getClientIp = require("./getClientIp");
 
 const createLimiter = (options = {}) => {
   return rateLimit({
@@ -7,6 +8,9 @@ const createLimiter = (options = {}) => {
     message: options.message || "Too many requests, please try again later.",
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: (req) => {
+      return options.keyGenerator ? options.keyGenerator(req) : getClientIp(req);
+    },
     skip: (req) => {
       return process.env.NODE_ENV === "test";
     },
@@ -28,10 +32,10 @@ const limiterConfig = {
     message: "Too many API requests"
   },
   contact: {
-    windowMs: 60 * 60 * 1000,
-    max: 5,
+    windowMs: 15 * 60 * 1000,  // 15 minutes - unified window
+    max: 3,  // Reduced for security
     message: "Too many contact submissions, please try again later.",
-    keyGenerator: (req) => req.ip || req.connection.remoteAddress
+    keyGenerator: (req) => getClientIp(req)
   },
   admin: {
     windowMs: 5 * 60 * 1000,
@@ -42,7 +46,8 @@ const limiterConfig = {
     windowMs: 15 * 60 * 1000,
     max: 5,
     message: "Too many login attempts, please try again later.",
-    skipSuccessfulRequests: true
+    skipSuccessfulRequests: true,
+    keyGenerator: (req) => getClientIp(req)
   }
 };
 

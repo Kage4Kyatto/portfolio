@@ -107,14 +107,18 @@ const submitContact = async (req, res) => {
       return res.status(429).json({
         success: false,
         message: "Too many contact attempts. Please try again later.",
-        retryAfterSec: contactRateLimit.retryAfterSec
+        retryAfterSec: contactRateLimit.retryAfterSec,
+        requestId: req.requestId,
+        errorCode: "RATE_LIMIT_EXCEEDED"
       });
     }
 
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required."
+        message: "All fields are required.",
+        requestId: req.requestId,
+        errorCode: "MISSING_REQUIRED_FIELDS"
       });
     }
 
@@ -126,7 +130,9 @@ const submitContact = async (req, res) => {
     if (!sanitizedName || !sanitizedEmail || !sanitizedSubject || !sanitizedMessage) {
       return res.status(400).json({
         success: false,
-        message: "Invalid input values."
+        message: "Invalid input values.",
+        requestId: req.requestId,
+        errorCode: "INVALID_INPUT"
       });
     }
 
@@ -137,21 +143,29 @@ const submitContact = async (req, res) => {
       message: sanitizedMessage,
       createdAt: new Date().toISOString()
     });
+    
     enqueueNotification({
       type: "contact_message",
       messageId: newMessage.id,
       createdAt: newMessage.createdAt
-    }).catch(() => {});
+    }).catch((error) => {
+      // Notification queue failure is non-fatal
+      console.warn(`[Request ${req.requestId}] Notification queue error:`, error.message);
+    });
 
     return res.status(201).json({
       success: true,
       message: "Message received successfully.",
+      requestId: req.requestId,
       data: newMessage
     });
   } catch (error) {
+    console.error(`[Request ${req.requestId}] Contact submission error:`, error);
     return res.status(500).json({
       success: false,
-      message: "Failed to process contact request."
+      message: "Failed to process contact request.",
+      requestId: req.requestId,
+      errorCode: "CONTACT_SUBMIT_FAILED"
     });
   }
 };

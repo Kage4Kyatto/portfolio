@@ -16,22 +16,27 @@ let queueMetrics = {
   lastErrorMessage: null
 };
 
-const appendDeadLetter = (entry) => {
-  let items = [];
+const appendDeadLetter = async (entry) => {
   try {
-    const file = fs.readFileSync(deadLetterPath, "utf8");
-    const parsed = JSON.parse(file || "[]");
-    items = Array.isArray(parsed) ? parsed : [];
-  } catch {
-    items = [];
-  }
+    let items = [];
+    try {
+      const file = await fs.promises.readFile(deadLetterPath, "utf8");
+      const parsed = JSON.parse(file || "[]");
+      items = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      items = [];
+    }
 
-  items.push(entry);
-  if (items.length > 500) {
-    items = items.slice(items.length - 500);
-  }
+    items.push(entry);
+    // Keep last 1000 entries per day for better debugging
+    if (items.length > 1000) {
+      items = items.slice(items.length - 1000);
+    }
 
-  fs.writeFileSync(deadLetterPath, JSON.stringify(items, null, 2));
+    await fs.promises.writeFile(deadLetterPath, JSON.stringify(items, null, 2));
+  } catch (error) {
+    console.error("[DeadLetter] Failed to append entry:", error);
+  }
 };
 
 const enqueueNotification = async (payload) => {
@@ -51,22 +56,22 @@ const processQueue = async () => {
     const queue = await getNotificationQueue();
     const pending = [];
 
-    queue.forEach((job) => {
+    for (const job of queue) {
       if (job.nextAttemptAt > now) {
         pending.push(job);
-        return;
+        continue;
       }
 
       const nextAttempts = Number(job.attempts || 0) + 1;
 
       if (nextAttempts >= maxAttempts) {
         queueMetrics.totalFailed++;
-        appendDeadLetter({
+        await appendDeadLetter({
           ...job,
           failedAt: new Date().toISOString(),
           reason: "Max retry attempts reached"
         });
-        return;
+        continue;
       }
 
       // Add exponential backoff with jitter to prevent thundering herd
@@ -79,7 +84,7 @@ const processQueue = async () => {
         attempts: nextAttempts,
         nextAttemptAt: now + backoff
       });
-    });
+    }
 
     await saveNotificationQueue(pending);
     queueMetrics.totalProcessed++;

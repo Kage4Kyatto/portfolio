@@ -90,6 +90,11 @@ const ensureDb = async () => {
           timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
       `);
+
+      // Create indexes for commonly queried fields
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at DESC);`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_notification_queue_next_attempt ON notification_queue(next_attempt_at);`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry_events(timestamp DESC);`);
     })();
   }
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
+import StatusCard from "./components/StatusCard";
 
 const ENDPOINTS = {
   fastifyHealth: import.meta.env.VITE_FASTIFY_HEALTH_PATH || "/bridge/fastify/health",
@@ -8,34 +10,49 @@ const ENDPOINTS = {
 
 const createInitialState = () => ({
   status: "idle",
-  detail: "Not checked yet"
+  detail: "Not checked yet",
+  lastError: null
 });
 
-export default function App() {
+function HealthChecker() {
   const [checks, setChecks] = useState({
     fastify: createInitialState(),
     node: createInitialState(),
     php: createInitialState()
   });
   const [checking, setChecking] = useState(false);
+  const [appError, setAppError] = useState(null);
 
   const runCheck = async (endpoint) => {
     try {
-      const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(endpoint, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
       const bodyText = await response.text();
 
       if (!response.ok) {
         return {
           status: "error",
-          detail: `HTTP ${response.status}`
+          detail: `HTTP ${response.status}`,
+          lastError: `Server returned ${response.status}`
         };
       }
 
       let parsed = null;
       try {
         parsed = bodyText ? JSON.parse(bodyText) : null;
-      } catch {
-        parsed = null;
+      } catch (e) {
+        return {
+          status: "error",
+          detail: "Invalid JSON response",
+          lastError: e.message
+        };
       }
 
       const serviceName = parsed?.service || parsed?.runtime || "healthy";
@@ -43,23 +60,32 @@ export default function App() {
         status: "ok",
         detail: `${serviceName}`
       };
-    } catch {
+    } catch (error) {
+      const errorDetail = error instanceof TypeError ? "connection refused" : "unreachable";
       return {
         status: "error",
-        detail: "unreachable"
+        detail: errorDetail,
+        lastError: error.message
       };
     }
   };
 
   const refresh = async () => {
     setChecking(true);
-    const [fastify, node, php] = await Promise.all([
-      runCheck(ENDPOINTS.fastifyHealth),
-      runCheck(ENDPOINTS.nodeHealth),
-      runCheck(ENDPOINTS.phpHealth)
-    ]);
-    setChecks({ fastify, node, php });
-    setChecking(false);
+    try {
+      const [fastify, node, php] = await Promise.all([
+        runCheck(ENDPOINTS.fastifyHealth),
+        runCheck(ENDPOINTS.nodeHealth),
+        runCheck(ENDPOINTS.phpHealth)
+      ]);
+      setChecks({ fastify, node, php });
+      setAppError(null);
+    } catch (error) {
+      setAppError(error.message);
+      console.error("Health check error:", error);
+    } finally {
+      setChecking(false);
+    }
   };
 
   useEffect(() => {
@@ -68,6 +94,12 @@ export default function App() {
 
   return (
     <main className="app-shell">
+      {appError && (
+        <div className="alert alert-error" role="alert">
+          <strong>Error:</strong> {appError}
+          <button onClick={() => setAppError(null)} aria-label="Close error">×</button>
+        </div>
+      )}
       <section className="card">
         <p className="eyebrow">React Admin Dashboard</p>
         <h1>Framework Health Overview</h1>
@@ -82,7 +114,13 @@ export default function App() {
           <StatusCard label="PHP API" value={checks.php} />
         </div>
 
-        <button className="refresh-button" type="button" onClick={refresh} disabled={checking}>
+        <button 
+          className="refresh-button" 
+          type="button" 
+          onClick={refresh} 
+          disabled={checking}
+          aria-busy={checking}
+        >
           {checking ? "Checking..." : "Refresh Checks"}
         </button>
       </section>
@@ -90,12 +128,10 @@ export default function App() {
   );
 }
 
-function StatusCard({ label, value }) {
+export default function App() {
   return (
-    <article className="status-card">
-      <h2>{label}</h2>
-      <p className={`status status-${value.status}`}>{value.status.toUpperCase()}</p>
-      <p className="detail">{value.detail}</p>
-    </article>
+    <ErrorBoundary>
+      <HealthChecker />
+    </ErrorBoundary>
   );
 }

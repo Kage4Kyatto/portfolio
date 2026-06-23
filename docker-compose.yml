@@ -3,16 +3,61 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: portfolio-php
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORTFOLIO_DATABASE_URL: ${PORTFOLIO_DATABASE_URL:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
 
   node:
-    image: node:22-alpine
-    working_dir: /app
-    command: sh -c "npm install; npm run start"
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+      target: production
+    container_name: portfolio-node
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASS_HASH: ${ADMIN_PASS_HASH}
+      PORTFOLIO_DATABASE_URL: ${PORTFOLIO_DATABASE_URL:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    depends_on:
+      - php
+
+  # Optional: PostgreSQL database service
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: portfolio-db
+  #   environment:
+  #     POSTGRES_DB: portfolio
+  #     POSTGRES_USER: ${DB_USER}
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:

@@ -10,14 +10,18 @@ const t = (key, fallback) => localeDictionary[key] || fallback;
 
 const loadLocaleDictionary = async (locale) => {
   try {
-    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
+    // Use 'default' to respect Cache-Control headers from server
+    const response = await fetch(`/assets/i18n/${locale}.json`);
     if (!response.ok) {
+      console.warn(`Failed to load locale file for ${locale}: HTTP ${response.status}`);
       return;
     }
 
-    localeDictionary = await response.json();
-  } catch {
-    // Ignore translation loading errors and keep fallback text.
+    const data = await response.json();
+    localeDictionary = data;
+  } catch (error) {
+    console.warn(`Error loading locale dictionary for ${locale}:`, error.message);
+    // Ignore translation loading errors and keep fallback text
   }
 };
 
@@ -117,8 +121,21 @@ if (contactForm && notice) {
         endpointSet.add(fastifyContactEndpoint);
       }
 
+      // Try endpoints in preferred order: prefer primary backend with fallbacks
+      const endpointSet = new Set();
+      
+      // Primary endpoint: Fastify if available and external, otherwise Node Express
+      const fastifyContactEndpoint = getFastifyContactEndpoint();
+      if (fastifyContactEndpoint) {
+        endpointSet.add(fastifyContactEndpoint);
+      }
+      
+      // Primary fallback: Node Express API
       endpointSet.add("/api/contact");
+      
+      // Secondary fallback: PHP API (legacy)
       endpointSet.add("/api/contact.php");
+      
       const endpoints = [...endpointSet];
 
       let result = null;

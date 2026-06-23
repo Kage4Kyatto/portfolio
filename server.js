@@ -43,6 +43,12 @@ if (process.env.NODE_ENV === "production") {
   }
 }
 
+// Validate session secret is not using default
+const sessionSecret = process.env.ADMIN_SESSION_SECRET;
+if (process.env.NODE_ENV === "production" && !sessionSecret) {
+  throw new Error("ADMIN_SESSION_SECRET is required in production and cannot use default");
+}
+
 const contactRoutes = require("./backend/node/routes/contactRoutes");
 const blogRoutes = require("./backend/node/routes/blogRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
@@ -91,7 +97,7 @@ const buildContentSecurityPolicy = () => {
     "upgrade-insecure-requests",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src 'self' https://fonts.googleapis.com",
     `script-src ${scriptSources}`,
     "connect-src 'self'"
   ];
@@ -144,12 +150,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
   name: "portfolio.sid",
-  secret: process.env.ADMIN_SESSION_SECRET || "change-this-session-secret",
+  secret: sessionSecret || crypto.randomBytes(32).toString("hex"),
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 8
   }
