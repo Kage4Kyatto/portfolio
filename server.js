@@ -98,7 +98,7 @@ const buildContentSecurityPolicy = () => {
     "upgrade-insecure-requests",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src 'self' https://fonts.googleapis.com",
     `script-src ${scriptSources}`,
     "connect-src 'self'"
   ];

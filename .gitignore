@@ -5,3 +5,5 @@ dist-tools/
 .DS_Store
 test-results/
 .tmp/
+backend/php/data/*.json
+!backend/php/data/.gitkeep

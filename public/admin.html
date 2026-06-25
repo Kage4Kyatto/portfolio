@@ -166,14 +166,14 @@
         </div>
         <p id="page-info" class="notice"></p>
 
-        <div style="margin-bottom: 24px;">
-          <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 16px;">
-            <button id="tab-messages" class="tab-button" style="padding: 12px 16px; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--accent); color: var(--text); font-weight: 600;" data-i18n="admin_tab_messages">Messages</button>
-            <button id="tab-analytics" class="tab-button" style="padding: 12px 16px; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-muted); font-weight: 600;" data-i18n="admin_tab_analytics">Analytics</button>
+        <div class="admin-tab-shell">
+          <div class="admin-tab-row" role="tablist" aria-label="Admin sections">
+            <button id="tab-messages" class="tab-button is-active" type="button" role="tab" aria-selected="true" data-i18n="admin_tab_messages">Messages</button>
+            <button id="tab-analytics" class="tab-button" type="button" role="tab" aria-selected="false" data-i18n="admin_tab_analytics">Analytics</button>
           </div>
         </div>
 
-        <div id="messages-section" style="display: block;">
+        <div id="messages-section" class="admin-section" role="tabpanel">
           <div class="table-wrap">
             <table id="messages-table">
               <thead>
@@ -195,11 +195,11 @@
           </div>
         </div>
 
-        <div id="analytics-section" style="display: none;">
-          <div style="margin-bottom: 16px; display: flex; gap: 16px;">
+        <div id="analytics-section" class="admin-section is-hidden" role="tabpanel">
+          <div class="admin-analytics-controls">
             <div>
-              <label for="analytics-range" style="display: block; margin-bottom: 4px; font-weight: 500;" data-i18n="admin_range_label">Time Range</label>
-              <select id="analytics-range" style="padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--text);">
+              <label for="analytics-range" class="admin-control-label" data-i18n="admin_range_label">Time Range</label>
+              <select id="analytics-range" class="admin-control-select">
                 <option value="24h" data-i18n="admin_range_24h">Last 24 Hours</option>
                 <option value="7d" data-i18n="admin_range_7d">Last 7 Days</option>
                 <option value="30d" selected data-i18n="admin_range_30d">Last 30 Days</option>
@@ -207,15 +207,15 @@
               </select>
             </div>
             <div>
-              <label for="analytics-filter" style="display: block; margin-bottom: 4px; font-weight: 500;" data-i18n="admin_filter_label">Filter</label>
-              <select id="analytics-filter" style="padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--text);">
+              <label for="analytics-filter" class="admin-control-label" data-i18n="admin_filter_label">Filter</label>
+              <select id="analytics-filter" class="admin-control-select">
                 <option value="" data-i18n="admin_filter_all">All Messages</option>
                 <option value="unread" data-i18n="admin_filter_unread">Unread Only</option>
               </select>
             </div>
           </div>
           <div id="analytics-container">
-            <p style="text-align: center; color: var(--text-muted); padding: 24px;" data-i18n="admin_loading_analytics">Loading analytics...</p>
+            <p class="analytics-loading-note" data-i18n="admin_loading_analytics">Loading analytics...</p>
           </div>
         </div>
       </section>

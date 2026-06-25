@@ -17,7 +17,7 @@ const renderLoginRequired = () => {
   }
 
   analyticsContainer.innerHTML = `
-    <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+    <div class="analytics-message analytics-message--muted">
       <p>${t("analytics_login_required", activeLocale === "nl" ? "Log in om analytics te bekijken." : "Log in to view analytics.")}</p>
     </div>
   `;
@@ -76,7 +76,7 @@ const loadAnalytics = async (range = "30d", filter = null) => {
       : t("analytics_load_failed", activeLocale === "nl" ? "Analytics laden mislukt" : "Failed to load analytics");
     console.error(message);
     analyticsContainer.innerHTML = `
-      <div style="padding: 24px; text-align: center; color: var(--error);">
+      <div class="analytics-message analytics-message--error">
         <p>${escapeHtml(message)}</p>
       </div>
     `;
@@ -92,21 +92,21 @@ const renderAnalytics = () => {
   }
 
   analyticsContainer.innerHTML = `
-    <section data-section="summary" style="margin-bottom: 32px;">
-      <h3 style="margin-bottom: 16px;">${t("analytics_summary", activeLocale === "nl" ? "Overzicht" : "Summary")}</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">${t("analytics_total_messages", activeLocale === "nl" ? "Totaal berichten" : "Total Messages")}</p><p data-metric="total" style="font-size: 2rem; font-weight: 700; color: var(--accent);"></p></div>
-        <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">${t("analytics_unread", activeLocale === "nl" ? "Ongelezen" : "Unread")}</p><p data-metric="unread" style="font-size: 2rem; font-weight: 700; color: var(--warning);"></p></div>
-        <div class="card" style="padding: 16px;"><p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px;">${t("analytics_avg_day", activeLocale === "nl" ? "Gem./dag" : "Avg/Day")}</p><p data-metric="avgPerDay" style="font-size: 2rem; font-weight: 700; color: var(--success);"></p></div>
+    <section data-section="summary" class="analytics-section">
+      <h3 class="analytics-title">${t("analytics_summary", activeLocale === "nl" ? "Overzicht" : "Summary")}</h3>
+      <div class="analytics-summary-grid">
+        <div class="card analytics-stat-card"><p class="analytics-stat-label">${t("analytics_total_messages", activeLocale === "nl" ? "Totaal berichten" : "Total Messages")}</p><p data-metric="total" class="analytics-stat-value analytics-stat-value--accent"></p></div>
+        <div class="card analytics-stat-card"><p class="analytics-stat-label">${t("analytics_unread", activeLocale === "nl" ? "Ongelezen" : "Unread")}</p><p data-metric="unread" class="analytics-stat-value analytics-stat-value--warning"></p></div>
+        <div class="card analytics-stat-card"><p class="analytics-stat-label">${t("analytics_avg_day", activeLocale === "nl" ? "Gem./dag" : "Avg/Day")}</p><p data-metric="avgPerDay" class="analytics-stat-value analytics-stat-value--success"></p></div>
       </div>
     </section>
-    <section data-section="daily" style="margin-bottom: 32px;">
-      <h3 style="margin-bottom: 16px;">${t("analytics_daily_activity", activeLocale === "nl" ? "Dagelijkse activiteit" : "Daily Activity")} (<span data-range></span>)</h3>
-      <div class="card" style="padding: 16px;" data-chart="daily"></div>
+    <section data-section="daily" class="analytics-section">
+      <h3 class="analytics-title">${t("analytics_daily_activity", activeLocale === "nl" ? "Dagelijkse activiteit" : "Daily Activity")} (<span data-range></span>)</h3>
+      <div class="card analytics-chart-card" data-chart="daily"></div>
     </section>
     <section data-section="sources">
-      <h3 style="margin-bottom: 16px;">${t("analytics_sources", activeLocale === "nl" ? "Berichtbronnen" : "Message Sources")}</h3>
-      <div class="card" style="padding: 16px;" data-chart="sources"></div>
+      <h3 class="analytics-title">${t("analytics_sources", activeLocale === "nl" ? "Berichtbronnen" : "Message Sources")}</h3>
+      <div class="card analytics-chart-card" data-chart="sources"></div>
     </section>
   `;
 
@@ -128,12 +128,12 @@ const renderAnalytics = () => {
   const dailyChartContainer = analyticsContainer.querySelector('[data-chart="daily"]');
   if (dailyChartContainer) {
     const dailyChartData = Object.entries(currentAnalytics.dailyTotals || {})
-      .map(([date, count]) => `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line);">
+      .map(([date, count]) => `<div class="analytics-list-row">
         <span>${escapeHtml(date)}</span>
         <strong>${count}</strong>
       </div>`)
       .join("");
-    dailyChartContainer.innerHTML = dailyChartData || `<p style="color: var(--text-muted); text-align: center; padding: 24px;">${t("analytics_no_data", activeLocale === "nl" ? "Geen gegevens beschikbaar" : "No data available")}</p>`;
+    dailyChartContainer.innerHTML = dailyChartData || `<p class="analytics-empty">${t("analytics_no_data", activeLocale === "nl" ? "Geen gegevens beschikbaar" : "No data available")}</p>`;
   }
 
   // Update source chart
@@ -141,19 +141,17 @@ const renderAnalytics = () => {
   if (sourceChartContainer) {
     const sourceData = Object.entries(currentAnalytics.sourceBreakdown || {})
       .sort(([, a], [, b]) => b - a)
-      .map(([source, count]) => `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+      .map(([source, count]) => `<div class="analytics-source-row">
         <span>${escapeHtml(source === "direct"
           ? t("analytics_direct", activeLocale === "nl" ? "Direct / Geen verwijzer" : "Direct / No Referrer")
           : source)}</span>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 150px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden;">
-            <div style="width: ${(count / currentAnalytics.total) * 100}%; height: 100%; background: var(--accent);"></div>
-          </div>
-          <span style="min-width: 40px; text-align: right;"><strong>${count}</strong></span>
+        <div class="analytics-source-count">
+          <span>${currentAnalytics.total > 0 ? `${Math.round((count / currentAnalytics.total) * 100)}%` : "0%"}</span>
+          <strong>${count}</strong>
         </div>
       </div>`)
       .join("");
-    sourceChartContainer.innerHTML = sourceData || `<p style="color: var(--text-muted); text-align: center; padding: 24px;">${t("analytics_no_source_data", activeLocale === "nl" ? "Geen brongegevens beschikbaar" : "No source data available")}</p>`;
+    sourceChartContainer.innerHTML = sourceData || `<p class="analytics-empty">${t("analytics_no_source_data", activeLocale === "nl" ? "Geen brongegevens beschikbaar" : "No source data available")}</p>`;
   }
 };
 

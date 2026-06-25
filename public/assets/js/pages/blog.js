@@ -14,8 +14,8 @@ const loadBlogPosts = async () => {
 
     if (data.posts.length === 0) {
       blogPostsContainer.innerHTML = `
-        <div style="padding: 48px 24px; text-align: center;">
-          <p style="color: var(--text); font-size: 1.1rem;">No blog posts yet. Check back soon!</p>
+        <div class="blog-state">
+          <p class="blog-state-text">No blog posts yet. Check back soon!</p>
         </div>
       `;
       return;
@@ -59,8 +59,8 @@ const loadBlogPosts = async () => {
     const errorMessage = error instanceof Error ? error.message : "Failed to load blog posts";
     console.error(errorMessage);
     blogPostsContainer.innerHTML = `
-      <div style="padding: 48px 24px; text-align: center;">
-        <p style="color: var(--error); font-size: 1rem;">${escapeHtml(errorMessage)}</p>
+      <div class="blog-state">
+        <p class="blog-state-text blog-state-error">${escapeHtml(errorMessage)}</p>
       </div>
     `;
     if (window.toast) {

@@ -1328,6 +1328,58 @@ textarea {
   padding-bottom: 2px;
 }
 
+.project-target-grid,
+.project-promotion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.project-target-note,
+.project-promotion-note {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 8px 0;
+}
+
+.project-target-code {
+  font-size: 0.85rem;
+  background: var(--bg-secondary);
+  padding: 8px;
+  border-radius: 4px;
+  display: block;
+}
+
+.project-promotion-lead {
+  margin: 12px 0;
+}
+
+.blog-loading-skeleton {
+  height: 200px;
+}
+
+.blog-loading-note {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--text);
+}
+
+.blog-state {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.blog-state-text {
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.blog-state-error {
+  color: var(--error);
+  font-size: 1rem;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;

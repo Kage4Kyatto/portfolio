@@ -4,21 +4,24 @@ const messagesSection = document.getElementById("messages-section");
 const analyticsSection = document.getElementById("analytics-section");
 
 if (tabMessages && tabAnalytics && messagesSection && analyticsSection) {
+  const setActiveTab = (showAnalytics) => {
+    messagesSection.classList.toggle("is-hidden", showAnalytics);
+    analyticsSection.classList.toggle("is-hidden", !showAnalytics);
+
+    tabMessages.classList.toggle("is-active", !showAnalytics);
+    tabAnalytics.classList.toggle("is-active", showAnalytics);
+
+    tabMessages.setAttribute("aria-selected", showAnalytics ? "false" : "true");
+    tabAnalytics.setAttribute("aria-selected", showAnalytics ? "true" : "false");
+  };
+
   tabMessages.addEventListener("click", () => {
-    messagesSection.style.display = "block";
-    analyticsSection.style.display = "none";
-    tabMessages.style.borderBottomColor = "var(--accent)";
-    tabMessages.style.color = "var(--text)";
-    tabAnalytics.style.borderBottomColor = "transparent";
-    tabAnalytics.style.color = "var(--text-muted)";
+    setActiveTab(false);
   });
 
   tabAnalytics.addEventListener("click", () => {
-    messagesSection.style.display = "none";
-    analyticsSection.style.display = "block";
-    tabAnalytics.style.borderBottomColor = "var(--accent)";
-    tabAnalytics.style.color = "var(--text)";
-    tabMessages.style.borderBottomColor = "transparent";
-    tabMessages.style.color = "var(--text-muted)";
+    setActiveTab(true);
   });
+
+  setActiveTab(false);
 }
