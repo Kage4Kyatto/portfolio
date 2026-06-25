@@ -10,8 +10,13 @@ const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
 const rateLimitMemory = new Map();
 let lastFlushTime = Date.now();
 const FLUSH_INTERVAL_MS = 10000; // Flush to storage every 10 seconds
+const shouldPersistRateLimits = process.env.NODE_ENV === "production";
 
 const flushRateLimitsToStorage = async () => {
+  if (!shouldPersistRateLimits) {
+    return;
+  }
+
   const now = Date.now();
   if (now - lastFlushTime < FLUSH_INTERVAL_MS) {
     return;
@@ -191,6 +196,10 @@ const submitContact = async (req, res) => {
 
 // Initialize rate limits from persistent storage on startup
 const initializeRateLimits = async () => {
+  if (!shouldPersistRateLimits) {
+    return;
+  }
+
   try {
     const stored = await getRateLimits();
     const now = Date.now();

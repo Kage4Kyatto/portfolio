@@ -11,7 +11,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config({ path: path.join(__dirname, ".env.local"), override: true });
 
 const { sanitizeObject, sanitizeEmail, sanitizeText } = require("./backend/node/utils/sanitize");
-const { apiLimiter, contactLimiter, adminLimiter, authLimiter } = require("./backend/node/utils/rateLimiter");
+const { apiLimiter } = require("./backend/node/utils/rateLimiter");
 
 const SENTRY_DSN = process.env.SENTRY_DSN || "";
 if (SENTRY_DSN && process.env.NODE_ENV === "production") {
@@ -134,7 +134,7 @@ app.use(helmet({
 
 app.use(compression());
 
-app.use(apiLimiter);
+app.use("/api", apiLimiter);
 
 app.use((req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
@@ -282,7 +282,30 @@ app.get("/my-page", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "my-page.html"));
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+const setStaticCacheHeaders = (res, filePath) => {
+  const normalizedPath = filePath.replace(/\\/g, "/");
+
+  if (normalizedPath.endsWith("/service-worker.js") || normalizedPath.endsWith("/manifest.webmanifest")) {
+    res.setHeader("Cache-Control", "no-cache");
+    return;
+  }
+
+  if (normalizedPath.endsWith(".html")) {
+    res.setHeader("Cache-Control", "no-cache");
+    return;
+  }
+
+  if (normalizedPath.includes("/public/assets/")) {
+    res.setHeader("Cache-Control", "public, max-age=604800");
+    return;
+  }
+
+  res.setHeader("Cache-Control", "public, max-age=86400");
+};
+
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: setStaticCacheHeaders
+}));
 
 app.get("*", (req, res) => {
   res.status(404).sendFile(path.join(__dirname, "public", "404.html"));

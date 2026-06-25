@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-cache-v2";
+const CACHE_NAME = "portfolio-cache-v3";
 const PRE_CACHE = [
   "/index.html",
   "/about.html",
@@ -11,6 +11,9 @@ const PRE_CACHE = [
 ];
 
 const isLocaleRequest = (requestUrl) => requestUrl.pathname.startsWith("/assets/i18n/");
+const isDynamicAssetRequest = (requestUrl) =>
+  requestUrl.pathname.startsWith("/assets/js/") ||
+  requestUrl.pathname.startsWith("/assets/css/");
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -35,7 +38,7 @@ self.addEventListener("fetch", (event) => {
 
   const requestUrl = new URL(event.request.url);
 
-  if (isLocaleRequest(requestUrl) || event.request.mode === "navigate") {
+  if (isLocaleRequest(requestUrl) || isDynamicAssetRequest(requestUrl) || event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
         .then((response) => {

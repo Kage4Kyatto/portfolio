@@ -1,0 +1,75 @@
+.admin-page .page-panel {
+  padding: 32px;
+}
+
+.admin-page .card {
+  padding: 26px;
+}
+
+.admin-page .section-title {
+  margin-top: 16px;
+}
+
+.admin-page .inline-form {
+  gap: 16px;
+}
+
+.admin-page .admin-controls {
+  margin-top: 14px;
+  gap: 14px;
+}
+
+.admin-page .table-wrap {
+  margin-top: 18px;
+}
+
+.admin-page .notice {
+  min-height: 26px;
+}
+
+.admin-page .btn.secondary {
+  color: #bae6fd;
+  border-color: rgba(125, 211, 252, 0.3);
+  background: rgba(8, 47, 73, 0.4);
+}
+
+.admin-page .btn.secondary:hover {
+  opacity: 1;
+  color: #e0f2fe;
+  border-color: rgba(125, 211, 252, 0.55);
+  background: rgba(14, 64, 99, 0.55);
+}
+
+.admin-controls {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.table-wrap {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+@media (max-width: 900px) {
+  .admin-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-controls {
+    grid-template-columns: 1fr;
+  }
+}

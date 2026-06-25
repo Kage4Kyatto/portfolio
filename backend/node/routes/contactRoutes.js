@@ -11,7 +11,7 @@ const {
 } = require("../middleware/authMiddleware");
 const { requireCloudflareAccess } = require("../middleware/cloudflareAccessMiddleware");
 const { getSystemMetrics } = require("../data/storage");
-const { contactLimiter, adminLimiter, authLimiter } = require("../utils/rateLimiter");
+const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
 
 const router = express.Router();
 
@@ -119,15 +119,6 @@ router.post("/admin/login", requireCloudflareAccess, authLimiter, requireAdminAu
 	});
 });
 
-router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireAdminSession, requireCsrfToken, (req, res) => {
-	endAdminSession(req, () => {
-		res.status(200).json({
-			success: true,
-			message: "Session closed."
-		});
-	});
-});
-
 /**
  * @swagger
  * /api/admin/logout:
@@ -143,11 +134,12 @@ router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireAdmin
  *       200:
  *         description: Logout successful
  */
-router.post("/admin/logout", requireCloudflareAccess, requireCsrfToken, requireAdminSession, (req, res) => {
-	endAdminSession(req);
-	res.status(200).json({
-		success: true,
-		message: "Logged out."
+router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, (req, res) => {
+	endAdminSession(req, () => {
+		res.status(200).json({
+			success: true,
+			message: "Logged out."
+		});
 	});
 });
 
@@ -266,6 +258,28 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 			sourceBreakdown[source] = (sourceBreakdown[source] || 0) + 1;
 		});
 
+		const daysInRange = (() => {
+			if (filteredMessages.length === 0) {
+				return 1;
+			}
+
+			if (Number.isFinite(timeRange)) {
+				return Math.max(1, Math.ceil(timeRange / (24 * 60 * 60 * 1000)));
+			}
+
+			const timestamps = filteredMessages
+				.map((msg) => new Date(msg.timestamp).getTime())
+				.filter((value) => Number.isFinite(value));
+
+			if (timestamps.length === 0) {
+				return 1;
+			}
+
+			const oldestTimestamp = Math.min(...timestamps);
+			const newestTimestamp = Math.max(...timestamps, now);
+			return Math.max(1, Math.ceil((newestTimestamp - oldestTimestamp) / (24 * 60 * 60 * 1000)) + 1);
+		})();
+
 		res.status(200).json({
 			success: true,
 			analytics: {
@@ -274,7 +288,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 				timeRange: range,
 				dailyTotals,
 				sourceBreakdown,
-				avgMessagesPerDay: (filteredMessages.length / Math.ceil(timeRange / (24 * 60 * 60 * 1000))).toFixed(1)
+				avgMessagesPerDay: (filteredMessages.length / daysInRange).toFixed(1)
 			}
 		});
 	} catch (error) {
@@ -292,7 +306,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
  *     tags:
  *       - Contact
  *     summary: Submit contact form
- *     description: Submit a contact message with name, email, subject, and message. Max 5 submissions per hour per IP.
+ *     description: Submit a contact message with name, email, subject, and message. Rate limits apply per IP.
  *     requestBody:
  *       required: true
  *       content:
@@ -317,7 +331,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
  *       429:
  *         description: Rate limit exceeded
  */
-router.post("/contact", contactLimiter, submitContact);
+router.post("/contact", submitContact);
 
 /**
  * @swagger

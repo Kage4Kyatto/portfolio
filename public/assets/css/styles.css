@@ -409,15 +409,6 @@ textarea:focus-visible {
     position: absolute;
     right: 0;
     top: 50%;
-    transform: translateY(calc(-50% - 10px));
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .site-header:hover .nav-links,
-  .site-header:focus-within .nav-links {
     transform: translateY(-50%);
     opacity: 1;
     visibility: visible;
@@ -1080,35 +1071,6 @@ main {
   }
 }
 
-.admin-page .page-panel {
-  padding: 32px;
-}
-
-.admin-page .card {
-  padding: 26px;
-}
-
-.admin-page .section-title {
-  margin-top: 16px;
-}
-
-.admin-page .inline-form {
-  gap: 16px;
-}
-
-.admin-page .admin-controls {
-  margin-top: 14px;
-  gap: 14px;
-}
-
-.admin-page .table-wrap {
-  margin-top: 18px;
-}
-
-.admin-page .notice {
-  min-height: 26px;
-}
-
 .contact-page .btn,
 .admin-page .btn {
   padding: 10px 16px;
@@ -1132,19 +1094,6 @@ main {
   color: #f8fafc;
   border-color: rgba(125, 211, 252, 0.65);
   background: linear-gradient(135deg, rgba(125, 211, 252, 0.3), rgba(59, 130, 246, 0.18));
-}
-
-.admin-page .btn.secondary {
-  color: #bae6fd;
-  border-color: rgba(125, 211, 252, 0.3);
-  background: rgba(8, 47, 73, 0.4);
-}
-
-.admin-page .btn.secondary:hover {
-  opacity: 1;
-  color: #e0f2fe;
-  border-color: rgba(125, 211, 252, 0.55);
-  background: rgba(14, 64, 99, 0.55);
 }
 
 .card h3 {
@@ -1377,28 +1326,6 @@ textarea {
 
 .auth-action {
   padding-bottom: 2px;
-}
-
-.admin-controls {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr;
-  gap: 12px;
-  align-items: end;
-}
-
-.admin-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.table-wrap {
-  margin-top: 16px;
-  overflow-x: auto;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.42);
 }
 
 table {
@@ -1961,8 +1888,7 @@ textarea:focus-visible.input-error {
   .hero,
   .grid-3,
   .two-col,
-  .inline-form,
-  .admin-controls {
+  .inline-form {
     grid-template-columns: 1fr;
   }
 
@@ -2082,7 +2008,6 @@ textarea:focus-visible.input-error {
   .grid-4,
   .two-col,
   .inline-form,
-  .admin-controls,
   .hero {
     grid-template-columns: 1fr;
   }

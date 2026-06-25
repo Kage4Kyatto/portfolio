@@ -1,9 +1,9 @@
 const contactForm = document.getElementById("contact-form");
 const notice = document.getElementById("form-notice");
 const submitButton = document.getElementById("contact-submit");
-const LOCALE_STORAGE_KEY = "portfolio.locale";
+const CONTACT_LOCALE_STORAGE_KEY = "portfolio.locale";
 
-let activeLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+let activeLocale = localStorage.getItem(CONTACT_LOCALE_STORAGE_KEY) || "en";
 let localeDictionary = {};
 
 const t = (key, fallback) => localeDictionary[key] || fallback;
@@ -73,11 +73,15 @@ const getFastifyContactEndpoint = () => {
 };
 
 if (contactForm && notice) {
-  loadLocaleDictionary(activeLocale).finally(() => {
-    if (!submitButton?.disabled) {
-      submitButton.textContent = t("contact_form_submit", activeLocale === "nl" ? "Verzenden" : "Submit");
-    }
-  });
+  if (activeLocale === "nl") {
+    loadLocaleDictionary(activeLocale).finally(() => {
+      if (!submitButton?.disabled) {
+        submitButton.textContent = t("contact_form_submit", "Verzenden");
+      }
+    });
+  } else if (!submitButton?.disabled) {
+    submitButton.textContent = "Submit";
+  }
 
   if (window.validation) {
     window.validation.setupLiveValidation(contactForm);
@@ -114,20 +118,18 @@ if (contactForm && notice) {
     setSubmitState(true);
 
     try {
-      const endpointSet = new Set();
       const fastifyContactEndpoint = getFastifyContactEndpoint();
 
+      // Primary endpoint: Node Express API
+      const endpoints = ["/api/contact"];
+
+      // Optional secondary endpoint: Fastify API
       if (fastifyContactEndpoint) {
-        endpointSet.add(fastifyContactEndpoint);
+        endpoints.push(fastifyContactEndpoint);
       }
-      
-      // Primary fallback: Node Express API
-      endpointSet.add("/api/contact");
-      
-      // Secondary fallback: PHP API (legacy)
-      endpointSet.add("/api/contact.php");
-      
-      const endpoints = [...endpointSet];
+
+      // Final fallback: PHP API (legacy)
+      endpoints.push("/api/contact.php");
 
       let result = null;
       let lastError = new Error(t("contact_runtime_failed_send", activeLocale === "nl" ? "Bericht verzenden mislukt." : "Failed to send message."));

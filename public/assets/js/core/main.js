@@ -1,6 +1,11 @@
 const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
 const LOCALE_STORAGE_KEY = "portfolio.locale";
+const DEFAULT_EN_LOCALE = {
+  menu_label: "Language",
+  menu_en: "EN",
+  menu_nl: "NL"
+};
 
 const ensureMainLandmark = () => {
   const mainEl = document.querySelector("main");
@@ -54,13 +59,15 @@ const registerServiceWorker = async () => {
   try {
     const registration = await navigator.serviceWorker.register("/service-worker.js");
     console.info("Service Worker registered successfully:", registration.scope);
-    
-    // Check for updates periodically (every minute)
-    setInterval(() => {
-      registration.update().catch((err) => {
-        console.warn("Service Worker update check failed:", err.message);
-      });
-    }, 60000);
+
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      // Check for updates periodically in production without frequent polling.
+      setInterval(() => {
+        registration.update().catch((err) => {
+          console.warn("Service Worker update check failed:", err.message);
+        });
+      }, 60 * 60 * 1000);
+    }
   } catch (error) {
     console.warn("Service Worker registration failed:", error.message);
     // App continues without PWA features - not fatal
@@ -154,8 +161,12 @@ const setupLanguageToggle = async () => {
   button.className = "lang-toggle__button";
   button.type = "button";
 
+  wrapper.appendChild(label);
+  wrapper.appendChild(button);
+  navLinks.appendChild(wrapper);
+
   const loadLocaleDictionary = async (locale) => {
-    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
+    const response = await fetch(`/assets/i18n/${locale}.json`);
     if (!response.ok) {
       throw new Error("Locale unavailable");
     }
@@ -163,17 +174,29 @@ const setupLanguageToggle = async () => {
   };
 
   let locale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
-  try {
-    const dictionary = await loadLocaleDictionary(locale);
-    applyLocale(locale, dictionary);
-  } catch {
-    locale = "en";
-    const fallback = await loadLocaleDictionary(locale);
-    applyLocale(locale, fallback);
+  if (locale === "en") {
+    applyLocale(locale, DEFAULT_EN_LOCALE);
+  } else {
+    try {
+      const dictionary = await loadLocaleDictionary(locale);
+      applyLocale(locale, dictionary);
+    } catch {
+      locale = "en";
+      applyLocale(locale, DEFAULT_EN_LOCALE);
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    }
   }
 
   button.addEventListener("click", async () => {
     const nextLocale = locale === "en" ? "nl" : "en";
+    if (nextLocale === "en") {
+      locale = "en";
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+      applyLocale(locale, DEFAULT_EN_LOCALE);
+      sendTelemetry("language_toggle");
+      return;
+    }
+
     try {
       const dictionary = await loadLocaleDictionary(nextLocale);
       locale = nextLocale;
@@ -184,10 +207,6 @@ const setupLanguageToggle = async () => {
       // Ignore toggle failure and keep current locale.
     }
   });
-
-  wrapper.appendChild(label);
-  wrapper.appendChild(button);
-  navLinks.appendChild(wrapper);
 };
 
 ensureManifestLink();
