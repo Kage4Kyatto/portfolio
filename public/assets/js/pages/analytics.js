@@ -1,13 +1,27 @@
+(() => {
 const analyticsContainer = document.getElementById("analytics-container");
 const analyticsRange = document.getElementById("analytics-range");
 const analyticsFilter = document.getElementById("analytics-filter");
-const LOCALE_STORAGE_KEY = "portfolio.locale";
+const ANALYTICS_LOCALE_STORAGE_KEY = "portfolio.locale";
 
 let currentAnalytics = null;
-let activeLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+let activeLocale = localStorage.getItem(ANALYTICS_LOCALE_STORAGE_KEY) || "en";
 let localeDictionary = {};
+let hasAdminSession = false;
 
 const t = (key, fallback) => localeDictionary[key] || fallback;
+
+const renderLoginRequired = () => {
+  if (!analyticsContainer) {
+    return;
+  }
+
+  analyticsContainer.innerHTML = `
+    <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+      <p>${t("analytics_login_required", activeLocale === "nl" ? "Log in om analytics te bekijken." : "Log in to view analytics.")}</p>
+    </div>
+  `;
+};
 
 const loadLocaleDictionary = async (locale) => {
   try {
@@ -37,6 +51,13 @@ const loadAnalytics = async (range = "30d", filter = null) => {
 
     const response = await fetch(url);
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        hasAdminSession = false;
+        currentAnalytics = null;
+        renderLoginRequired();
+        return;
+      }
+
       throw new Error(t("analytics_load_failed_status", activeLocale === "nl"
         ? `Analytics laden mislukt: ${response.status}`
         : `Failed to load analytics: ${response.status}`));
@@ -138,16 +159,39 @@ const renderAnalytics = () => {
 
 if (analyticsContainer && analyticsRange && analyticsFilter) {
   loadLocaleDictionary(activeLocale).finally(() => {
-    loadAnalytics("30d");
+    renderLoginRequired();
+  });
+
+  window.addEventListener("admin:session-changed", (event) => {
+    hasAdminSession = Boolean(event.detail?.authenticated);
+    if (!hasAdminSession) {
+      currentAnalytics = null;
+      renderLoginRequired();
+      return;
+    }
+
+    loadAnalytics(analyticsRange.value || "30d", analyticsFilter.value || null);
   });
 
   analyticsRange.addEventListener("change", (e) => {
+    if (!hasAdminSession) {
+      renderLoginRequired();
+      return;
+    }
+
     const filter = analyticsFilter.value || null;
     loadAnalytics(e.target.value, filter);
   });
 
   analyticsFilter.addEventListener("change", (e) => {
+    if (!hasAdminSession) {
+      renderLoginRequired();
+      return;
+    }
+
     const range = analyticsRange.value || "30d";
     loadAnalytics(range, e.target.value || null);
   });
 }
+
+})();

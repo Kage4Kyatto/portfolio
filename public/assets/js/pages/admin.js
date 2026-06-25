@@ -16,7 +16,7 @@ const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
 
-const LOCALE_STORAGE_KEY = "portfolio.locale";
+const ADMIN_LOCALE_STORAGE_KEY = "portfolio.locale";
 
 let allMessages = [];
 let filteredMessages = [];
@@ -27,7 +27,7 @@ let autoLoadTimer = null;
 let lastAttemptFingerprint = "";
 let csrfToken = "";
 let inactivityTimer = null;
-let activeLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+let activeLocale = localStorage.getItem(ADMIN_LOCALE_STORAGE_KEY) || "en";
 let localeDictionary = {};
 let deliveryMode = "checking";
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
@@ -533,6 +533,7 @@ if (authForm && notice && tableBody) {
 
       currentPage = 1;
       setDashboardVisibility(true);
+      window.dispatchEvent(new CustomEvent("admin:session-changed", { detail: { authenticated: true } }));
       render();
       const loadedLabel = t("admin_loaded_messages", activeLocale === "nl" ? "Geladen" : "Loaded");
       const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
@@ -542,6 +543,7 @@ if (authForm && notice && tableBody) {
       scheduleInactivityTimeout();
     } catch (error) {
       setDashboardVisibility(false);
+      window.dispatchEvent(new CustomEvent("admin:session-changed", { detail: { authenticated: false } }));
       tableBody.innerHTML = `<tr><td colspan="6">${t("admin_could_not_load_messages", activeLocale === "nl" ? "Kon berichten niet laden." : "Could not load messages.")}</td></tr>`;
       allMessages = [];
       filteredMessages = [];
@@ -666,6 +668,7 @@ if (authForm && notice && tableBody) {
     unbindInactivityEvents();
 
     setDashboardVisibility(false);
+    window.dispatchEvent(new CustomEvent("admin:session-changed", { detail: { authenticated: false } }));
     notice.textContent = t("admin_logged_out", activeLocale === "nl" ? "Uitgelogd." : "Logged out.");
     notice.className = "notice";
     if (window.toast) {
