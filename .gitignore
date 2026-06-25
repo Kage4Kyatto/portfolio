@@ -3,3 +3,5 @@ node_modules/
 npm-debug.log*
 dist-tools/
 .DS_Store
+test-results/
+.tmp/

@@ -3,13 +3,24 @@ const assert = require("node:assert/strict");
 const request = require("supertest");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
+
+const testDataDir = path.join(os.tmpdir(), "portfolio-node-test-data");
+process.env.NODE_ENV = "test";
+process.env.PORTFOLIO_DATA_DIR = testDataDir;
 
 const app = require("../server");
 
-const contactRateLimitPath = path.join(__dirname, "..", "backend", "php", "data", "contact_rate_limits.json");
+const contactRateLimitPath = path.join(testDataDir, "contact_rate_limits.json");
 
 test.beforeEach(() => {
+  fs.rmSync(testDataDir, { recursive: true, force: true });
+  fs.mkdirSync(testDataDir, { recursive: true });
   fs.writeFileSync(contactRateLimitPath, "{}", "utf8");
+});
+
+test.after(() => {
+  fs.rmSync(testDataDir, { recursive: true, force: true });
 });
 
 test("GET /api/health returns service status", async () => {

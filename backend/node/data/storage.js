@@ -1,11 +1,15 @@
 const fs = require("fs");
 const path = require("path");
 
-const messagesPath = path.join(__dirname, "..", "..", "php", "data", "messages.json");
-const contactRateLimitsPath = path.join(__dirname, "..", "..", "php", "data", "contact_rate_limits.json");
-const adminAuthAttemptsPath = path.join(__dirname, "..", "..", "php", "data", "admin_auth_attempts.json");
-const notificationQueuePath = path.join(__dirname, "..", "..", "php", "data", "notification_queue.json");
-const telemetryPath = path.join(__dirname, "..", "..", "php", "data", "telemetry_events.json");
+const defaultDataDir = path.join(__dirname, "..", "..", "php", "data");
+const configuredDataDir = String(process.env.PORTFOLIO_DATA_DIR || "").trim();
+const dataDir = configuredDataDir ? path.resolve(configuredDataDir) : defaultDataDir;
+
+const messagesPath = path.join(dataDir, "messages.json");
+const contactRateLimitsPath = path.join(dataDir, "contact_rate_limits.json");
+const adminAuthAttemptsPath = path.join(dataDir, "admin_auth_attempts.json");
+const notificationQueuePath = path.join(dataDir, "notification_queue.json");
+const telemetryPath = path.join(dataDir, "telemetry_events.json");
 
 const databaseUrl = String(process.env.PORTFOLIO_DATABASE_URL || process.env.DATABASE_URL || "").trim();
 const shouldUseDatabase = Boolean(databaseUrl);
@@ -112,6 +116,7 @@ const readJsonFile = async (filePath, fallback) => {
 };
 
 const writeJsonFile = async (filePath, value) => {
+  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
   await fs.promises.writeFile(filePath, JSON.stringify(value, null, 2));
 };
 
