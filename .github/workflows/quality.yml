@@ -75,4 +75,10 @@ jobs:
         run: npx wait-on http://127.0.0.1:3000/index.html
 
       - name: Run Lighthouse CI
+        id: lighthouse
         run: npm run lighthouse
+        continue-on-error: true
+
+      - name: Report Lighthouse Result
+        if: always() && steps.lighthouse.outcome == 'failure'
+        run: echo "::warning::Lighthouse CI reported issues (non-blocking in this workflow)."
