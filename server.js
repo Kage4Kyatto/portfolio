@@ -62,6 +62,7 @@ const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "100kb";
 const URLENCODED_BODY_LIMIT = process.env.URLENCODED_BODY_LIMIT || "50kb";
+const MAX_TELEMETRY_PATH_LENGTH = Number(process.env.MAX_TELEMETRY_PATH_LENGTH || 2048);
 
 if (SENTRY_DSN) {
   app.use(Sentry.Handlers.requestHandler());
@@ -237,22 +238,46 @@ app.get("/api/openapi.json", (req, res) => {
   return res.sendFile(OPENAPI_PATH);
 });
 
-app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"] }), async (req, res) => {
+app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"], limit: "8kb" }), async (req, res) => {
   try {
+    const contentType = String(req.headers["content-type"] || "").toLowerCase();
+    if (!contentType.includes("application/json") && !contentType.includes("text/plain")) {
+      return res.status(415).json({
+        success: false,
+        message: "Unsupported content type."
+      });
+    }
+
     const payload = typeof req.body === "string"
       ? JSON.parse(req.body || "{}")
       : (req.body || {});
 
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid telemetry payload."
+      });
+    }
+
     const validEvents = new Set(["pageview", "click", "form_submit", "error", "navigation"]);
     const requestedEvent = String(payload.event || "pageview").toLowerCase();
     const event = validEvents.has(requestedEvent) ? requestedEvent : "pageview";
-    const locale = /^[a-z]{2}(-[A-Z]{2})?$/.test(String(payload.locale || ""))
+    const locale = /^[a-z]{2}(-[A-Z]{2})?$/.test(String(payload.locale || "").trim())
       ? String(payload.locale)
       : "en";
+    const rawPath = String(payload.path || req.path || "/").trim();
+    if (!rawPath || rawPath.length > MAX_TELEMETRY_PATH_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid telemetry payload."
+      });
+    }
+
+    const pathValue = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
 
     const sanitized = {
       event,
-      path: String(payload.path || req.path),
+      path: pathValue,
       locale,
       timestamp: new Date().toISOString()
     };

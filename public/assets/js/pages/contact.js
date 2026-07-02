@@ -72,6 +72,24 @@ const getFastifyContactEndpoint = () => {
   return `http://${window.location.hostname}:4001/contact`;
 };
 
+const createIdempotencyKey = async (payload) => {
+  const normalized = JSON.stringify({
+    name: payload.name,
+    email: payload.email,
+    subject: payload.subject,
+    message: payload.message
+  });
+
+  if (window.crypto?.subtle && window.TextEncoder) {
+    const bytes = new TextEncoder().encode(normalized);
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", bytes);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((value) => value.toString(16).padStart(2, "0")).join("");
+  }
+
+  return `fallback-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
 if (contactForm && notice) {
   if (activeLocale === "nl") {
     loadLocaleDictionary(activeLocale).finally(() => {
@@ -118,6 +136,7 @@ if (contactForm && notice) {
     setSubmitState(true);
 
     try {
+      const idempotencyKey = await createIdempotencyKey(payload);
       const fastifyContactEndpoint = getFastifyContactEndpoint();
 
       // Primary endpoint: Node Express API
@@ -143,7 +162,8 @@ if (contactForm && notice) {
           const response = await fetch(endpoint, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "X-Idempotency-Key": idempotencyKey
             },
             body: JSON.stringify(payload),
             signal: controller.signal

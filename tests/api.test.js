@@ -60,6 +60,35 @@ test("POST /api/contact rejects invalid email format", async () => {
   assert.equal(response.body.errorCode, "INVALID_EMAIL");
 });
 
+test("POST /api/contact honors idempotency key for duplicate submissions", async () => {
+  const idempotencyKey = "test-idempotency-key-123456";
+  const payload = {
+    name: "Idempotent User",
+    email: "idempotent@example.com",
+    subject: "Idempotent Subject",
+    message: "Message body that should be deduplicated"
+  };
+
+  const firstResponse = await request(app)
+    .post("/api/contact")
+    .set("X-Idempotency-Key", idempotencyKey)
+    .send(payload);
+
+  assert.equal(firstResponse.status, 201);
+  assert.equal(firstResponse.body.success, true);
+  assert.ok(firstResponse.body.data?.id);
+
+  const secondResponse = await request(app)
+    .post("/api/contact")
+    .set("X-Idempotency-Key", idempotencyKey)
+    .send(payload);
+
+  assert.equal(secondResponse.status, 201);
+  assert.equal(secondResponse.body.success, true);
+  assert.equal(secondResponse.body.idempotent, true);
+  assert.equal(secondResponse.body.data?.id, firstResponse.body.data?.id);
+});
+
 test("GET /api/version returns app version metadata", async () => {
   const response = await request(app).get("/api/version");
 
@@ -100,6 +129,26 @@ test("POST /api/telemetry accepts event payload", async () => {
 
   assert.equal(response.status, 202);
   assert.equal(response.body.success, true);
+});
+
+test("POST /api/telemetry rejects invalid payload shape", async () => {
+  const response = await request(app)
+    .post("/api/telemetry")
+    .set("Content-Type", "application/json")
+    .send(["bad"]);
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.success, false);
+});
+
+test("POST /api/telemetry rejects unsupported content type", async () => {
+  const response = await request(app)
+    .post("/api/telemetry")
+    .set("Content-Type", "text/html")
+    .send("<p>bad</p>");
+
+  assert.equal(response.status, 415);
+  assert.equal(response.body.success, false);
 });
 
 test("admin audit endpoint exposes normalized telemetry events", async () => {

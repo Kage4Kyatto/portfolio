@@ -18,6 +18,7 @@ const tableWrap = document.querySelector(".table-wrap");
 const queueRefreshButton = document.getElementById("queue-refresh");
 const queueProcessButton = document.getElementById("queue-process");
 const queueOutput = document.getElementById("queue-output");
+const performanceOutput = document.getElementById("performance-output");
 const summaryLoadButton = document.getElementById("summary-load");
 const summaryEngineSelect = document.getElementById("summary-engine");
 const summaryOutput = document.getElementById("summary-output");
@@ -411,6 +412,49 @@ const setQueueOutput = (payload) => {
   queueOutput.textContent = JSON.stringify(payload, null, 2);
 };
 
+const setPerformanceOutput = (performancePayload) => {
+  if (!performanceOutput) {
+    return;
+  }
+
+  const routes = Array.isArray(performancePayload?.routes)
+    ? performancePayload.routes.slice(0, 8)
+    : [];
+
+  if (routes.length === 0) {
+    performanceOutput.innerHTML = "<p class=\"audit-empty\">No performance metrics loaded yet.</p>";
+    return;
+  }
+
+  const rows = routes
+    .map((route) => {
+      return `<tr>
+        <td>${escapeHtml(route.route || "-")}</td>
+        <td>${escapeHtml(route.totalRequests || 0)}</td>
+        <td>${escapeHtml(route.p50Ms || 0)} ms</td>
+        <td>${escapeHtml(route.p95Ms || 0)} ms</td>
+        <td>${escapeHtml(Math.round(Number(route.errorRate || 0) * 100))}%</td>
+      </tr>`;
+    })
+    .join("");
+
+  performanceOutput.innerHTML = `<div class="audit-meta">Top routes by request volume</div>
+    <div class="audit-table-wrap">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Requests</th>
+            <th>p50</th>
+            <th>p95</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+};
+
 const loadQueueHealth = async () => {
   if (!queueOutput) {
     return;
@@ -418,13 +462,7 @@ const loadQueueHealth = async () => {
 
   try {
     const result = await fetchJsonWithFallback(["/api/admin/queue"]);
-    const performance = parseJsonSafely(queueOutput.dataset.performance || "{}") || {};
-    setQueueOutput({
-      ...(result.queue || result),
-      performanceTopRoutes: Array.isArray(performance.routes)
-        ? performance.routes.slice(0, 3)
-        : []
-    });
+    setQueueOutput(result.queue || result);
   } catch (error) {
     setQueueOutput({
       success: false,
@@ -585,10 +623,13 @@ const loadPerformanceMetrics = async () => {
 
   try {
     const result = await fetchJsonWithFallback(["/api/admin/performance"]);
-    queueOutput.dataset.performance = JSON.stringify(result.performance || {});
+    const performance = result.performance || {};
+    queueOutput.dataset.performance = JSON.stringify(performance);
+    setPerformanceOutput(performance);
     loadQueueHealth();
   } catch {
     queueOutput.dataset.performance = "{}";
+    setPerformanceOutput({ routes: [] });
   }
 };
 
@@ -880,6 +921,10 @@ if (authForm && notice && tableBody) {
     if (auditOutput) {
       auditOutput.innerHTML = "<p class=\"audit-empty\">No audit data loaded yet.</p>";
       auditOutput.dataset.rawEvents = "[]";
+    }
+
+    if (performanceOutput) {
+      performanceOutput.innerHTML = "<p class=\"audit-empty\">No performance metrics loaded yet.</p>";
     }
 
     if (autoLoadTimer) {
