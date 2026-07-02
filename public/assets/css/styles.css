@@ -410,9 +410,23 @@ textarea:focus-visible {
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+  }
+
+  .site-header .nav-links > li:not(.lang-toggle) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(10px);
+    transition: opacity 0.18s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  .site-header:hover .nav-links > li:not(.lang-toggle),
+  .site-header:focus-within .nav-links > li:not(.lang-toggle) {
+    transform: translateX(0);
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    transition: opacity 0.2s ease, transform 0.2s ease;
   }
 }
 

@@ -5,6 +5,7 @@ const ADMIN_TEST_USER = process.env.ADMIN_USER || "e2e-admin";
 const ADMIN_TEST_PASS = process.env.ADMIN_PASS || "e2e-password";
 
 const selectLocale = async (page, locale) => {
+  await page.locator(".site-header").hover();
   await page.selectOption(".lang-toggle__select", locale);
 };
 
