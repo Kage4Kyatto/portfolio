@@ -2,6 +2,7 @@ const { defineConfig, devices } = require("@playwright/test");
 const path = require("path");
 
 const e2eDataDir = path.join(__dirname, ".tmp", "playwright-data");
+const e2eOutputDir = path.join(__dirname, ".tmp", "test-results");
 const e2ePort = 4173;
 const e2eBaseUrl = `http://localhost:${e2ePort}`;
 const e2eStartCommand = process.platform === "win32"
@@ -11,6 +12,7 @@ const e2eStartCommand = process.platform === "win32"
 module.exports = defineConfig({
   testDir: "./tests/e2e",
   timeout: 30000,
+  outputDir: e2eOutputDir,
   use: {
     baseURL: e2eBaseUrl,
     trace: "on-first-retry"
