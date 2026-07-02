@@ -2,6 +2,14 @@ const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
 const LOCALE_STORAGE_KEY = "portfolio.locale";
 const SUPPORTED_LOCALES = ["en", "nl", "de", "fr", "es", "pt"];
+const LOCALE_LABELS = {
+  en: "English",
+  nl: "Nederlands",
+  de: "Deutsch",
+  fr: "Français",
+  es: "Español",
+  pt: "Português"
+};
 const DEFAULT_EN_LOCALE = {
   menu_label: "Language",
   menu_en: "EN",
@@ -168,9 +176,34 @@ const setupLanguageToggle = async () => {
   const button = document.createElement("button");
   button.className = "lang-toggle__button";
   button.type = "button";
+  button.setAttribute("aria-haspopup", "listbox");
+
+  const menu = document.createElement("ul");
+  menu.className = "lang-toggle__menu";
+  menu.id = "lang-toggle-menu";
+  menu.setAttribute("role", "listbox");
+  menu.hidden = true;
+
+  button.setAttribute("aria-controls", menu.id);
+  button.setAttribute("aria-expanded", "false");
+
+  SUPPORTED_LOCALES.forEach((localeCode) => {
+    const item = document.createElement("li");
+
+    const optionButton = document.createElement("button");
+    optionButton.type = "button";
+    optionButton.className = "lang-toggle__option";
+    optionButton.setAttribute("role", "option");
+    optionButton.dataset.locale = localeCode;
+    optionButton.textContent = LOCALE_LABELS[localeCode] || localeCode.toUpperCase();
+
+    item.appendChild(optionButton);
+    menu.appendChild(item);
+  });
 
   wrapper.appendChild(label);
   wrapper.appendChild(button);
+  wrapper.appendChild(menu);
   navLinks.appendChild(wrapper);
 
   const captureDefaultEnglishDictionary = () => {
@@ -227,11 +260,26 @@ const setupLanguageToggle = async () => {
 
   let locale = normalizeLocale(localStorage.getItem(LOCALE_STORAGE_KEY) || "en");
 
+  const setMenuOpen = (isOpen) => {
+    wrapper.classList.toggle("is-open", isOpen);
+    menu.hidden = !isOpen;
+    button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  };
+
+  const syncLocaleMenuState = () => {
+    menu.querySelectorAll(".lang-toggle__option").forEach((optionButton) => {
+      const isActive = optionButton.dataset.locale === locale;
+      optionButton.classList.toggle("is-active", isActive);
+      optionButton.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+  };
+
   const setLocale = async (nextLocale) => {
     const dictionary = await loadLocaleDictionary(nextLocale);
     locale = nextLocale;
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
     applyLocale(locale, dictionary);
+    syncLocaleMenuState();
   };
 
   try {
@@ -240,30 +288,83 @@ const setupLanguageToggle = async () => {
     locale = "en";
     applyLocale(locale, DEFAULT_EN_LOCALE);
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    syncLocaleMenuState();
   }
 
+  const focusActiveOption = () => {
+    const activeOption = menu.querySelector(".lang-toggle__option.is-active");
+    if (activeOption) {
+      activeOption.focus();
+      return;
+    }
+
+    const firstOption = menu.querySelector(".lang-toggle__option");
+    firstOption?.focus();
+  };
+
   let localeSwitchQueue = Promise.resolve();
-  button.addEventListener("click", () => {
+  const selectLocale = (nextLocale) => {
     localeSwitchQueue = localeSwitchQueue
       .then(async () => {
-        const currentIndex = SUPPORTED_LOCALES.indexOf(locale);
-        const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
-        const nextIndex = (safeCurrentIndex + 1) % SUPPORTED_LOCALES.length;
-        const nextLocale = SUPPORTED_LOCALES[nextIndex];
-
-        if (nextLocale === "en") {
-          localStorage.setItem(LOCALE_STORAGE_KEY, "en");
-          sendTelemetry("language_toggle");
-          window.location.reload();
+        if (nextLocale === locale) {
+          setMenuOpen(false);
           return;
         }
 
         await setLocale(nextLocale);
         sendTelemetry("language_toggle");
+        setMenuOpen(false);
       })
       .catch(() => {
-        // Ignore toggle failure and keep current locale.
+        setMenuOpen(false);
       });
+  };
+
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    const willOpen = menu.hidden;
+    setMenuOpen(willOpen);
+
+    if (willOpen) {
+      focusActiveOption();
+    }
+  });
+
+  button.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setMenuOpen(true);
+      focusActiveOption();
+    }
+  });
+
+  menu.querySelectorAll(".lang-toggle__option").forEach((optionButton) => {
+    optionButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      const nextLocale = normalizeLocale(optionButton.dataset.locale);
+      selectLocale(nextLocale);
+    });
+
+    optionButton.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        button.focus();
+      }
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!wrapper.contains(event.target)) {
+      setMenuOpen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !menu.hidden) {
+      setMenuOpen(false);
+      button.focus();
+    }
   });
 };
 
