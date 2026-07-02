@@ -180,7 +180,7 @@ const setupLanguageToggle = async () => {
       return localeCache.get(locale);
     }
 
-    const response = await fetch(`/assets/i18n/${locale}.json`);
+    const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
     if (!response.ok) {
       throw new Error("Locale unavailable");
     }
