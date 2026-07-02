@@ -22,7 +22,7 @@ const locales = ["en", "nl", "de", "fr", "es", "pt"];
 const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
 
 const selectLocale = async (page, locale) => {
-  const selector = page.locator(".lang-toggle__select");
+  const selector = page.locator(".lang-toggle__button");
   const exists = (await selector.count()) > 0;
   if (!exists) {
     return { matched: false, reason: "menu-option-not-found" };
@@ -32,7 +32,8 @@ const selectLocale = async (page, locale) => {
   await page.locator(".site-header").hover().catch(() => {});
 
   try {
-    await page.selectOption(".lang-toggle__select", locale, { timeout: 5000 });
+    await selector.click({ timeout: 5000 });
+    await page.locator(`.lang-toggle__option[data-locale="${locale}"]`).click({ timeout: 5000 });
     return { matched: true };
   } catch {
     return { matched: false, reason: "menu-option-not-interactable" };
@@ -69,7 +70,7 @@ const selectLocale = async (page, locale) => {
       continue;
     }
 
-    const hasToggle = (await page.locator(".lang-toggle__select").count()) > 0;
+    const hasToggle = (await page.locator(".lang-toggle__button").count()) > 0;
     if (!hasToggle) {
       skipped.push(route);
       await page.close();

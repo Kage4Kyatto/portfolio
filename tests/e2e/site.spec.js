@@ -3,10 +3,19 @@ const AxeBuilder = require("@axe-core/playwright").default;
 
 const ADMIN_TEST_USER = process.env.ADMIN_USER || "e2e-admin";
 const ADMIN_TEST_PASS = process.env.ADMIN_PASS || "e2e-password";
+const LOCALE_LABELS = {
+  en: "English",
+  nl: "Nederlands",
+  de: "Deutsch",
+  fr: "Français",
+  es: "Español",
+  pt: "Português"
+};
 
 const selectLocale = async (page, locale) => {
   await page.locator(".site-header").hover();
-  await page.selectOption(".lang-toggle__select", locale);
+  await page.locator(".lang-toggle__button").click();
+  await page.locator(`.lang-toggle__option[data-locale="${locale}"]`).click();
 };
 
 test("home page loads and nav works", async ({ page }) => {
@@ -18,10 +27,10 @@ test("home page loads and nav works", async ({ page }) => {
 test("language toggle changes locale label", async ({ page }) => {
   await page.goto("/index.html");
 
-  const selector = page.locator(".lang-toggle__select");
-  await expect(selector).toHaveValue("en");
+  const selector = page.locator(".lang-toggle__button");
+  await expect(selector).toHaveText(LOCALE_LABELS.en);
   await selectLocale(page, "nl");
-  await expect(selector).toHaveValue("nl");
+  await expect(selector).toHaveText(LOCALE_LABELS.nl);
 });
 
 test("language toggle remains stable after rapid repeated clicks", async ({ page }) => {
@@ -31,17 +40,17 @@ test("language toggle remains stable after rapid repeated clicks", async ({ page
 
   await page.goto("/index.html");
 
-  const selector = page.locator(".lang-toggle__select");
-  await expect(selector).toHaveValue("en");
+  const selector = page.locator(".lang-toggle__button");
+  await expect(selector).toHaveText(LOCALE_LABELS.en);
 
   await selectLocale(page, "nl");
-  await expect(selector).toHaveValue("nl");
+  await expect(selector).toHaveText(LOCALE_LABELS.nl);
 
   await selectLocale(page, "de");
-  await expect(selector).toHaveValue("de");
+  await expect(selector).toHaveText(LOCALE_LABELS.de);
 
   await selectLocale(page, "en");
-  await expect(selector).toHaveValue("en");
+  await expect(selector).toHaveText(LOCALE_LABELS.en);
 });
 
 test("language toggle is hidden during splash and visible after", async ({ page }) => {

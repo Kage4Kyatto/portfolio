@@ -199,15 +199,21 @@ const sendTelemetry = (eventName) => {
 
 const applyLocale = (locale, dictionary) => {
   const languageLabel = document.querySelector(".lang-toggle__label");
-  const languageSelect = document.querySelector(".lang-toggle__select");
+  const languageButton = document.querySelector(".lang-toggle__button");
 
   if (languageLabel) {
     languageLabel.textContent = dictionary.menu_label || "Language";
   }
 
-  if (languageSelect) {
-    languageSelect.value = normalizeLocale(locale);
+  if (languageButton) {
+    languageButton.textContent = LOCALE_LABELS[normalizeLocale(locale)] || String(locale).toUpperCase();
   }
+
+  document.querySelectorAll(".lang-toggle__option").forEach((option) => {
+    const isActive = option.getAttribute("data-locale") === normalizeLocale(locale);
+    option.classList.toggle("is-active", isActive);
+    option.setAttribute("aria-current", isActive ? "true" : "false");
+  });
 
   document.documentElement.setAttribute("lang", locale);
 
@@ -255,20 +261,36 @@ const setupLanguageToggle = async () => {
   label.className = "lang-toggle__label";
   label.textContent = "Language";
 
-  const select = document.createElement("select");
-  select.className = "lang-toggle__select";
-  select.setAttribute("aria-label", "Select language");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "lang-toggle__button";
+  button.setAttribute("aria-label", "Select language");
+  button.setAttribute("aria-haspopup", "menu");
+  button.setAttribute("aria-expanded", "false");
+
+  const menu = document.createElement("div");
+  menu.className = "lang-toggle__menu";
+  menu.setAttribute("role", "menu");
 
   SUPPORTED_LOCALES.forEach((localeCode) => {
-    const option = document.createElement("option");
-    option.value = localeCode;
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "lang-toggle__option";
+    option.setAttribute("role", "menuitemradio");
+    option.setAttribute("data-locale", localeCode);
     option.textContent = LOCALE_LABELS[localeCode] || localeCode.toUpperCase();
-    select.appendChild(option);
+    menu.appendChild(option);
   });
 
   wrapper.appendChild(label);
-  wrapper.appendChild(select);
+  wrapper.appendChild(button);
+  wrapper.appendChild(menu);
   navLinks.appendChild(wrapper);
+
+  const setDropdownOpen = (isOpen) => {
+    wrapper.classList.toggle("is-open", isOpen);
+    button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  };
 
   const captureDefaultEnglishDictionary = () => {
     const snapshot = { ...DEFAULT_EN_LOCALE };
@@ -344,22 +366,40 @@ const setupLanguageToggle = async () => {
     localeSwitchQueue = localeSwitchQueue
       .then(async () => {
         if (nextLocale === locale) {
+          setDropdownOpen(false);
           return;
         }
 
         await setLocale(nextLocale);
+        setDropdownOpen(false);
         sendTelemetry("language_toggle");
       })
       .catch(() => {
-        if (select) {
-          select.value = locale;
-        }
+        setDropdownOpen(false);
       });
   };
 
-  select.addEventListener("change", () => {
-    const nextLocale = normalizeLocale(select.value);
-    selectLocale(nextLocale);
+  button.addEventListener("click", () => {
+    setDropdownOpen(!wrapper.classList.contains("is-open"));
+  });
+
+  menu.querySelectorAll(".lang-toggle__option").forEach((option) => {
+    option.addEventListener("click", () => {
+      const nextLocale = normalizeLocale(option.getAttribute("data-locale"));
+      selectLocale(nextLocale);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!wrapper.contains(event.target)) {
+      setDropdownOpen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setDropdownOpen(false);
+    }
   });
 };
 
