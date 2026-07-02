@@ -10,7 +10,12 @@ const {
 	getAdminSessionState
 } = require("../middleware/authMiddleware");
 const { requireCloudflareAccess } = require("../middleware/cloudflareAccessMiddleware");
-const { getSystemMetrics, getMessages: getStoredMessages } = require("../data/storage");
+const {
+	getSystemMetrics,
+	getMessages: getStoredMessages,
+	getTelemetryEvents,
+	appendTelemetryEvent
+} = require("../data/storage");
 const { getQueueSnapshot, processQueueNow } = require("../services/notificationQueue");
 const { getSummary } = require("../services/reportSummary");
 const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
@@ -106,13 +111,21 @@ router.get("/admin/session", requireCloudflareAccess, (req, res) => {
  *       429:
  *         description: Too many login attempts
  */
-router.post("/admin/login", requireCloudflareAccess, authLimiter, requireAdminAuth, (req, res) => {	const csrfToken = startAdminSession(req);
+router.post("/admin/login", requireCloudflareAccess, authLimiter, requireAdminAuth, (req, res) => {
+	const csrfToken = startAdminSession(req);
 	if (!csrfToken) {
 		return res.status(500).json({
 			success: false,
 			message: "Failed to create session."
 		});
 	}
+
+	appendTelemetryEvent({
+		event: "admin_login",
+		path: req.originalUrl,
+		locale: "en",
+		timestamp: new Date().toISOString()
+	}).catch(() => {});
 
 	return res.status(200).json({
 		success: true,
@@ -140,17 +153,49 @@ router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireCsrfT
 	endAdminSession(req, (error) => {
 		if (error) {
 			console.error("Failed to destroy admin session:", error);
+			appendTelemetryEvent({
+				event: "admin_logout_error",
+				path: req.originalUrl,
+				locale: "en",
+				timestamp: new Date().toISOString()
+			}).catch(() => {});
 			return res.status(500).json({
 				success: false,
 				message: "Failed to log out."
 			});
 		}
 
+		appendTelemetryEvent({
+			event: "admin_logout",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
+
 		return res.status(200).json({
 			success: true,
 			message: "Logged out."
 		});
 	});
+});
+
+router.get("/admin/audit-events", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
+	try {
+		const requestedLimit = Number.parseInt(String(req.query.limit || "50"), 10);
+		const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? requestedLimit : 50, 1), 200);
+		const events = await getTelemetryEvents(limit);
+
+		res.status(200).json({
+			success: true,
+			events
+		});
+	} catch (error) {
+		console.error("Failed to load audit events:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to load audit events."
+		});
+	}
 });
 
 /**
@@ -215,6 +260,12 @@ router.get("/admin/queue", requireCloudflareAccess, adminLimiter, requireAdminSe
 router.post("/admin/queue/process", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, async (req, res) => {
 	try {
 		const queue = await processQueueNow();
+		appendTelemetryEvent({
+			event: "admin_queue_process",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
 		res.status(200).json({
 			success: true,
 			message: "Queue processed.",
@@ -233,6 +284,12 @@ router.get("/admin/report-summary", requireCloudflareAccess, adminLimiter, requi
 	try {
 		const requestedEngine = req.query.engine || "auto";
 		const summary = await getSummary(requestedEngine);
+		appendTelemetryEvent({
+			event: "admin_summary_load",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
 
 		res.status(200).json({
 			success: true,

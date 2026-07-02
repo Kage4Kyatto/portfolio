@@ -64,6 +64,16 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 5. Open:
    - `http://localhost:8000`
 
+### One-Command Full Stack Dev
+
+- Start Node API + Fastify + PHP + React together:
+   - `npm run dev:all`
+- URLs:
+   - Node: `http://localhost:3000`
+   - Fastify: `http://localhost:4001`
+   - PHP: `http://localhost:8000`
+   - React dashboard: `http://localhost:5173/app/`
+
 ### Optional Runtime Tooling
 
 - Database migration (PostgreSQL): `npm run migrate:db`
@@ -205,6 +215,7 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 - Contact form submissions are stored in `backend/php/data/messages.json`.
 - Includes client-side search, pagination, and CSV export for loaded messages.
 - Includes analytics bar visualizations, queue health controls, and multi-engine report summary (JS/Go/Rust).
+- Includes an audit trail panel for recent admin and telemetry events.
 
 ### Password Hash Option
 

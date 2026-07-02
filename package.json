@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "dev:all": "node scripts/node/devAll.js",
     "install:react": "npm --prefix frontend/react-app install",
     "dev:react": "npm --prefix frontend/react-app run dev",
     "build:react": "npm --prefix frontend/react-app run build",

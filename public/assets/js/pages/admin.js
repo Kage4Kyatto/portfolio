@@ -21,6 +21,8 @@ const queueOutput = document.getElementById("queue-output");
 const summaryLoadButton = document.getElementById("summary-load");
 const summaryEngineSelect = document.getElementById("summary-engine");
 const summaryOutput = document.getElementById("summary-output");
+const auditRefreshButton = document.getElementById("audit-refresh");
+const auditOutput = document.getElementById("audit-output");
 
 const ADMIN_LOCALE_STORAGE_KEY = "portfolio.locale";
 
@@ -458,6 +460,30 @@ const loadReportSummary = async () => {
   }
 };
 
+const setAuditOutput = (payload) => {
+  if (!auditOutput) {
+    return;
+  }
+
+  auditOutput.textContent = JSON.stringify(payload, null, 2);
+};
+
+const loadAuditEvents = async () => {
+  if (!auditOutput) {
+    return;
+  }
+
+  try {
+    const result = await fetchJsonWithFallback(["/api/admin/audit-events?limit=50"]);
+    setAuditOutput(result.events || result);
+  } catch (error) {
+    setAuditOutput({
+      success: false,
+      message: error.message || "Failed to load audit events."
+    });
+  }
+};
+
 const clearInactivityTimer = () => {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer);
@@ -622,6 +648,7 @@ if (authForm && notice && tableBody) {
       loadAdminMetrics();
       loadQueueHealth();
       loadReportSummary();
+      loadAuditEvents();
       scheduleInactivityTimeout();
     } catch (error) {
       setDashboardVisibility(false);
@@ -727,6 +754,10 @@ if (authForm && notice && tableBody) {
       adminOtpInput.value = "";
     }
 
+    if (auditOutput) {
+      auditOutput.textContent = "No audit data loaded yet.";
+    }
+
     if (autoLoadTimer) {
       clearTimeout(autoLoadTimer);
       autoLoadTimer = null;
@@ -756,6 +787,10 @@ if (authForm && notice && tableBody) {
     if (window.toast) {
       window.toast.info(t("admin_logged_out_success", activeLocale === "nl" ? "Succesvol uitgelogd." : "Logged out successfully."));
     }
+  });
+
+  auditRefreshButton?.addEventListener("click", () => {
+    loadAuditEvents();
   });
 
   queueRefreshButton?.addEventListener("click", loadQueueHealth);

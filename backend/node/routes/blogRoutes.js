@@ -19,19 +19,6 @@ const readBlogPosts = async () => {
   }
 };
 
-const writeBlogPosts = async (posts) => {
-  try {
-    if (!fs.existsSync(BLOG_DIR)) {
-      fs.mkdirSync(BLOG_DIR, { recursive: true });
-    }
-    fs.writeFileSync(BLOG_DATA_FILE, JSON.stringify(posts, null, 2));
-    return true;
-  } catch (error) {
-    console.error("Error writing blog posts:", error);
-    return false;
-  }
-};
-
 /**
  * @swagger
  * /api/blog/posts:
@@ -97,7 +84,7 @@ router.get("/posts", async (req, res) => {
       posts: sorted.slice(offset, offset + limit),
       total: sorted.length
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       message: "Failed to load blog posts"
@@ -140,7 +127,7 @@ router.get("/posts/:slug", async (req, res) => {
       success: true,
       post
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       message: "Failed to load blog post"

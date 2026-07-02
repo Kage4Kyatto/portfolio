@@ -17,6 +17,7 @@ const shouldUseDatabase = Boolean(databaseUrl);
 
 let pool = null;
 let initPromise = null;
+let messageBackfillDone = false;
 
 const getPool = () => {
   if (!shouldUseDatabase) {
@@ -25,7 +26,6 @@ const getPool = () => {
 
   if (!pool) {
     // Lazily require pg so local JSON mode does not require DB connectivity.
-    // eslint-disable-next-line global-require
     const { Pool } = require("pg");
     pool = new Pool({
       connectionString: databaseUrl,
@@ -121,6 +121,68 @@ const writeJsonFile = async (filePath, value) => {
   await fs.promises.writeFile(filePath, JSON.stringify(value, null, 2));
 };
 
+const ensureMessagesBackfilledToDb = async (db) => {
+  if (messageBackfillDone) {
+    return;
+  }
+
+  const countResult = await db.query("SELECT COUNT(*)::int AS total FROM contact_messages");
+  const total = Number(countResult.rows[0]?.total || 0);
+  if (total > 0) {
+    messageBackfillDone = true;
+    return;
+  }
+
+  const jsonMessages = await readJsonFile(messagesPath, []);
+  if (!Array.isArray(jsonMessages) || jsonMessages.length === 0) {
+    messageBackfillDone = true;
+    return;
+  }
+
+  const names = [];
+  const emails = [];
+  const subjects = [];
+  const messages = [];
+  const createdAtValues = [];
+
+  for (const item of jsonMessages) {
+    const name = String(item?.name || "").trim();
+    const email = String(item?.email || "").trim();
+    const subject = String(item?.subject || "").trim();
+    const message = String(item?.message || "").trim();
+    const rawCreatedAt = String(item?.createdAt || item?.timestamp || "").trim();
+    const parsedCreatedAt = Date.parse(rawCreatedAt);
+    const createdAt = Number.isFinite(parsedCreatedAt)
+      ? new Date(parsedCreatedAt).toISOString()
+      : new Date().toISOString();
+
+    if (!name || !email || !subject || !message) {
+      continue;
+    }
+
+    names.push(name);
+    emails.push(email);
+    subjects.push(subject);
+    messages.push(message);
+    createdAtValues.push(createdAt);
+  }
+
+  if (names.length === 0) {
+    messageBackfillDone = true;
+    return;
+  }
+
+  await db.query(
+    `
+      INSERT INTO contact_messages (name, email, subject, message, created_at)
+      SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::text[], $5::timestamptz[])
+    `,
+    [names, emails, subjects, messages, createdAtValues]
+  );
+
+  messageBackfillDone = true;
+};
+
 // Helper to abstract DB vs JSON branching pattern
 const useDbOrJson = async (dbFn, jsonFn) => {
   if (await ensureDb()) {
@@ -131,16 +193,20 @@ const useDbOrJson = async (dbFn, jsonFn) => {
 
 const getMessages = async () => {
   return useDbOrJson(
-    (db) => db.query(
-      "SELECT id, name, email, subject, message, created_at FROM contact_messages ORDER BY id ASC"
-    ).then((result) => result.rows.map((row) => ({
-      id: Number(row.id),
-      name: row.name,
-      email: row.email,
-      subject: row.subject,
-      message: row.message,
-      createdAt: new Date(row.created_at).toISOString()
-    }))),
+    async (db) => {
+      await ensureMessagesBackfilledToDb(db);
+      const result = await db.query(
+        "SELECT id, name, email, subject, message, created_at FROM contact_messages ORDER BY id ASC"
+      );
+      return result.rows.map((row) => ({
+        id: Number(row.id),
+        name: row.name,
+        email: row.email,
+        subject: row.subject,
+        message: row.message,
+        createdAt: new Date(row.created_at).toISOString()
+      }));
+    },
     () => readJsonFile(messagesPath, [])
   );
 };
@@ -148,6 +214,7 @@ const getMessages = async () => {
 const addMessage = async ({ name, email, subject, message, createdAt }) => {
   if (await ensureDb()) {
     const db = getPool();
+    await ensureMessagesBackfilledToDb(db);
     const result = await db.query(
       `
         INSERT INTO contact_messages (name, email, subject, message, created_at)
@@ -412,6 +479,46 @@ const appendTelemetryEvent = async (eventPayload) => {
   await writeJsonFile(telemetryPath, events);
 };
 
+const getTelemetryEvents = async (limit = 100) => {
+  const parsedLimit = Number.isFinite(Number(limit)) ? Number(limit) : 100;
+  const safeLimit = Math.min(Math.max(Math.trunc(parsedLimit), 1), 500);
+
+  if (await ensureDb()) {
+    const db = getPool();
+    const result = await db.query(
+      `
+        SELECT event, path, locale, timestamp
+        FROM telemetry_events
+        ORDER BY timestamp DESC, id DESC
+        LIMIT $1
+      `,
+      [safeLimit]
+    );
+
+    return result.rows.map((row) => ({
+      event: String(row.event || "pageview"),
+      path: String(row.path || "/"),
+      locale: String(row.locale || "en"),
+      timestamp: new Date(row.timestamp).toISOString()
+    }));
+  }
+
+  const events = await readJsonFile(telemetryPath, []);
+  if (!Array.isArray(events)) {
+    return [];
+  }
+
+  return events
+    .slice(-safeLimit)
+    .reverse()
+    .map((entry) => ({
+      event: String(entry?.event || "pageview"),
+      path: String(entry?.path || "/"),
+      locale: String(entry?.locale || "en"),
+      timestamp: String(entry?.timestamp || new Date().toISOString())
+    }));
+};
+
 const getSystemMetrics = async () => {
   const [messages, rateLimits, authAttempts, queue] = await Promise.all([
     getMessages(),
@@ -441,5 +548,6 @@ module.exports = {
   getNotificationQueue,
   saveNotificationQueue,
   appendTelemetryEvent,
+  getTelemetryEvents,
   getSystemMetrics
 };

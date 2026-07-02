@@ -10,7 +10,6 @@ const Sentry = require("@sentry/node");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config({ path: path.join(__dirname, ".env.local"), override: true });
 
-const { sanitizeObject, sanitizeEmail, sanitizeText } = require("./backend/node/utils/sanitize");
 const { apiLimiter } = require("./backend/node/utils/rateLimiter");
 
 const SENTRY_DSN = process.env.SENTRY_DSN || "";
@@ -59,6 +58,8 @@ const { initializeRateLimits, flushRateLimitsOnShutdown } = require("./backend/n
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "100kb";
+const URLENCODED_BODY_LIMIT = process.env.URLENCODED_BODY_LIMIT || "50kb";
 
 if (SENTRY_DSN) {
   app.use(Sentry.Handlers.requestHandler());
@@ -94,6 +95,8 @@ const buildContentSecurityPolicy = () => {
   const rules = [
     "default-src 'self'",
     "base-uri 'self'",
+    "form-action 'self'",
+    "frame-src 'none'",
     "frame-ancestors 'none'",
     "object-src 'none'",
     "img-src 'self' data: https:",
@@ -154,8 +157,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({
+  limit: JSON_BODY_LIMIT,
+  strict: true
+}));
+app.use(express.urlencoded({
+  extended: true,
+  limit: URLENCODED_BODY_LIMIT,
+  parameterLimit: 100
+}));
 
 app.use(session({
   name: "portfolio.sid",
@@ -239,7 +249,7 @@ app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain
     return res.status(202).json({
       success: true
     });
-  } catch (error) {
+  } catch {
     return res.status(400).json({
       success: false,
       message: "Invalid telemetry payload."

@@ -11,7 +11,7 @@ const createLimiter = (options = {}) => {
     keyGenerator: (req) => {
       return options.keyGenerator ? options.keyGenerator(req) : getClientIp(req);
     },
-    skip: (req) => {
+    skip: () => {
       return process.env.NODE_ENV === "test";
     },
     handler: (req, res) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import StatusCard from "./components/StatusCard";
 
@@ -7,6 +7,7 @@ const ENDPOINTS = {
   nodeHealth: import.meta.env.VITE_NODE_HEALTH_PATH || "/bridge/node/api/health",
   phpHealth: import.meta.env.VITE_PHP_HEALTH_PATH || "/bridge/php/api/health.php"
 };
+const AUTO_REFRESH_MS = 15000;
 
 const createInitialState = () => ({
   status: "idle",
@@ -22,6 +23,8 @@ function HealthChecker() {
   });
   const [checking, setChecking] = useState(false);
   const [appError, setAppError] = useState(null);
+  const [lastCheckedAt, setLastCheckedAt] = useState(null);
+  const isRefreshingRef = useRef(false);
 
   const runCheck = async (endpoint) => {
     try {
@@ -71,6 +74,11 @@ function HealthChecker() {
   };
 
   const refresh = async () => {
+    if (isRefreshingRef.current) {
+      return;
+    }
+
+    isRefreshingRef.current = true;
     setChecking(true);
     try {
       const [fastify, node, php] = await Promise.all([
@@ -79,17 +87,26 @@ function HealthChecker() {
         runCheck(ENDPOINTS.phpHealth)
       ]);
       setChecks({ fastify, node, php });
+      setLastCheckedAt(new Date().toISOString());
       setAppError(null);
     } catch (error) {
       setAppError(error.message);
       console.error("Health check error:", error);
     } finally {
       setChecking(false);
+      isRefreshingRef.current = false;
     }
   };
 
   useEffect(() => {
     refresh();
+    const interval = setInterval(() => {
+      refresh();
+    }, AUTO_REFRESH_MS);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -106,6 +123,9 @@ function HealthChecker() {
         <p>
           This route is mounted under /app and gives you a React-powered overview of Fastify, Node,
           and PHP runtime health.
+        </p>
+        <p>
+          {lastCheckedAt ? `Last checked: ${new Date(lastCheckedAt).toLocaleString()}` : "Waiting for first successful check..."}
         </p>
 
         <div className="grid">

@@ -29,3 +29,8 @@ const parseJsonSafely = (value) => {
   }
 };
 
+if (typeof window !== "undefined") {
+  window.escapeHtml = escapeHtml;
+  window.parseJsonSafely = parseJsonSafely;
+}
+

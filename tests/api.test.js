@@ -80,6 +80,40 @@ test("POST /api/telemetry accepts event payload", async () => {
   assert.equal(response.body.success, true);
 });
 
+test("admin audit endpoint exposes normalized telemetry events", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const telemetryResponse = await request(app).post("/api/telemetry").send({
+    event: "unknown_event_type",
+    path: "/contract-test",
+    locale: "BAD"
+  });
+
+  assert.equal(telemetryResponse.status, 202);
+  assert.equal(telemetryResponse.body.success, true);
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+
+  const auditResponse = await request(app)
+    .get("/api/admin/audit-events?limit=25")
+    .set("Cookie", cookie);
+
+  assert.equal(auditResponse.status, 200);
+  assert.equal(auditResponse.body.success, true);
+  assert.ok(Array.isArray(auditResponse.body.events));
+
+  const targetEvent = auditResponse.body.events.find((entry) => entry.path === "/contract-test");
+  assert.ok(targetEvent);
+  assert.equal(targetEvent.event, "pageview");
+  assert.equal(targetEvent.locale, "en");
+});
+
 test("GET unknown route returns 404 page", async () => {
   const response = await request(app).get("/this-route-does-not-exist");
 

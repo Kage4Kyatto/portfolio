@@ -1,10 +1,11 @@
 const { addMessage, getMessages: getStoredMessages, getRateLimits, saveRateLimits } = require("../data/storage");
 const { enqueueNotification } = require("../services/notificationQueue");
-const { sanitizeText, sanitizeEmail } = require("../utils/sanitize");
+const { sanitizeText, sanitizeEmail, sanitizeObject } = require("../utils/sanitize");
 const getClientIp = require("../utils/getClientIp");
 
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
+const ALLOWED_CONTACT_KEYS = new Set(["name", "email", "subject", "message", "website"]);
 
 // In-memory atomic rate limit tracking to prevent race conditions
 const rateLimitMemory = new Map();
@@ -106,7 +107,7 @@ const getMessages = async (req, res) => {
   try {
     const messages = await getStoredMessages();
     res.status(200).json(messages);
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       message: "Failed to load messages."
@@ -116,7 +117,28 @@ const getMessages = async (req, res) => {
 
 const submitContact = async (req, res) => {
   try {
-    const { name, email, subject, message, website } = req.body;
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request payload.",
+        requestId: req.requestId,
+        errorCode: "INVALID_PAYLOAD"
+      });
+    }
+
+    const incomingKeys = Object.keys(req.body);
+    const unknownKeys = incomingKeys.filter((key) => !ALLOWED_CONTACT_KEYS.has(key));
+    if (unknownKeys.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Unexpected fields in request payload.",
+        requestId: req.requestId,
+        errorCode: "UNEXPECTED_FIELDS"
+      });
+    }
+
+    const safeBody = sanitizeObject(req.body);
+    const { name, email, subject, message, website } = safeBody;
 
     if (String(website || "").trim()) {
       return res.status(201).json({
@@ -157,6 +179,15 @@ const submitContact = async (req, res) => {
         message: "Invalid input values.",
         requestId: req.requestId,
         errorCode: "INVALID_INPUT"
+      });
+    }
+
+    if (sanitizedName.length > 120 || sanitizedSubject.length > 200 || sanitizedMessage.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: "Input exceeds allowed length.",
+        requestId: req.requestId,
+        errorCode: "INPUT_TOO_LONG"
       });
     }
 
