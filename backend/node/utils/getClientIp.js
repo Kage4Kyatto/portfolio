@@ -5,12 +5,18 @@
  * @returns {string} Client IP address
  */
 const getClientIp = (req) => {
-  return (
-    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-    req.headers["x-real-ip"] ||
-    req.connection?.remoteAddress ||
-    "unknown"
-  );
+  const forwarded = String(req.headers["x-forwarded-for"] || "")
+    .split(",")[0]
+    .trim();
+  const realIp = String(req.headers["x-real-ip"] || "").trim();
+  const remote = String(req.connection?.remoteAddress || "").trim();
+
+  const candidate = forwarded || realIp || remote || "unknown";
+
+  return candidate
+    .replace(/^\[|\]$/g, "")
+    .replace(/^::ffff:/, "")
+    .trim() || "unknown";
 };
 
 module.exports = getClientIp;

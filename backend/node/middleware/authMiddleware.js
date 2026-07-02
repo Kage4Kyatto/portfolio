@@ -211,11 +211,11 @@ const startAdminSession = (req) => {
 
 const endAdminSession = (req, callback) => {
   if (!req.session) {
-    callback();
+    callback(null);
     return;
   }
 
-  req.session.destroy(() => callback());
+  req.session.destroy((error) => callback(error || null));
 };
 
 const getAdminSessionState = (req) => {

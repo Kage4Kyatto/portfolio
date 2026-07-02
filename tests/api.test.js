@@ -255,6 +255,40 @@ test("GET /api/admin/analytics supports range parameter", async () => {
   }
 });
 
+test("GET /api/admin/analytics rejects invalid range and filter", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+
+  const invalidRangeResponse = await request(app)
+    .get("/api/admin/analytics?range=bad")
+    .set("Cookie", cookie);
+
+  assert.equal(invalidRangeResponse.status, 400);
+  assert.equal(invalidRangeResponse.body.success, false);
+
+  const invalidFilterResponse = await request(app)
+    .get("/api/admin/analytics?range=30d&filter=bad")
+    .set("Cookie", cookie);
+
+  assert.equal(invalidFilterResponse.status, 400);
+  assert.equal(invalidFilterResponse.body.success, false);
+});
+
+test("GET /api/blog/posts handles invalid pagination params safely", async () => {
+  const response = await request(app).get("/api/blog/posts?limit=abc&offset=-5");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.success, true);
+  assert.ok(Array.isArray(response.body.posts));
+});
+
 test("GET /api/admin/analytics supports unread filter and exact breakdowns", async () => {
   process.env.ADMIN_USER = "admin";
   process.env.ADMIN_PASS = "secret";

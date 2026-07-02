@@ -137,8 +137,16 @@ router.post("/admin/login", requireCloudflareAccess, authLimiter, requireAdminAu
  *         description: Logout successful
  */
 router.post("/admin/logout", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, (req, res) => {
-	endAdminSession(req, () => {
-		res.status(200).json({
+	endAdminSession(req, (error) => {
+		if (error) {
+			console.error("Failed to destroy admin session:", error);
+			return res.status(500).json({
+				success: false,
+				message: "Failed to log out."
+			});
+		}
+
+		return res.status(200).json({
 			success: true,
 			message: "Logged out."
 		});
@@ -180,6 +188,7 @@ router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdmin
 			metrics
 		});
 	} catch (error) {
+		console.error("Failed to load metrics:", error);
 		res.status(500).json({
 			success: false,
 			message: "Failed to load metrics."
@@ -195,6 +204,7 @@ router.get("/admin/queue", requireCloudflareAccess, adminLimiter, requireAdminSe
 			queue
 		});
 	} catch (error) {
+		console.error("Failed to load queue metrics:", error);
 		res.status(500).json({
 			success: false,
 			message: "Failed to load queue metrics."
@@ -211,6 +221,7 @@ router.post("/admin/queue/process", requireCloudflareAccess, adminLimiter, requi
 			queue
 		});
 	} catch (error) {
+		console.error("Failed to process queue:", error);
 		res.status(500).json({
 			success: false,
 			message: "Failed to process queue."
@@ -278,6 +289,22 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 		const messages = await getStoredMessages();
 		const range = req.query.range || "30d";
 		const filter = req.query.filter || null;
+		const validRanges = ["24h", "7d", "30d", "all"];
+		const validFilters = [null, "", "unread"];
+
+		if (!validRanges.includes(range)) {
+			return res.status(400).json({
+				success: false,
+				message: "Invalid range parameter."
+			});
+		}
+
+		if (!validFilters.includes(filter)) {
+			return res.status(400).json({
+				success: false,
+				message: "Invalid filter parameter."
+			});
+		}
 
 		const now = Date.now();
 		const ranges = {
@@ -357,6 +384,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 			}
 		});
 	} catch (error) {
+		console.error("Failed to load analytics:", error);
 		res.status(500).json({
 			success: false,
 			message: "Failed to load analytics."

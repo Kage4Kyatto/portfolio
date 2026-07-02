@@ -82,8 +82,10 @@ const writeBlogPosts = async (posts) => {
 router.get("/posts", async (req, res) => {
   try {
     const posts = await readBlogPosts();
-    const limit = Math.min(parseInt(req.query.limit || 10), 50);
-    const offset = parseInt(req.query.offset || 0);
+    const parsedLimit = Number.parseInt(String(req.query.limit || "10"), 10);
+    const parsedOffset = Number.parseInt(String(req.query.offset || "0"), 10);
+    const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 10, 1), 50);
+    const offset = Math.max(Number.isFinite(parsedOffset) ? parsedOffset : 0, 0);
 
     const published = posts.filter(post => post.published === true);
     const sorted = published.sort((a, b) => 

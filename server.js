@@ -220,10 +220,17 @@ app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain
       ? JSON.parse(req.body || "{}")
       : (req.body || {});
 
+    const validEvents = new Set(["pageview", "click", "form_submit", "error", "navigation"]);
+    const requestedEvent = String(payload.event || "pageview").toLowerCase();
+    const event = validEvents.has(requestedEvent) ? requestedEvent : "pageview";
+    const locale = /^[a-z]{2}(-[A-Z]{2})?$/.test(String(payload.locale || ""))
+      ? String(payload.locale)
+      : "en";
+
     const sanitized = {
-      event: String(payload.event || "pageview"),
+      event,
       path: String(payload.path || req.path),
-      locale: String(payload.locale || "en"),
+      locale,
       timestamp: new Date().toISOString()
     };
 
