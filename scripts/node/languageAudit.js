@@ -22,15 +22,13 @@ const locales = ["en", "nl", "de", "fr", "es", "pt"];
 const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
 
 const selectLocale = async (page, locale) => {
-  await page.locator(".lang-toggle__button").click();
-
-  const option = page.locator(`.lang-toggle__option[data-locale=\"${locale}\"]`);
-  const exists = (await option.count()) > 0;
+  const selector = page.locator(".lang-toggle__select");
+  const exists = (await selector.count()) > 0;
   if (!exists) {
     return false;
   }
 
-  await option.click();
+  await page.selectOption(".lang-toggle__select", locale);
   return true;
 };
 
@@ -44,7 +42,7 @@ const selectLocale = async (page, locale) => {
   for (const route of pages) {
     await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
 
-    const hasToggle = (await page.locator(".lang-toggle__button").count()) > 0;
+    const hasToggle = (await page.locator(".lang-toggle__select").count()) > 0;
     if (!hasToggle) {
       skipped.push(route);
       continue;

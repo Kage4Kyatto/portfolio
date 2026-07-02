@@ -5,8 +5,7 @@ const ADMIN_TEST_USER = process.env.ADMIN_USER || "e2e-admin";
 const ADMIN_TEST_PASS = process.env.ADMIN_PASS || "e2e-password";
 
 const selectLocale = async (page, locale) => {
-  await page.locator(".lang-toggle__button").click();
-  await page.locator(`.lang-toggle__option[data-locale=\"${locale}\"]`).click();
+  await page.selectOption(".lang-toggle__select", locale);
 };
 
 test("home page loads and nav works", async ({ page }) => {
@@ -18,10 +17,10 @@ test("home page loads and nav works", async ({ page }) => {
 test("language toggle changes locale label", async ({ page }) => {
   await page.goto("/index.html");
 
-  const toggle = page.locator(".lang-toggle__button");
-  await expect(toggle).toHaveText("EN");
+  const selector = page.locator(".lang-toggle__select");
+  await expect(selector).toHaveValue("en");
   await selectLocale(page, "nl");
-  await expect(toggle).toHaveText("NL");
+  await expect(selector).toHaveValue("nl");
 });
 
 test("language toggle remains stable after rapid repeated clicks", async ({ page }) => {
@@ -31,29 +30,17 @@ test("language toggle remains stable after rapid repeated clicks", async ({ page
 
   await page.goto("/index.html");
 
-  const toggle = page.locator(".lang-toggle__button");
-  await expect(toggle).toHaveText("EN");
-
-  await page.evaluate(() => {
-    const button = document.querySelector(".lang-toggle__button");
-    for (let i = 0; i < 8; i += 1) {
-      button.click();
-      button.click();
-    }
-  });
-
-  await expect.poll(async () => {
-    return await page.locator(".lang-toggle__menu").isVisible();
-  }).toBe(false);
+  const selector = page.locator(".lang-toggle__select");
+  await expect(selector).toHaveValue("en");
 
   await selectLocale(page, "nl");
-  await expect(toggle).toHaveText("NL");
+  await expect(selector).toHaveValue("nl");
 
   await selectLocale(page, "de");
-  await expect(toggle).toHaveText("DE");
+  await expect(selector).toHaveValue("de");
 
   await selectLocale(page, "en");
-  await expect(toggle).toHaveText("EN");
+  await expect(selector).toHaveValue("en");
 });
 
 test("404 route shows not found page", async ({ page }) => {
