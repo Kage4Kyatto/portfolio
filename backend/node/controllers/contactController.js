@@ -1,4 +1,11 @@
-const { addMessage, getMessages: getStoredMessages, getRateLimits, saveRateLimits } = require("../data/storage");
+const {
+  addMessage,
+  getMessages: getStoredMessages,
+  getRateLimits,
+  saveRateLimits,
+  getIdempotencyRecord,
+  saveIdempotencyRecord
+} = require("../data/storage");
 const { enqueueNotification } = require("../services/notificationQueue");
 const { sanitizeText, sanitizeEmail, sanitizeObject } = require("../utils/sanitize");
 const getClientIp = require("../utils/getClientIp");
@@ -8,79 +15,13 @@ const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
 const ALLOWED_CONTACT_KEYS = new Set(["name", "email", "subject", "message", "website"]);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const IDEMPOTENCY_TTL_MS = Number(process.env.CONTACT_IDEMPOTENCY_TTL_MS || 24 * 60 * 60 * 1000);
-const MAX_IDEMPOTENCY_ENTRIES = Number(process.env.CONTACT_IDEMPOTENCY_MAX_ENTRIES || 2000);
 const IDEMPOTENCY_KEY_REGEX = /^[a-zA-Z0-9._:-]{8,128}$/;
 
 // In-memory atomic rate limit tracking to prevent race conditions
 const rateLimitMemory = new Map();
-const idempotencyMemory = new Map();
 let lastFlushTime = Date.now();
 const FLUSH_INTERVAL_MS = 10000; // Flush to storage every 10 seconds
 const shouldPersistRateLimits = process.env.NODE_ENV === "production";
-
-const pruneIdempotencyMemory = () => {
-  const now = Date.now();
-
-  for (const [key, entry] of idempotencyMemory.entries()) {
-    if (!entry || Number(entry.expiresAt || 0) <= now) {
-      idempotencyMemory.delete(key);
-    }
-  }
-
-  if (idempotencyMemory.size <= MAX_IDEMPOTENCY_ENTRIES) {
-    return;
-  }
-
-  const entries = Array.from(idempotencyMemory.entries()).sort((a, b) => {
-    return Number(a[1]?.createdAt || 0) - Number(b[1]?.createdAt || 0);
-  });
-  const toDelete = idempotencyMemory.size - MAX_IDEMPOTENCY_ENTRIES;
-
-  for (let index = 0; index < toDelete; index += 1) {
-    const key = entries[index]?.[0];
-    if (key) {
-      idempotencyMemory.delete(key);
-    }
-  }
-};
-
-const getIdempotencyResult = (key, payloadFingerprint) => {
-  if (!key) {
-    return null;
-  }
-
-  pruneIdempotencyMemory();
-  const entry = idempotencyMemory.get(key);
-  if (!entry) {
-    return null;
-  }
-
-  if (entry.payloadFingerprint !== payloadFingerprint) {
-    return {
-      conflict: true
-    };
-  }
-
-  return {
-    conflict: false,
-    responsePayload: entry.responsePayload
-  };
-};
-
-const saveIdempotencyResult = (key, payloadFingerprint, responsePayload) => {
-  if (!key) {
-    return;
-  }
-
-  const now = Date.now();
-  idempotencyMemory.set(key, {
-    payloadFingerprint,
-    responsePayload,
-    createdAt: now,
-    expiresAt: now + IDEMPOTENCY_TTL_MS
-  });
-  pruneIdempotencyMemory();
-};
 
 const flushRateLimitsToStorage = async () => {
   if (!shouldPersistRateLimits) {
@@ -297,7 +238,15 @@ const submitContact = async (req, res) => {
       sanitizedSubject,
       sanitizedMessage
     ]);
-    const idempotencyResult = getIdempotencyResult(idempotencyKey, payloadFingerprint);
+    const existingIdempotency = idempotencyKey
+      ? await getIdempotencyRecord(idempotencyKey)
+      : null;
+    const idempotencyResult = existingIdempotency
+      ? {
+        conflict: existingIdempotency.payloadFingerprint !== payloadFingerprint,
+        responsePayload: existingIdempotency.responsePayload
+      }
+      : null;
 
     if (idempotencyResult?.conflict) {
       return res.status(409).json({
@@ -340,7 +289,12 @@ const submitContact = async (req, res) => {
       data: newMessage
     };
 
-    saveIdempotencyResult(idempotencyKey, payloadFingerprint, responsePayload);
+    await saveIdempotencyRecord({
+      idempotencyKey,
+      payloadFingerprint,
+      responsePayload,
+      ttlMs: IDEMPOTENCY_TTL_MS
+    });
 
     return res.status(201).json(responsePayload);
   } catch (error) {

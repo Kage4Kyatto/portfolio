@@ -21,7 +21,9 @@ module.exports = defineConfig({
     env: {
       ...process.env,
       NODE_ENV: "test",
-      PORTFOLIO_DATA_DIR: e2eDataDir
+      PORTFOLIO_DATA_DIR: e2eDataDir,
+      ADMIN_USER: process.env.ADMIN_USER || "e2e-admin",
+      ADMIN_PASS: process.env.ADMIN_PASS || "e2e-password"
     },
     reuseExistingServer: process.env.CI ? false : true,
     timeout: 120000

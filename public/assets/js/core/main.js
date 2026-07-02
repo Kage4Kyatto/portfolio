@@ -349,12 +349,17 @@ if (yearEl) {
 }
 
 const buildVersionEl = document.getElementById("build-version");
+const buildCommitEl = document.getElementById("build-commit");
 if (buildVersionEl) {
   fetch("/api/version", { headers: { Accept: "application/json" } })
     .then((response) => (response.ok ? response.json() : null))
     .then((payload) => {
       if (payload?.version) {
         buildVersionEl.textContent = ` | v${payload.version}`;
+      }
+
+      if (buildCommitEl && payload?.commit && payload.commit !== "unknown") {
+        buildCommitEl.textContent = ` | ${String(payload.commit).slice(0, 7)}`;
       }
     })
     .catch(() => {});

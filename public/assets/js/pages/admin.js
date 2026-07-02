@@ -17,6 +17,9 @@ const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
 const queueRefreshButton = document.getElementById("queue-refresh");
 const queueProcessButton = document.getElementById("queue-process");
+const queuePauseButton = document.getElementById("queue-pause");
+const queueResumeButton = document.getElementById("queue-resume");
+const queueClearButton = document.getElementById("queue-clear");
 const queueOutput = document.getElementById("queue-output");
 const performanceOutput = document.getElementById("performance-output");
 const summaryLoadButton = document.getElementById("summary-load");
@@ -501,6 +504,36 @@ const processQueue = async () => {
   }
 };
 
+const postQueueAction = async (endpoint, successMessage, failureMessage) => {
+  if (!queueOutput) {
+    return;
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: csrfToken
+        ? { "X-CSRF-Token": csrfToken }
+        : {}
+    });
+
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(body.message || failureMessage);
+    }
+
+    setQueueOutput(body.queue || body);
+    if (window.toast) {
+      window.toast.success(successMessage);
+    }
+  } catch (error) {
+    setQueueOutput({
+      success: false,
+      message: error.message || failureMessage
+    });
+  }
+};
+
 const loadReportSummary = async () => {
   if (!summaryOutput) {
     return;
@@ -969,5 +1002,14 @@ if (authForm && notice && tableBody) {
 
   queueRefreshButton?.addEventListener("click", loadQueueHealth);
   queueProcessButton?.addEventListener("click", processQueue);
+  queuePauseButton?.addEventListener("click", () => {
+    postQueueAction("/api/admin/queue/pause", "Queue worker paused.", "Failed to pause queue worker.");
+  });
+  queueResumeButton?.addEventListener("click", () => {
+    postQueueAction("/api/admin/queue/resume", "Queue worker resumed.", "Failed to resume queue worker.");
+  });
+  queueClearButton?.addEventListener("click", () => {
+    postQueueAction("/api/admin/queue/clear", "Queue cleared.", "Failed to clear queue.");
+  });
   summaryLoadButton?.addEventListener("click", loadReportSummary);
 }

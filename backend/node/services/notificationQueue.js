@@ -18,6 +18,8 @@ let queueMetrics = {
   lastStartedAt: null
 };
 let inFlightProcessPromise = null;
+let workerInterval = null;
+let workerPaused = false;
 
 const appendDeadLetter = async (entry) => {
   try {
@@ -54,6 +56,10 @@ const enqueueNotification = async (payload) => {
 };
 
 const processQueue = async () => {
+  if (workerPaused) {
+    return;
+  }
+
   if (inFlightProcessPromise) {
     return inFlightProcessPromise;
   }
@@ -129,6 +135,7 @@ const getQueueSnapshot = async () => {
     queueDepth: queue.length,
     dueNow,
     oldestNextAttemptAt,
+    workerPaused,
     ...getQueueMetrics()
   };
 };
@@ -139,18 +146,37 @@ const processQueueNow = async () => {
 };
 
 const startNotificationWorker = () => {
-  const interval = setInterval(() => {
+  if (workerInterval) {
+    return;
+  }
+
+  workerInterval = setInterval(() => {
     processQueue().catch((error) => {
       console.error("[NotificationQueue] Unhandled error in worker:", error);
     });
   }, Math.max(3000, retryDelayMs));
   
-  interval.unref();
+  workerInterval.unref();
+};
+
+const pauseNotificationWorker = () => {
+  workerPaused = true;
+};
+
+const resumeNotificationWorker = () => {
+  workerPaused = false;
+};
+
+const clearNotificationQueue = async () => {
+  await saveNotificationQueue([]);
 };
 
 module.exports = {
   enqueueNotification,
   startNotificationWorker,
+  pauseNotificationWorker,
+  resumeNotificationWorker,
+  clearNotificationQueue,
   getQueueMetrics,
   getQueueSnapshot,
   processQueueNow

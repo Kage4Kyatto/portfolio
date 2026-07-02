@@ -10,6 +10,7 @@ const contactRateLimitsPath = path.join(dataDir, "contact_rate_limits.json");
 const adminAuthAttemptsPath = path.join(dataDir, "admin_auth_attempts.json");
 const notificationQueuePath = path.join(dataDir, "notification_queue.json");
 const telemetryPath = path.join(dataDir, "telemetry_events.json");
+const idempotencyPath = path.join(dataDir, "contact_idempotency.json");
 const TELEMETRY_RETENTION_LIMIT = 1000;
 
 const databaseUrl = String(process.env.PORTFOLIO_DATABASE_URL || process.env.DATABASE_URL || "").trim();
@@ -96,10 +97,21 @@ const ensureDb = async () => {
         );
       `);
 
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS contact_idempotency (
+          idempotency_key TEXT PRIMARY KEY,
+          payload_fingerprint TEXT NOT NULL,
+          response_payload JSONB NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          expires_at TIMESTAMPTZ NOT NULL
+        );
+      `);
+
       // Create indexes for commonly queried fields
       await db.query(`CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at DESC);`);
       await db.query(`CREATE INDEX IF NOT EXISTS idx_notification_queue_next_attempt ON notification_queue(next_attempt_at);`);
       await db.query(`CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry_events(timestamp DESC);`);
+      await db.query(`CREATE INDEX IF NOT EXISTS idx_contact_idempotency_expires_at ON contact_idempotency(expires_at);`);
     })();
   }
 
@@ -563,6 +575,103 @@ const getStorageStatus = async () => {
   }
 };
 
+const getIdempotencyRecord = async (idempotencyKey) => {
+  const key = String(idempotencyKey || "").trim();
+  if (!key) {
+    return null;
+  }
+
+  if (await ensureDb()) {
+    const db = getPool();
+    await db.query("DELETE FROM contact_idempotency WHERE expires_at <= NOW()");
+    const result = await db.query(
+      `
+        SELECT idempotency_key, payload_fingerprint, response_payload, expires_at
+        FROM contact_idempotency
+        WHERE idempotency_key = $1
+      `,
+      [key]
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      return null;
+    }
+
+    return {
+      idempotencyKey: row.idempotency_key,
+      payloadFingerprint: String(row.payload_fingerprint || ""),
+      responsePayload: row.response_payload || null,
+      expiresAt: new Date(row.expires_at).toISOString()
+    };
+  }
+
+  const idempotencyMap = await readJsonFile(idempotencyPath, {});
+  const now = Date.now();
+  let changed = false;
+
+  for (const [storedKey, record] of Object.entries(idempotencyMap)) {
+    const expiresAtMs = Date.parse(String(record?.expiresAt || ""));
+    if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now) {
+      delete idempotencyMap[storedKey];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    await writeJsonFile(idempotencyPath, idempotencyMap);
+  }
+
+  const found = idempotencyMap[key];
+  if (!found) {
+    return null;
+  }
+
+  return {
+    idempotencyKey: key,
+    payloadFingerprint: String(found.payloadFingerprint || ""),
+    responsePayload: found.responsePayload || null,
+    expiresAt: String(found.expiresAt || "")
+  };
+};
+
+const saveIdempotencyRecord = async ({ idempotencyKey, payloadFingerprint, responsePayload, ttlMs }) => {
+  const key = String(idempotencyKey || "").trim();
+  if (!key) {
+    return;
+  }
+
+  const safeTtlMs = Math.max(1000, Number(ttlMs || 0) || 24 * 60 * 60 * 1000);
+  const expiresAtIso = new Date(Date.now() + safeTtlMs).toISOString();
+
+  if (await ensureDb()) {
+    const db = getPool();
+    await db.query(
+      `
+        INSERT INTO contact_idempotency (idempotency_key, payload_fingerprint, response_payload, expires_at)
+        VALUES ($1, $2, $3::jsonb, $4)
+        ON CONFLICT (idempotency_key) DO UPDATE
+        SET
+          payload_fingerprint = EXCLUDED.payload_fingerprint,
+          response_payload = EXCLUDED.response_payload,
+          expires_at = EXCLUDED.expires_at
+      `,
+      [key, String(payloadFingerprint || ""), JSON.stringify(responsePayload || {}), expiresAtIso]
+    );
+
+    await db.query("DELETE FROM contact_idempotency WHERE expires_at <= NOW()");
+    return;
+  }
+
+  const idempotencyMap = await readJsonFile(idempotencyPath, {});
+  idempotencyMap[key] = {
+    payloadFingerprint: String(payloadFingerprint || ""),
+    responsePayload: responsePayload || null,
+    expiresAt: expiresAtIso
+  };
+  await writeJsonFile(idempotencyPath, idempotencyMap);
+};
+
 module.exports = {
   getMessages,
   addMessage,
@@ -575,5 +684,7 @@ module.exports = {
   appendTelemetryEvent,
   getTelemetryEvents,
   getSystemMetrics,
-  getStorageStatus
+  getStorageStatus,
+  getIdempotencyRecord,
+  saveIdempotencyRecord
 };

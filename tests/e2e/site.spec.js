@@ -45,3 +45,41 @@ test("homepage has no serious accessibility violations", async ({ page }) => {
 
   expect(accessibilityScanResults.violations).toEqual([]);
 });
+
+test("admin dashboard loads queue, audit, and performance panels", async ({ page, request }) => {
+  await request.post("/api/contact", {
+    data: {
+      name: "Admin E2E",
+      email: "admin-e2e@example.com",
+      subject: "Admin coverage",
+      message: "Creates data for admin dashboard e2e coverage."
+    }
+  });
+
+  await page.goto("/admin.html");
+
+  await page.locator("#admin-user").fill("e2e-admin");
+  await page.locator("#admin-pass").fill("e2e-password");
+  await page.getByRole("button", { name: /load messages/i }).click();
+
+  await expect(page.locator("#messages-table")).toBeVisible();
+  await expect(page.locator("#admin-notice")).toContainText(/loaded/i);
+
+  await page.click("#tab-analytics");
+
+  await page.getByRole("button", { name: /refresh queue/i }).click();
+  await expect(page.locator("#queue-output")).not.toContainText("No queue data loaded yet.");
+
+  await page.getByRole("button", { name: /pause worker/i }).click();
+  await expect(page.locator("#queue-output")).toContainText(/workerPaused|paused/i);
+
+  await page.getByRole("button", { name: /resume worker/i }).click();
+  await expect(page.locator("#queue-output")).toContainText(/workerPaused|resumed/i);
+
+  await page.getByRole("button", { name: /refresh audit events/i }).click();
+  await expect(page.locator("#audit-output")).not.toContainText("No audit data loaded yet.");
+
+  await expect(page.locator("#performance-output .audit-table")).toBeVisible();
+  await page.getByRole("button", { name: /load summary/i }).click();
+  await expect(page.locator("#summary-output")).toContainText(/runtimeStatus|storage/i);
+});

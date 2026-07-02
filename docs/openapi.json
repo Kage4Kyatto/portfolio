@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Portfolio API",
-    "version": "1.2.0",
-    "description": "API for contact submissions, health, admin session flows, message retrieval, metrics, and telemetry ingestion."
+    "version": "1.3.0",
+    "description": "API for contact submissions, admin sessions, queue operations, telemetry, diagnostics, and runtime metadata."
   },
   "servers": [
     {
@@ -21,42 +21,97 @@
         }
       }
     },
+    "/api/version": {
+      "get": {
+        "summary": "Get runtime version metadata",
+        "responses": {
+          "200": {
+            "description": "Version payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/contact": {
       "post": {
         "summary": "Submit contact message",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Idempotency-Key",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9._:-]{8,128}$"
+            },
+            "description": "Optional idempotency key. Replays identical payloads and rejects key reuse with a different payload."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["name", "email", "subject", "message"],
-                "properties": {
-                  "name": { "type": "string" },
-                  "email": { "type": "string", "format": "email" },
-                  "subject": { "type": "string" },
-                  "message": { "type": "string" },
-                  "website": { "type": "string", "description": "Honeypot field" }
-                }
+                "$ref": "#/components/schemas/ContactRequest"
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Accepted" },
-          "400": { "description": "Validation error" },
-          "429": { "description": "Rate limited" }
+          "201": {
+            "description": "Created"
+          },
+          "200": {
+            "description": "Idempotent replay",
+            "headers": {
+              "X-Idempotency-Replayed": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["true"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Idempotency key conflict"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
         }
       }
     },
     "/api/messages": {
       "get": {
         "summary": "Get admin messages",
-        "security": [{ "basicAuth": [] }],
+        "description": "Requires admin session cookie or HTTP Basic credentials.",
+        "security": [
+          {
+            "sessionAuth": []
+          },
+          {
+            "basicAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "Message list" },
-          "401": { "description": "Unauthorized" },
-          "429": { "description": "Locked out" }
+          "200": {
+            "description": "Message list"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "429": {
+            "description": "Locked out or rate limited"
+          }
         }
       }
     },
@@ -64,72 +119,332 @@
       "get": {
         "summary": "Get admin session state",
         "responses": {
-          "200": { "description": "Session state" }
+          "200": {
+            "description": "Session state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSessionState"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/admin/login": {
       "post": {
         "summary": "Start admin session",
-        "security": [{ "basicAuth": [] }],
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "header",
             "name": "X-Admin-OTP",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Optional one-time code when ADMIN_OTP_CODE is configured"
           }
         ],
         "responses": {
-          "200": { "description": "Session started" },
-          "401": { "description": "Unauthorized" },
-          "429": { "description": "Locked out" }
+          "200": {
+            "description": "Session started"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "429": {
+            "description": "Locked out"
+          }
         }
       }
     },
     "/api/admin/logout": {
       "post": {
         "summary": "Close admin session",
-        "parameters": [
+        "security": [
           {
-            "in": "header",
-            "name": "X-CSRF-Token",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "CSRF token issued by /api/admin/session or /api/admin/login"
+            "sessionAuth": []
+          },
+          {
+            "csrfToken": []
           }
         ],
         "responses": {
-          "200": { "description": "Session closed" },
-          "403": { "description": "Invalid CSRF token" }
+          "200": {
+            "description": "Session closed"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
+          }
         }
       }
     },
     "/api/admin/metrics": {
       "get": {
         "summary": "Get admin diagnostics metrics",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "Metrics payload" },
-          "401": { "description": "Unauthorized" }
+          "200": {
+            "description": "Metrics payload"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/admin/performance": {
+      "get": {
+        "summary": "Get route performance summary",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route metrics summary"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/admin/storage-status": {
+      "get": {
+        "summary": "Get storage backend status",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Storage status"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/admin/audit-events": {
+      "get": {
+        "summary": "Get audit and telemetry events",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event list"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/admin/queue": {
+      "get": {
+        "summary": "Get notification queue snapshot",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue snapshot"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/admin/queue/process": {
+      "post": {
+        "summary": "Process queue immediately",
+        "security": [
+          {
+            "sessionAuth": []
+          },
+          {
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue processed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
+          }
+        }
+      }
+    },
+    "/api/admin/queue/pause": {
+      "post": {
+        "summary": "Pause queue worker",
+        "security": [
+          {
+            "sessionAuth": []
+          },
+          {
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue worker paused"
+          }
+        }
+      }
+    },
+    "/api/admin/queue/resume": {
+      "post": {
+        "summary": "Resume queue worker",
+        "security": [
+          {
+            "sessionAuth": []
+          },
+          {
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue worker resumed"
+          }
+        }
+      }
+    },
+    "/api/admin/queue/clear": {
+      "post": {
+        "summary": "Clear queue jobs",
+        "security": [
+          {
+            "sessionAuth": []
+          },
+          {
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue cleared"
+          }
+        }
+      }
+    },
+    "/api/admin/report-summary": {
+      "get": {
+        "summary": "Get message system report summary",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "engine",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["auto", "js", "go", "rust"],
+              "default": "auto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary payload"
+          },
+          "400": {
+            "description": "Invalid engine"
+          }
+        }
+      }
+    },
+    "/api/admin/analytics": {
+      "get": {
+        "summary": "Get analytics breakdown",
+        "security": [
+          {
+            "sessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["24h", "7d", "30d", "all"],
+              "default": "30d"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["unread"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics payload"
+          },
+          "400": {
+            "description": "Invalid query parameter"
+          }
         }
       }
     },
     "/api/telemetry": {
       "post": {
         "summary": "Accept privacy-friendly telemetry events",
+        "description": "Rejects malformed payloads and oversized fields.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["event", "path"],
-                "properties": {
-                  "event": { "type": "string" },
-                  "path": { "type": "string" },
-                  "locale": { "type": "string" }
-                }
+                "$ref": "#/components/schemas/TelemetryRequest"
               }
             },
             "text/plain": {
@@ -141,8 +456,12 @@
           }
         },
         "responses": {
-          "202": { "description": "Accepted" },
-          "400": { "description": "Invalid payload" }
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Invalid payload"
+          }
         }
       }
     },
@@ -150,7 +469,9 @@
       "get": {
         "summary": "Get OpenAPI specification",
         "responses": {
-          "200": { "description": "Spec JSON" }
+          "200": {
+            "description": "Spec JSON"
+          }
         }
       }
     }
@@ -160,6 +481,107 @@
       "basicAuth": {
         "type": "http",
         "scheme": "basic"
+      },
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid"
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token"
+      }
+    },
+    "schemas": {
+      "ContactRequest": {
+        "type": "object",
+        "required": ["name", "email", "subject", "message"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "website": {
+            "type": "string",
+            "description": "Honeypot field"
+          }
+        }
+      },
+      "TelemetryRequest": {
+        "type": "object",
+        "required": ["event", "path"],
+        "properties": {
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "locale": {
+            "type": "string",
+            "maxLength": 16
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminSessionState": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "csrfToken": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "VersionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   }

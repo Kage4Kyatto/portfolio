@@ -17,7 +17,13 @@ const {
 	appendTelemetryEvent,
 	getStorageStatus
 } = require("../data/storage");
-const { getQueueSnapshot, processQueueNow } = require("../services/notificationQueue");
+const {
+	getQueueSnapshot,
+	processQueueNow,
+	pauseNotificationWorker,
+	resumeNotificationWorker,
+	clearNotificationQueue
+} = require("../services/notificationQueue");
 const { getSummary } = require("../services/reportSummary");
 const { getPerformanceSummary } = require("../services/performanceMetrics");
 const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
@@ -304,6 +310,81 @@ router.post("/admin/queue/process", requireCloudflareAccess, adminLimiter, requi
 		res.status(500).json({
 			success: false,
 			message: "Failed to process queue."
+		});
+	}
+});
+
+router.post("/admin/queue/pause", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, async (req, res) => {
+	try {
+		pauseNotificationWorker();
+		appendTelemetryEvent({
+			event: "admin_queue_pause",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
+
+		const queue = await getQueueSnapshot();
+		res.status(200).json({
+			success: true,
+			message: "Queue worker paused.",
+			queue
+		});
+	} catch (error) {
+		console.error("Failed to pause queue worker:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to pause queue worker."
+		});
+	}
+});
+
+router.post("/admin/queue/resume", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, async (req, res) => {
+	try {
+		resumeNotificationWorker();
+		appendTelemetryEvent({
+			event: "admin_queue_resume",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
+
+		const queue = await getQueueSnapshot();
+		res.status(200).json({
+			success: true,
+			message: "Queue worker resumed.",
+			queue
+		});
+	} catch (error) {
+		console.error("Failed to resume queue worker:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to resume queue worker."
+		});
+	}
+});
+
+router.post("/admin/queue/clear", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, async (req, res) => {
+	try {
+		await clearNotificationQueue();
+		appendTelemetryEvent({
+			event: "admin_queue_clear",
+			path: req.originalUrl,
+			locale: "en",
+			timestamp: new Date().toISOString()
+		}).catch(() => {});
+
+		const queue = await getQueueSnapshot();
+		res.status(200).json({
+			success: true,
+			message: "Queue cleared.",
+			queue
+		});
+	} catch (error) {
+		console.error("Failed to clear queue:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to clear queue."
 		});
 	}
 });
