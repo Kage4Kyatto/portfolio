@@ -121,7 +121,7 @@
         <p class="eyebrow" data-i18n="admin_eyebrow">Admin Dashboard</p>
         <h1 data-i18n="admin_heading">Contact Messages</h1>
         <p class="lead" data-i18n="admin_lead">Enter your admin credentials to load message submissions.</p>
-        <p id="delivery-status" class="notice"></p>
+        <p id="delivery-status" class="notice" aria-live="polite"></p>
       </section>
 
       <section class="card section-title reveal">
@@ -143,7 +143,7 @@
             <button id="admin-logout" class="btn secondary" type="button" hidden data-i18n="admin_btn_logout">Logout</button>
           </div>
         </form>
-        <p id="admin-notice" class="notice"></p>
+        <p id="admin-notice" class="notice" aria-live="polite"></p>
 
         <div class="admin-controls">
           <div>
@@ -164,16 +164,16 @@
             <button id="next-page" class="btn secondary" type="button" data-i18n="admin_btn_next">Next</button>
           </div>
         </div>
-        <p id="page-info" class="notice"></p>
+        <p id="page-info" class="notice" aria-live="polite"></p>
 
         <div class="admin-tab-shell">
           <div class="admin-tab-row" role="tablist" aria-label="Admin sections">
-            <button id="tab-messages" class="tab-button is-active" type="button" role="tab" aria-selected="true" data-i18n="admin_tab_messages">Messages</button>
-            <button id="tab-analytics" class="tab-button" type="button" role="tab" aria-selected="false" data-i18n="admin_tab_analytics">Analytics</button>
+            <button id="tab-messages" class="tab-button is-active" type="button" role="tab" aria-controls="messages-section" aria-selected="true" data-i18n="admin_tab_messages">Messages</button>
+            <button id="tab-analytics" class="tab-button" type="button" role="tab" aria-controls="analytics-section" aria-selected="false" data-i18n="admin_tab_analytics">Analytics</button>
           </div>
         </div>
 
-        <div id="messages-section" class="admin-section" role="tabpanel">
+        <div id="messages-section" class="admin-section" role="tabpanel" aria-labelledby="tab-messages">
           <div class="table-wrap">
             <table id="messages-table">
               <thead>
@@ -195,7 +195,7 @@
           </div>
         </div>
 
-        <div id="analytics-section" class="admin-section is-hidden" role="tabpanel">
+        <div id="analytics-section" class="admin-section is-hidden" role="tabpanel" aria-labelledby="tab-analytics">
           <div class="admin-analytics-controls">
             <div>
               <label for="analytics-range" class="admin-control-label" data-i18n="admin_range_label">Time Range</label>
@@ -249,8 +249,15 @@
               <p class="admin-op-help">Review recent admin and telemetry events for troubleshooting.</p>
               <div class="admin-op-actions">
                 <button id="audit-refresh" class="btn secondary" type="button">Refresh Audit Events</button>
+                <select id="audit-filter" class="admin-control-select" aria-label="Filter audit events">
+                  <option value="all">All events</option>
+                  <option value="admin">Admin only</option>
+                  <option value="telemetry">Telemetry only</option>
+                </select>
               </div>
-              <pre id="audit-output" class="admin-op-output">No audit data loaded yet.</pre>
+              <div id="audit-output" class="audit-panel" aria-live="polite">
+                <p class="audit-empty">No audit data loaded yet.</p>
+              </div>
             </section>
           </div>
         </div>
@@ -285,7 +292,7 @@
             </ul>
           </section>
         </div>
-        <p class="footer-meta">Copyright <span id="year"></span> Soeraj Balak. All rights reserved.</p>
+        <p class="footer-meta">Copyright <span id="year"></span> Soeraj Balak. All rights reserved. <span id="build-version"></span></p>
       </div>
     </footer>
 

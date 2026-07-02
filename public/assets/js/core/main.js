@@ -348,6 +348,18 @@ if (yearEl) {
   yearEl.textContent = new Date().getFullYear();
 }
 
+const buildVersionEl = document.getElementById("build-version");
+if (buildVersionEl) {
+  fetch("/api/version", { headers: { Accept: "application/json" } })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((payload) => {
+      if (payload?.version) {
+        buildVersionEl.textContent = ` | v${payload.version}`;
+      }
+    })
+    .catch(() => {});
+}
+
 const root = document.documentElement;
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const hasFinePointer = window.matchMedia("(pointer: fine)").matches;

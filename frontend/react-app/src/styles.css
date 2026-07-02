@@ -89,6 +89,11 @@ body {
   cursor: not-allowed;
 }
 
+.refresh-button:focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 2px;
+}
+
 .eyebrow {
   margin: 0;
   text-transform: uppercase;
@@ -106,4 +111,36 @@ p {
   margin: 0;
   line-height: 1.6;
   color: var(--muted);
+}
+
+.trend-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.trend-card {
+  border: 1px solid #e6ecf4;
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: #fffaf2;
+}
+
+.trend-card h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.trend-value {
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
+  color: #9a3412;
+  font-weight: 700;
+}
+
+.trend-detail {
+  margin-top: 0.1rem;
+  font-size: 0.84rem;
 }

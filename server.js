@@ -54,6 +54,8 @@ const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflar
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 const { appendTelemetryEvent } = require("./backend/node/data/storage");
 const { initializeRateLimits, flushRateLimitsOnShutdown } = require("./backend/node/controllers/contactController");
+const { recordRequest } = require("./backend/node/services/performanceMetrics");
+const packageJson = require("./package.json");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -121,6 +123,7 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
     const durationMs = Date.now() - start;
+    recordRequest(req.originalUrl, res.statusCode, durationMs);
     console.log(JSON.stringify({
       level: "info",
       requestId,
@@ -209,8 +212,18 @@ app.get("/admin.html", requireCloudflareAccess, (req, res) => {
 app.get("/runtime-config.js", (req, res) => {
   res.type("application/javascript");
   res.send(
-    `window.PORTFOLIO_FASTIFY_URL = ${JSON.stringify(process.env.PORTFOLIO_FASTIFY_URL || "")};`
+    `window.PORTFOLIO_FASTIFY_URL = ${JSON.stringify(process.env.PORTFOLIO_FASTIFY_URL || "")};\nwindow.PORTFOLIO_APP_VERSION = ${JSON.stringify(packageJson.version || "0.0.0")};`
   );
+});
+
+app.get("/api/version", (req, res) => {
+  res.status(200).json({
+    success: true,
+    version: packageJson.version || "0.0.0",
+    commit: process.env.GIT_COMMIT_SHA || "unknown",
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get("/api/openapi.json", (req, res) => {

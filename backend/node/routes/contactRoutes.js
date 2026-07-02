@@ -14,10 +14,12 @@ const {
 	getSystemMetrics,
 	getMessages: getStoredMessages,
 	getTelemetryEvents,
-	appendTelemetryEvent
+	appendTelemetryEvent,
+	getStorageStatus
 } = require("../data/storage");
 const { getQueueSnapshot, processQueueNow } = require("../services/notificationQueue");
 const { getSummary } = require("../services/reportSummary");
+const { getPerformanceSummary } = require("../services/performanceMetrics");
 const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
 
 const router = express.Router();
@@ -228,15 +230,41 @@ router.get("/admin/audit-events", requireCloudflareAccess, adminLimiter, require
 router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
 	try {
 		const metrics = await getSystemMetrics();
+		const storage = await getStorageStatus();
 		res.status(200).json({
 			success: true,
-			metrics
+			metrics,
+			storage
 		});
 	} catch (error) {
 		console.error("Failed to load metrics:", error);
 		res.status(500).json({
 			success: false,
 			message: "Failed to load metrics."
+		});
+	}
+});
+
+router.get("/admin/performance", requireCloudflareAccess, adminLimiter, requireAdminSession, (req, res) => {
+	const performance = getPerformanceSummary();
+	res.status(200).json({
+		success: true,
+		performance
+	});
+});
+
+router.get("/admin/storage-status", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
+	try {
+		const storage = await getStorageStatus();
+		res.status(200).json({
+			success: true,
+			storage
+		});
+	} catch (error) {
+		console.error("Failed to load storage status:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to load storage status."
 		});
 	}
 });
@@ -283,6 +311,14 @@ router.post("/admin/queue/process", requireCloudflareAccess, adminLimiter, requi
 router.get("/admin/report-summary", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
 	try {
 		const requestedEngine = req.query.engine || "auto";
+		const allowedEngines = ["auto", "js", "go", "rust"];
+		if (!allowedEngines.includes(requestedEngine)) {
+			return res.status(400).json({
+				success: false,
+				message: "Invalid summary engine."
+			});
+		}
+
 		const summary = await getSummary(requestedEngine);
 		appendTelemetryEvent({
 			event: "admin_summary_load",

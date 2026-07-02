@@ -16,9 +16,26 @@ const renderLoginRequired = () => {
     return;
   }
 
+  analyticsContainer.setAttribute("aria-live", "polite");
+
   analyticsContainer.innerHTML = `
     <div class="analytics-message analytics-message--muted">
       <p>${t("analytics_login_required", activeLocale === "nl" ? "Log in om analytics te bekijken." : "Log in to view analytics.")}</p>
+    </div>
+  `;
+};
+
+const renderLoadingSkeleton = () => {
+  if (!analyticsContainer) {
+    return;
+  }
+
+  analyticsContainer.setAttribute("aria-live", "polite");
+  analyticsContainer.innerHTML = `
+    <div class="analytics-skeleton-grid" aria-hidden="true">
+      <div class="analytics-skeleton-card"></div>
+      <div class="analytics-skeleton-card"></div>
+      <div class="analytics-skeleton-card"></div>
     </div>
   `;
 };
@@ -44,6 +61,7 @@ window.addEventListener("portfolio:locale-changed", (event) => {
 
 const loadAnalytics = async (range = "30d", filter = null) => {
   try {
+    renderLoadingSkeleton();
     let url = `/api/admin/analytics?range=${encodeURIComponent(range)}`;
     if (filter) {
       url += `&filter=${encodeURIComponent(filter)}`;
@@ -111,6 +129,8 @@ const renderAnalytics = () => {
   if (!currentAnalytics) {
     return;
   }
+
+  analyticsContainer.setAttribute("aria-live", "off");
 
   analyticsContainer.innerHTML = `
     <section data-section="summary" class="analytics-section">

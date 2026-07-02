@@ -23,6 +23,7 @@ const summaryEngineSelect = document.getElementById("summary-engine");
 const summaryOutput = document.getElementById("summary-output");
 const auditRefreshButton = document.getElementById("audit-refresh");
 const auditOutput = document.getElementById("audit-output");
+const auditFilter = document.getElementById("audit-filter");
 
 const ADMIN_LOCALE_STORAGE_KEY = "portfolio.locale";
 
@@ -376,11 +377,21 @@ const loadAdminMetrics = async () => {
   try {
     const result = await fetchJsonWithFallback(["/api/admin/metrics"]);
     const metrics = result?.metrics;
+    const storage = result?.storage;
     if (!metrics) {
       return;
     }
 
     syncDeliveryStatusText(deliveryMode, metrics);
+
+    if (summaryOutput && storage) {
+      const metadata = {
+        storage,
+        queueDepth: metrics.queueDepth,
+        lockedAuthIps: metrics.lockedAuthIps
+      };
+      summaryOutput.dataset.runtimeStatus = JSON.stringify(metadata);
+    }
   } catch {
     // Metrics are optional and should not block page functionality.
   }
@@ -401,7 +412,13 @@ const loadQueueHealth = async () => {
 
   try {
     const result = await fetchJsonWithFallback(["/api/admin/queue"]);
-    setQueueOutput(result.queue || result);
+    const performance = parseJsonSafely(queueOutput.dataset.performance || "{}") || {};
+    setQueueOutput({
+      ...(result.queue || result),
+      performanceTopRoutes: Array.isArray(performance.routes)
+        ? performance.routes.slice(0, 3)
+        : []
+    });
   } catch (error) {
     setQueueOutput({
       success: false,
@@ -451,7 +468,14 @@ const loadReportSummary = async () => {
     const result = await fetchJsonWithFallback([
       `/api/admin/report-summary?engine=${encodeURIComponent(engine)}`
     ]);
-    summaryOutput.textContent = JSON.stringify(result.summary || result, null, 2);
+    const runtimeStatus = summaryOutput.dataset.runtimeStatus
+      ? parseJsonSafely(summaryOutput.dataset.runtimeStatus)
+      : null;
+
+    summaryOutput.textContent = JSON.stringify({
+      ...(result.summary || result),
+      ...(runtimeStatus ? { runtimeStatus } : {})
+    }, null, 2);
   } catch (error) {
     summaryOutput.textContent = JSON.stringify({
       success: false,
@@ -460,12 +484,74 @@ const loadReportSummary = async () => {
   }
 };
 
+const classifyAuditEvent = (eventName) => {
+  if (String(eventName || "").startsWith("admin_")) {
+    return "admin";
+  }
+
+  return "telemetry";
+};
+
+const formatAuditTime = (input) => {
+  const timestamp = Date.parse(String(input || ""));
+  if (!Number.isFinite(timestamp)) {
+    return "-";
+  }
+
+  return new Date(timestamp).toLocaleString();
+};
+
 const setAuditOutput = (payload) => {
   if (!auditOutput) {
     return;
   }
 
-  auditOutput.textContent = JSON.stringify(payload, null, 2);
+  if (!Array.isArray(payload)) {
+    const message = payload?.message || "No matching audit events.";
+    auditOutput.innerHTML = `<p class="audit-empty">${escapeHtml(message)}</p>`;
+    return;
+  }
+
+  const events = payload;
+  const filter = auditFilter?.value || "all";
+  const filtered = filter === "all"
+    ? events
+    : events.filter((entry) => classifyAuditEvent(entry?.event) === filter);
+
+  if (filtered.length === 0) {
+    auditOutput.innerHTML = "<p class=\"audit-empty\">No matching audit events.</p>";
+    return;
+  }
+
+  const rows = filtered
+    .slice(0, 100)
+    .map((entry) => {
+      const type = classifyAuditEvent(entry?.event);
+      return `<tr>
+        <td>${escapeHtml(formatAuditTime(entry?.timestamp))}</td>
+        <td><span class="audit-badge audit-badge--${escapeHtml(type)}">${escapeHtml(type)}</span></td>
+        <td>${escapeHtml(entry?.event || "unknown")}</td>
+        <td>${escapeHtml(entry?.path || "-")}</td>
+        <td>${escapeHtml(entry?.locale || "en")}</td>
+      </tr>`;
+    })
+    .join("");
+
+  auditOutput.innerHTML = `<div class="audit-meta">Showing ${filtered.length} event(s)</div>
+    <div class="audit-table-wrap">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Event</th>
+            <th>Path</th>
+            <th>Locale</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 };
 
 const loadAuditEvents = async () => {
@@ -476,11 +562,40 @@ const loadAuditEvents = async () => {
   try {
     const result = await fetchJsonWithFallback(["/api/admin/audit-events?limit=50"]);
     setAuditOutput(result.events || result);
+    auditOutput.dataset.rawEvents = JSON.stringify(result.events || []);
   } catch (error) {
     setAuditOutput({
       success: false,
       message: error.message || "Failed to load audit events."
     });
+    auditOutput.dataset.rawEvents = "[]";
+  }
+};
+
+const loadPerformanceMetrics = async () => {
+  if (!queueOutput) {
+    return;
+  }
+
+  try {
+    const result = await fetchJsonWithFallback(["/api/admin/performance"]);
+    queueOutput.dataset.performance = JSON.stringify(result.performance || {});
+    loadQueueHealth();
+  } catch {
+    queueOutput.dataset.performance = "{}";
+  }
+};
+
+const loadStorageStatus = async () => {
+  if (!summaryOutput) {
+    return;
+  }
+
+  try {
+    const result = await fetchJsonWithFallback(["/api/admin/storage-status"]);
+    summaryOutput.dataset.storageStatus = JSON.stringify(result.storage || {});
+  } catch {
+    summaryOutput.dataset.storageStatus = "{}";
   }
 };
 
@@ -647,6 +762,8 @@ if (authForm && notice && tableBody) {
       notice.className = "notice success";
       loadAdminMetrics();
       loadQueueHealth();
+      loadPerformanceMetrics();
+      loadStorageStatus();
       loadReportSummary();
       loadAuditEvents();
       scheduleInactivityTimeout();
@@ -755,7 +872,8 @@ if (authForm && notice && tableBody) {
     }
 
     if (auditOutput) {
-      auditOutput.textContent = "No audit data loaded yet.";
+      auditOutput.innerHTML = "<p class=\"audit-empty\">No audit data loaded yet.</p>";
+      auditOutput.dataset.rawEvents = "[]";
     }
 
     if (autoLoadTimer) {
@@ -791,6 +909,11 @@ if (authForm && notice && tableBody) {
 
   auditRefreshButton?.addEventListener("click", () => {
     loadAuditEvents();
+  });
+
+  auditFilter?.addEventListener("change", () => {
+    const events = parseJsonSafely(auditOutput?.dataset?.rawEvents || "[]") || [];
+    setAuditOutput(events);
   });
 
   queueRefreshButton?.addEventListener("click", loadQueueHealth);

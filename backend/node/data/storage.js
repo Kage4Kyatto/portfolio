@@ -538,6 +538,31 @@ const getSystemMetrics = async () => {
   };
 };
 
+const getStorageStatus = async () => {
+  const status = {
+    mode: shouldUseDatabase ? "database" : "json",
+    dataDir,
+    dbConfigured: shouldUseDatabase,
+    dbReady: false,
+    messageBackfillDone
+  };
+
+  if (!shouldUseDatabase) {
+    return status;
+  }
+
+  try {
+    const dbReady = await ensureDb();
+    status.dbReady = dbReady;
+    status.messageBackfillDone = messageBackfillDone;
+    return status;
+  } catch (error) {
+    status.dbReady = false;
+    status.error = error?.message || "Database unavailable";
+    return status;
+  }
+};
+
 module.exports = {
   getMessages,
   addMessage,
@@ -549,5 +574,6 @@ module.exports = {
   saveNotificationQueue,
   appendTelemetryEvent,
   getTelemetryEvents,
-  getSystemMetrics
+  getSystemMetrics,
+  getStorageStatus
 };

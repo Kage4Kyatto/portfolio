@@ -249,6 +249,87 @@
   color: #cbd5e1;
 }
 
+.audit-panel {
+  margin-top: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 10px;
+}
+
+.audit-meta {
+  margin-bottom: 8px;
+  color: #a5b4fc;
+  font-size: 0.82rem;
+}
+
+.audit-empty {
+  margin: 4px 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.audit-table-wrap {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.audit-table th,
+.audit-table td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  white-space: nowrap;
+}
+
+.audit-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.audit-badge--admin {
+  color: #fef3c7;
+  background: rgba(217, 119, 6, 0.28);
+}
+
+.audit-badge--telemetry {
+  color: #cffafe;
+  background: rgba(8, 145, 178, 0.28);
+}
+
+.analytics-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.analytics-skeleton-card {
+  height: 110px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.15), rgba(148, 163, 184, 0.35), rgba(148, 163, 184, 0.15));
+  background-size: 250% 100%;
+  animation: skeleton-slide 1.4s infinite linear;
+}
+
+@keyframes skeleton-slide {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 @media (max-width: 900px) {
   .admin-controls {
     grid-template-columns: 1fr;

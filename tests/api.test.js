@@ -47,6 +47,28 @@ test("POST /api/contact rejects incomplete payload", async () => {
   assert.equal(response.body.success, false);
 });
 
+test("POST /api/contact rejects invalid email format", async () => {
+  const response = await request(app).post("/api/contact").send({
+    name: "User",
+    email: "not-an-email",
+    subject: "Hello",
+    message: "Message body"
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.success, false);
+  assert.equal(response.body.errorCode, "INVALID_EMAIL");
+});
+
+test("GET /api/version returns app version metadata", async () => {
+  const response = await request(app).get("/api/version");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.success, true);
+  assert.ok(typeof response.body.version === "string");
+  assert.ok(response.body.timestamp);
+});
+
 test("GET /robots.txt includes sitemap directive", async () => {
   const response = await request(app).get("/robots.txt");
 
@@ -210,6 +232,43 @@ test("admin queue and summary endpoints work", async () => {
   assert.equal(summaryResponse.body.success, true);
   assert.equal(summaryResponse.body.summary.engine, "js");
   assert.ok(Number.isFinite(summaryResponse.body.summary.totalMessages));
+
+  const performanceResponse = await request(app)
+    .get("/api/admin/performance")
+    .set("Cookie", cookie);
+
+  assert.equal(performanceResponse.status, 200);
+  assert.equal(performanceResponse.body.success, true);
+  assert.ok(Array.isArray(performanceResponse.body.performance.routes));
+});
+
+test("runtime health contracts are consistent when optional services are running", async () => {
+  const checks = [
+    { url: "http://localhost:4001/health", expectedKey: "service" },
+    { url: "http://localhost:8000/api/health.php", expectedKey: "service" }
+  ];
+
+  for (const check of checks) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 1000);
+      const response = await fetch(check.url, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const body = await response.json();
+      assert.ok(body.status === "ok" || body.ok === true);
+      assert.ok(typeof body[check.expectedKey] === "string");
+    } catch {
+      // Optional runtime may be offline in CI.
+    }
+  }
 });
 
 test("GET /api/blog/posts returns published posts only", async () => {

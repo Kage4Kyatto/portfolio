@@ -13,6 +13,23 @@ if (tabMessages && tabAnalytics && messagesSection && analyticsSection) {
 
     tabMessages.setAttribute("aria-selected", showAnalytics ? "false" : "true");
     tabAnalytics.setAttribute("aria-selected", showAnalytics ? "true" : "false");
+    tabMessages.setAttribute("tabindex", showAnalytics ? "-1" : "0");
+    tabAnalytics.setAttribute("tabindex", showAnalytics ? "0" : "-1");
+  };
+
+  const handleKeyNav = (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+      return;
+    }
+
+    event.preventDefault();
+    const showAnalytics = event.key === "ArrowRight";
+    setActiveTab(showAnalytics);
+    if (showAnalytics) {
+      tabAnalytics.focus();
+    } else {
+      tabMessages.focus();
+    }
   };
 
   tabMessages.addEventListener("click", () => {
@@ -22,6 +39,9 @@ if (tabMessages && tabAnalytics && messagesSection && analyticsSection) {
   tabAnalytics.addEventListener("click", () => {
     setActiveTab(true);
   });
+
+  tabMessages.addEventListener("keydown", handleKeyNav);
+  tabAnalytics.addEventListener("keydown", handleKeyNav);
 
   setActiveTab(false);
 }

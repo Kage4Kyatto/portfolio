@@ -13,8 +13,11 @@ let queueMetrics = {
   totalFailed: 0,
   lastProcessedAt: null,
   lastErrorAt: null,
-  lastErrorMessage: null
+  lastErrorMessage: null,
+  isProcessing: false,
+  lastStartedAt: null
 };
+let inFlightProcessPromise = null;
 
 const appendDeadLetter = async (entry) => {
   try {
@@ -51,6 +54,14 @@ const enqueueNotification = async (payload) => {
 };
 
 const processQueue = async () => {
+  if (inFlightProcessPromise) {
+    return inFlightProcessPromise;
+  }
+
+  inFlightProcessPromise = (async () => {
+    queueMetrics.isProcessing = true;
+    queueMetrics.lastStartedAt = new Date().toISOString();
+
   try {
     const now = Date.now();
     const queue = await getNotificationQueue();
@@ -93,7 +104,13 @@ const processQueue = async () => {
     queueMetrics.lastErrorAt = new Date().toISOString();
     queueMetrics.lastErrorMessage = error?.message || "Unknown error";
     console.error("[NotificationQueue] Error processing queue:", error);
+  } finally {
+    queueMetrics.isProcessing = false;
+    inFlightProcessPromise = null;
   }
+  })();
+
+  return inFlightProcessPromise;
 };
 
 const getQueueMetrics = () => {

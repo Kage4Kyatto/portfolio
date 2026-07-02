@@ -6,6 +6,7 @@ const getClientIp = require("../utils/getClientIp");
 const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
 const ALLOWED_CONTACT_KEYS = new Set(["name", "email", "subject", "message", "website"]);
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // In-memory atomic rate limit tracking to prevent race conditions
 const rateLimitMemory = new Map();
@@ -179,6 +180,24 @@ const submitContact = async (req, res) => {
         message: "Invalid input values.",
         requestId: req.requestId,
         errorCode: "INVALID_INPUT"
+      });
+    }
+
+    if (!EMAIL_REGEX.test(sanitizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format.",
+        requestId: req.requestId,
+        errorCode: "INVALID_EMAIL"
+      });
+    }
+
+    if (sanitizedSubject.length < 3 || sanitizedMessage.length < 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject or message is too short.",
+        requestId: req.requestId,
+        errorCode: "INPUT_TOO_SHORT"
       });
     }
 
