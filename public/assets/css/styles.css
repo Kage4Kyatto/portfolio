@@ -111,6 +111,13 @@ body.home-page.splash-complete {
   overflow-y: auto;
 }
 
+body.home-page:not(.splash-complete) main,
+body.home-page:not(.splash-complete) .site-footer {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .home-splash::after {
   content: "";
   position: absolute;

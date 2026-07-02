@@ -61,10 +61,18 @@ const setupHomeSplashState = () => {
     return;
   }
 
+  const rootEl = document.documentElement;
+  const previousRootOverflow = rootEl.style.overflow;
+  const previousBodyOverflow = document.body.style.overflow;
+  rootEl.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const splash = document.querySelector(".home-splash");
 
   if (!splash || prefersReducedMotion) {
+    rootEl.style.overflow = previousRootOverflow;
+    document.body.style.overflow = previousBodyOverflow;
     document.body.classList.add("splash-complete");
     return;
   }
@@ -75,6 +83,8 @@ const setupHomeSplashState = () => {
       return;
     }
     completed = true;
+    rootEl.style.overflow = previousRootOverflow;
+    document.body.style.overflow = previousBodyOverflow;
     document.body.classList.add("splash-complete");
     splash.removeEventListener("animationend", onSplashAnimationEnd);
   };
