@@ -206,7 +206,8 @@ router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdmin
  *         in: query
  *         schema:
  *           type: string
- *           description: Filter by status (read/unread) or category
+ *           enum: [unread]
+ *           description: Optional filter. Use `unread` to return only unread messages.
  *     responses:
  *       200:
  *         description: Analytics data retrieved

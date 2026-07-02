@@ -9,6 +9,12 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - `docs/security.md` authentication, abuse prevention, and operational security notes
 - `docs/polyglot.md` TypeScript, SQL, Python, and Docker usage notes
 
+## Reports
+
+- `docs/reports/AUDIT_REPORT.md` quick audit findings
+- `docs/reports/COMPREHENSIVE_AUDIT_REPORT.md` extended audit notes
+- `docs/reports/OPTIMIZATION_ANALYSIS.md` optimization analysis history
+
 ## Pages
 
 - Home
@@ -46,6 +52,7 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 
 1. Ensure PHP is installed.
 2. Ensure Node.js is installed (for JavaScript tests and CI parity).
+   - Optional one-step dependency bootstrap: `npm run setup`
 3. Set environment variables for admin auth:
    - `ADMIN_USER=...`
    - `ADMIN_PASS=...`

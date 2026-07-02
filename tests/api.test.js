@@ -12,6 +12,7 @@ process.env.PORTFOLIO_DATA_DIR = testDataDir;
 const app = require("../server");
 
 const contactRateLimitPath = path.join(testDataDir, "contact_rate_limits.json");
+const messagesPath = path.join(testDataDir, "messages.json");
 
 test.beforeEach(() => {
   fs.rmSync(testDataDir, { recursive: true, force: true });
@@ -213,4 +214,68 @@ test("GET /api/admin/analytics supports range parameter", async () => {
     assert.equal(analyticsResponse.status, 200);
     assert.equal(analyticsResponse.body.analytics.timeRange, range);
   }
+});
+
+test("GET /api/admin/analytics supports unread filter and exact breakdowns", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const seededMessages = [
+    {
+      id: 1,
+      name: "Unread One",
+      email: "u1@example.com",
+      subject: "Unread",
+      message: "First unread",
+      createdAt: "2026-01-01T10:00:00.000Z",
+      status: "unread",
+      source: "newsletter"
+    },
+    {
+      id: 2,
+      name: "Unread Two",
+      email: "u2@example.com",
+      subject: "Unread",
+      message: "Second unread",
+      createdAt: "2026-01-02T11:00:00.000Z",
+      read: false,
+      referrer: "https://example.com"
+    },
+    {
+      id: 3,
+      name: "Read One",
+      email: "r1@example.com",
+      subject: "Read",
+      message: "Read message",
+      createdAt: "2026-01-02T12:00:00.000Z",
+      read: true,
+      source: "direct"
+    }
+  ];
+
+  fs.writeFileSync(messagesPath, JSON.stringify(seededMessages, null, 2), "utf8");
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+
+  const analyticsResponse = await request(app)
+    .get("/api/admin/analytics?range=all&filter=unread")
+    .set("Cookie", cookie);
+
+  assert.equal(analyticsResponse.status, 200);
+  assert.equal(analyticsResponse.body.success, true);
+  assert.equal(analyticsResponse.body.analytics.total, 2);
+  assert.equal(analyticsResponse.body.analytics.unread, 2);
+  assert.deepEqual(analyticsResponse.body.analytics.dailyTotals, {
+    "2026-01-01": 1,
+    "2026-01-02": 1
+  });
+  assert.deepEqual(analyticsResponse.body.analytics.sourceBreakdown, {
+    newsletter: 1,
+    "https://example.com": 1
+  });
 });

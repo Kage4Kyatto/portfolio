@@ -3,7 +3,8 @@ node_modules/
 npm-debug.log*
 dist-tools/
 .DS_Store
-test-results/
+test-results/*
+!test-results/.gitkeep
 .tmp/
 backend/php/data/*.json
 !backend/php/data/.gitkeep

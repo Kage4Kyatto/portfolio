@@ -10,6 +10,7 @@ const contactRateLimitsPath = path.join(dataDir, "contact_rate_limits.json");
 const adminAuthAttemptsPath = path.join(dataDir, "admin_auth_attempts.json");
 const notificationQueuePath = path.join(dataDir, "notification_queue.json");
 const telemetryPath = path.join(dataDir, "telemetry_events.json");
+const TELEMETRY_RETENTION_LIMIT = 1000;
 
 const databaseUrl = String(process.env.PORTFOLIO_DATABASE_URL || process.env.DATABASE_URL || "").trim();
 const shouldUseDatabase = Boolean(databaseUrl);
@@ -385,13 +386,28 @@ const appendTelemetryEvent = async (eventPayload) => {
         eventPayload.timestamp || new Date().toISOString()
       ]
     );
+
+    // Keep only the newest telemetry rows to avoid unbounded growth in DB mode.
+    await db.query(
+      `
+        DELETE FROM telemetry_events
+        WHERE id IN (
+          SELECT id
+          FROM telemetry_events
+          ORDER BY timestamp DESC, id DESC
+          OFFSET $1
+        )
+      `,
+      [TELEMETRY_RETENTION_LIMIT]
+    );
+
     return;
   }
 
   let events = await readJsonFile(telemetryPath, []);
   events.push(eventPayload);
-  if (events.length > 1000) {
-    events = events.slice(events.length - 1000);
+  if (events.length > TELEMETRY_RETENTION_LIMIT) {
+    events = events.slice(events.length - TELEMETRY_RETENTION_LIMIT);
   }
   await writeJsonFile(telemetryPath, events);
 };

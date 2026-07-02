@@ -341,8 +341,14 @@ if (require.main === module) {
   const server = app.listen(PORT, () => {
     console.log(`Portfolio server running on http://localhost:${PORT}`);
   });
+  let isShuttingDown = false;
 
   const handleShutdown = async () => {
+    if (isShuttingDown) {
+      return;
+    }
+    isShuttingDown = true;
+
     try {
       await flushRateLimitsOnShutdown();
     } catch (error) {
