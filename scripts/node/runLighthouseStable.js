@@ -23,6 +23,13 @@ child.stderr.on("data", (chunk) => {
 });
 
 child.on("exit", (code) => {
+  const hasInterstitialError = /CHROME_INTERSTITIAL_ERROR/i.test(output);
+  if (hasInterstitialError) {
+    console.error("Lighthouse encountered CHROME_INTERSTITIAL_ERROR. Failing run to avoid silent false positives.");
+    process.exit(1);
+    return;
+  }
+
   if (code === 0) {
     process.exit(0);
     return;

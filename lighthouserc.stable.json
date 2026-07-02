@@ -3,11 +3,11 @@
     "collect": {
       "numberOfRuns": 1,
       "url": [
-        "http://localhost:3000/index.html",
-        "http://localhost:3000/about.html",
-        "http://localhost:3000/projects.html",
-        "http://localhost:3000/services.html",
-        "http://localhost:3000/contact.html"
+        "http://127.0.0.1:3000/index.html",
+        "http://127.0.0.1:3000/about.html",
+        "http://127.0.0.1:3000/projects.html",
+        "http://127.0.0.1:3000/services.html",
+        "http://127.0.0.1:3000/contact.html"
       ],
       "settings": {
         "skipAudits": [

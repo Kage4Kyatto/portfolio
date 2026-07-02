@@ -58,6 +58,7 @@ const { initializeRateLimits } = require("./backend/node/controllers/contactCont
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 if (SENTRY_DSN) {
   app.use(Sentry.Handlers.requestHandler());
@@ -95,13 +96,16 @@ const buildContentSecurityPolicy = () => {
     "base-uri 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "upgrade-insecure-requests",
     "img-src 'self' data: https:",
     "font-src 'self' https://fonts.gstatic.com",
     "style-src 'self' https://fonts.googleapis.com",
     `script-src ${scriptSources}`,
     "connect-src 'self'"
   ];
+
+  if (IS_PRODUCTION) {
+    rules.push("upgrade-insecure-requests");
+  }
 
   return rules.join("; ");
 };
@@ -129,7 +133,9 @@ app.use((req, res, next) => {
 
 app.use(helmet({
   contentSecurityPolicy: false,
-  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
+  hsts: IS_PRODUCTION
+    ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+    : false
 }));
 
 app.use(compression());
@@ -141,7 +147,9 @@ app.use((req, res, next) => {
   res.set("X-Frame-Options", "DENY");
   res.set("Referrer-Policy", "strict-origin-when-cross-origin");
   res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=() ");
-  res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  if (IS_PRODUCTION) {
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  }
   res.set("Content-Security-Policy", buildContentSecurityPolicy());
   next();
 });

@@ -75,4 +75,4 @@ jobs:
         run: npx wait-on http://127.0.0.1:3000/index.html
 
       - name: Run Lighthouse CI
-        run: npx @lhci/cli autorun --config=./lighthouserc.json
+        run: npm run lighthouse
