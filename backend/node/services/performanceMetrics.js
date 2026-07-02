@@ -1,4 +1,5 @@
 const MAX_SAMPLES_PER_ROUTE = 200;
+const MAX_TRACKED_ROUTES = 500;
 
 const routeMetrics = new Map();
 
@@ -45,6 +46,24 @@ const recordRequest = (inputPath, statusCode, durationMs) => {
   }
 
   routeMetrics.set(route, existing);
+
+  if (routeMetrics.size > MAX_TRACKED_ROUTES) {
+    let oldestRoute = null;
+    let oldestSeenAt = Number.POSITIVE_INFINITY;
+
+    for (const [currentRoute, metrics] of routeMetrics.entries()) {
+      const seenAt = Date.parse(String(metrics.lastSeenAt || ""));
+      const normalizedSeenAt = Number.isFinite(seenAt) ? seenAt : 0;
+      if (normalizedSeenAt < oldestSeenAt) {
+        oldestSeenAt = normalizedSeenAt;
+        oldestRoute = currentRoute;
+      }
+    }
+
+    if (oldestRoute) {
+      routeMetrics.delete(oldestRoute);
+    }
+  }
 };
 
 const getPerformanceSummary = () => {

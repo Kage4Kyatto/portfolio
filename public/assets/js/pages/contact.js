@@ -165,6 +165,13 @@ if (contactForm && notice) {
           throw new Error(parsed?.message || fallbackMessage);
         } catch (error) {
           const isAbort = error?.name === "AbortError";
+          if (isAbort) {
+            throw new Error(t(
+              "contact_runtime_timeout",
+              activeLocale === "nl" ? "Time-out van aanvraag. Probeer opnieuw." : "Request timed out. Please try again."
+            ));
+          }
+
           lastError = isAbort
             ? new Error(t("contact_runtime_timeout", activeLocale === "nl" ? "Time-out van aanvraag." : "Request timed out."))
             : error;

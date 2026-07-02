@@ -43,8 +43,8 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Validate session secret is not using default
-const sessionSecret = process.env.ADMIN_SESSION_SECRET;
-if (process.env.NODE_ENV === "production" && !sessionSecret) {
+const sessionSecret = process.env.ADMIN_SESSION_SECRET || "dev-insecure-session-secret";
+if (process.env.NODE_ENV === "production" && !process.env.ADMIN_SESSION_SECRET) {
   throw new Error("ADMIN_SESSION_SECRET is required in production and cannot use default");
 }
 
@@ -172,7 +172,7 @@ app.use(express.urlencoded({
 
 app.use(session({
   name: "portfolio.sid",
-  secret: sessionSecret || crypto.randomBytes(32).toString("hex"),
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -392,6 +392,9 @@ if (require.main === module) {
 
   process.on("SIGINT", handleShutdown);
   process.on("SIGTERM", handleShutdown);
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+  });
 }
 
 module.exports = app;

@@ -24,6 +24,9 @@ const createLimiter = (options = {}) => {
   });
 };
 
+const CONTACT_RATE_LIMIT_WINDOW_MS = Number(process.env.CONTACT_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
+const CONTACT_RATE_LIMIT_MAX = Number(process.env.CONTACT_RATE_LIMIT_MAX || 8);
+
 // Centralized rate limiter configuration
 const limiterConfig = {
   api: {
@@ -32,8 +35,8 @@ const limiterConfig = {
     message: "Too many API requests"
   },
   contact: {
-    windowMs: 15 * 60 * 1000,  // 15 minutes - unified window
-    max: 3,  // Reduced for security
+    windowMs: CONTACT_RATE_LIMIT_WINDOW_MS,
+    max: CONTACT_RATE_LIMIT_MAX,
     message: "Too many contact submissions, please try again later.",
     keyGenerator: (req) => getClientIp(req)
   },

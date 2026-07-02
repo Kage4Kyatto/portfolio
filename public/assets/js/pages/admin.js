@@ -295,10 +295,16 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
       }
 
       if (!response.ok) {
+        const authErrorMessage = t(
+          "admin_session_expired",
+          activeLocale === "nl" ? "Sessie verlopen. Log opnieuw in." : "Session expired. Please log in again."
+        );
         const requestError = new Error(
-          parsed?.message || t("admin_request_failed_status", activeLocale === "nl"
-            ? `Aanvraag mislukt met status ${response.status}.`
-            : `Request failed with status ${response.status}.`)
+          (response.status === 401 || response.status === 403)
+            ? authErrorMessage
+            : (parsed?.message || t("admin_request_failed_status", activeLocale === "nl"
+              ? `Aanvraag mislukt met status ${response.status}.`
+              : `Request failed with status ${response.status}.`))
         );
         requestError.status = response.status;
         requestError.attemptsRemaining = parsed?.attemptsRemaining;
