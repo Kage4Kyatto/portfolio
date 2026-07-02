@@ -15,6 +15,7 @@ const DEFAULT_EN_LOCALE = {
   menu_en: "EN",
   menu_nl: "NL"
 };
+const SPLASH_DURATION_MS = 3950;
 const TELEMETRY_DEDUPE_WINDOW_MS = 5000;
 const telemetryLastSent = new Map();
 
@@ -54,6 +55,41 @@ const ensureSkipLink = () => {
 };
 
 ensureSkipLink();
+
+const setupHomeSplashState = () => {
+  if (!document.body.classList.contains("home-page")) {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const splash = document.querySelector(".home-splash");
+
+  if (!splash || prefersReducedMotion) {
+    document.body.classList.add("splash-complete");
+    return;
+  }
+
+  let completed = false;
+  const finishSplash = () => {
+    if (completed) {
+      return;
+    }
+    completed = true;
+    document.body.classList.add("splash-complete");
+    splash.removeEventListener("animationend", onSplashAnimationEnd);
+  };
+
+  const onSplashAnimationEnd = (event) => {
+    if (event.animationName === "splashFadeOut") {
+      finishSplash();
+    }
+  };
+
+  splash.addEventListener("animationend", onSplashAnimationEnd);
+  window.setTimeout(finishSplash, SPLASH_DURATION_MS + 350);
+};
+
+setupHomeSplashState();
 
 const ensureManifestLink = () => {
   if (document.querySelector("link[rel='manifest']")) {
@@ -386,7 +422,7 @@ links.forEach((link) => {
 const revealItems = document.querySelectorAll(".reveal");
 if (revealItems.length > 0) {
   const isHomePage = document.body.classList.contains("home-page");
-  const revealStartDelay = isHomePage ? 3950 : 0;
+  const revealStartDelay = isHomePage ? SPLASH_DURATION_MS : 0;
   const canObserve = "IntersectionObserver" in window;
 
   const startReveal = () => {
