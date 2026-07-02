@@ -33,7 +33,14 @@ const limiterConfig = {
     windowMs: 15 * 60 * 1000,
     max: 100,
     message: "Too many API requests",
-    skip: (req) => process.env.NODE_ENV === "test" || req.path === "/telemetry"
+    skip: (req) => {
+      if (process.env.NODE_ENV === "test") {
+        return true;
+      }
+
+      const exemptPaths = new Set(["/telemetry", "/health", "/version"]);
+      return exemptPaths.has(req.path);
+    }
   },
   contact: {
     windowMs: CONTACT_RATE_LIMIT_WINDOW_MS,

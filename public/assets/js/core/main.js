@@ -18,6 +18,7 @@ const DEFAULT_EN_LOCALE = {
 const SPLASH_DURATION_MS = 3950;
 const TELEMETRY_DEDUPE_WINDOW_MS = 5000;
 const telemetryLastSent = new Map();
+const DEV_LIVE_RELOAD_MIN_GAP_MS = 800;
 
 const normalizeLocale = (value) => {
   const requested = String(value || "").trim().toLowerCase();
@@ -110,6 +111,30 @@ const ensureManifestLink = () => {
   link.rel = "manifest";
   link.href = "/manifest.webmanifest";
   document.head.appendChild(link);
+};
+
+const setupDevLiveReload = () => {
+  const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  if (!isLocalHost || !window.EventSource || navigator.webdriver) {
+    return;
+  }
+
+  let lastReloadAt = 0;
+  const source = new EventSource("/dev/live-reload");
+
+  source.addEventListener("reload", () => {
+    const now = Date.now();
+    if (now - lastReloadAt < DEV_LIVE_RELOAD_MIN_GAP_MS) {
+      return;
+    }
+
+    lastReloadAt = now;
+    window.location.reload();
+  });
+
+  source.onerror = () => {
+    // Server might restart while developing; browser will retry automatically.
+  };
 };
 
 const registerServiceWorker = async () => {
@@ -339,6 +364,7 @@ const setupLanguageToggle = async () => {
 };
 
 ensureManifestLink();
+setupDevLiveReload();
 registerServiceWorker();
 setupLanguageToggle();
 sendTelemetry("pageview");

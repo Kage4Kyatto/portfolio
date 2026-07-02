@@ -64,6 +64,54 @@ const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "100kb";
 const URLENCODED_BODY_LIMIT = process.env.URLENCODED_BODY_LIMIT || "50kb";
 const MAX_TELEMETRY_PATH_LENGTH = Number(process.env.MAX_TELEMETRY_PATH_LENGTH || 2048);
 
+const DEV_LIVE_RELOAD_ENABLED = !IS_PRODUCTION && process.env.DEV_LIVE_RELOAD !== "false";
+const devReloadClients = new Set();
+const devReloadWatchers = [];
+
+const sendDevReload = (payload = {}) => {
+  const message = `event: reload\ndata: ${JSON.stringify({
+    timestamp: Date.now(),
+    ...payload
+  })}\n\n`;
+
+  devReloadClients.forEach((client) => {
+    try {
+      client.write(message);
+    } catch {
+      devReloadClients.delete(client);
+    }
+  });
+};
+
+const createDevReloadWatcher = (targetPath, options = {}) => {
+  if (!fs.existsSync(targetPath)) {
+    return;
+  }
+
+  try {
+    const watcher = fs.watch(targetPath, options, (eventType, changedFile) => {
+      if (!changedFile) {
+        return;
+      }
+
+      const changed = String(changedFile);
+      if (changed.includes("node_modules") || changed.includes(".git")) {
+        return;
+      }
+
+      sendDevReload({
+        eventType,
+        path: changed,
+        source: path.basename(targetPath)
+      });
+    });
+
+    devReloadWatchers.push(watcher);
+  } catch (error) {
+    console.warn("Dev live-reload watcher failed:", targetPath, error.message);
+  }
+};
+
 if (SENTRY_DSN) {
   app.use(Sentry.Handlers.requestHandler());
   app.use(Sentry.Handlers.tracingHandler());
@@ -238,6 +286,32 @@ app.get("/api/openapi.json", (req, res) => {
   return res.sendFile(OPENAPI_PATH);
 });
 
+if (DEV_LIVE_RELOAD_ENABLED) {
+  app.get("/dev/live-reload", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    res.write("retry: 1000\n\n");
+    devReloadClients.add(res);
+
+    const heartbeat = setInterval(() => {
+      try {
+        res.write("event: ping\\ndata: {}\\n\\n");
+      } catch {
+        clearInterval(heartbeat);
+        devReloadClients.delete(res);
+      }
+    }, 25000);
+
+    req.on("close", () => {
+      clearInterval(heartbeat);
+      devReloadClients.delete(res);
+    });
+  });
+}
+
 app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain"], limit: "8kb" }), async (req, res) => {
   try {
     const contentType = String(req.headers["content-type"] || "").toLowerCase();
@@ -348,6 +422,12 @@ app.get("/my-page", (req, res) => {
 const setStaticCacheHeaders = (res, filePath) => {
   const normalizedPath = filePath.replace(/\\/g, "/");
 
+  // In local/dev, always serve the latest files so UI changes appear right after refresh.
+  if (!IS_PRODUCTION) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    return;
+  }
+
   if (normalizedPath.endsWith("/service-worker.js") || normalizedPath.endsWith("/manifest.webmanifest")) {
     res.setHeader("Cache-Control", "no-cache");
     return;
@@ -402,6 +482,13 @@ if (require.main === module) {
   initializeRateLimits().catch((error) => {
     console.error("Failed to initialize rate limits:", error);
   });
+
+  if (DEV_LIVE_RELOAD_ENABLED) {
+    createDevReloadWatcher(path.join(__dirname, "public"), { recursive: true });
+    createDevReloadWatcher(path.join(__dirname, "docs"), { recursive: true });
+    console.log("Dev live-reload enabled");
+  }
+
   const server = app.listen(PORT, () => {
     console.log(`Portfolio server running on http://localhost:${PORT}`);
   });
@@ -418,6 +505,12 @@ if (require.main === module) {
     } catch (error) {
       console.error("Failed to flush rate limits on shutdown:", error);
     } finally {
+      devReloadWatchers.forEach((watcher) => {
+        try {
+          watcher.close();
+        } catch {}
+      });
+
       server.close(() => {
         process.exit(0);
       });
