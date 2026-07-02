@@ -15,6 +15,8 @@ const DEFAULT_EN_LOCALE = {
   menu_en: "EN",
   menu_nl: "NL"
 };
+const TELEMETRY_DEDUPE_WINDOW_MS = 5000;
+const telemetryLastSent = new Map();
 
 const normalizeLocale = (value) => {
   const requested = String(value || "").trim().toLowerCase();
@@ -93,10 +95,19 @@ const registerServiceWorker = async () => {
 };
 
 const sendTelemetry = (eventName) => {
+  const locale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+  const dedupeKey = `${eventName}:${window.location.pathname}:${locale}`;
+  const now = Date.now();
+  const previousSentAt = telemetryLastSent.get(dedupeKey);
+  if (previousSentAt && now - previousSentAt < TELEMETRY_DEDUPE_WINDOW_MS) {
+    return;
+  }
+  telemetryLastSent.set(dedupeKey, now);
+
   const payload = {
     event: eventName,
     path: window.location.pathname,
-    locale: localStorage.getItem(LOCALE_STORAGE_KEY) || "en"
+    locale
   };
 
   const asJson = JSON.stringify(payload);

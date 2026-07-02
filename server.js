@@ -358,7 +358,11 @@ const setStaticCacheHeaders = (res, filePath) => {
     return;
   }
 
-  if (normalizedPath.includes("/public/assets/js/core/main.js") || normalizedPath.includes("/public/assets/i18n/")) {
+  if (
+    normalizedPath.includes("/public/assets/js/core/main.js") ||
+    normalizedPath.includes("/public/assets/i18n/") ||
+    normalizedPath.includes("/public/assets/css/styles.css")
+  ) {
     res.setHeader("Cache-Control", "no-cache, must-revalidate");
     return;
   }

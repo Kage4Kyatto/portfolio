@@ -1,4 +1,4 @@
-{
+﻿{
   "menu_label": "Language",
   "menu_en": "EN",
   "menu_nl": "NL",
@@ -34,7 +34,7 @@
   "footer_personal_title": "Personal Touch",
   "footer_personal_text": "\"Small steps every day still move you forward.\" Current vibe: focused, calm, and building.",
   "footer_metadata_title": "Build Metadata",
-  "footer_metadata_text": "Version v2.6 Built with HTML, CSS, JavaScript, Node.js, and PHP.",
+  "footer_metadata_text": "Version v2.7 Built with HTML, CSS, JavaScript, Node.js, and PHP.",
   "footer_updates_title": "Recent Updates",
   "footer_updates_link1": "See Recent Changes",
   "footer_updates_link2": "View Public Repositories",
@@ -375,3 +375,4 @@
   "analytics_direct": "Direct / No Referrer",
   "analytics_no_source_data": "No source data available"
 }
+

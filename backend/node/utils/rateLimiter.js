@@ -32,7 +32,8 @@ const limiterConfig = {
   api: {
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: "Too many API requests"
+    message: "Too many API requests",
+    skip: (req) => process.env.NODE_ENV === "test" || req.path === "/telemetry"
   },
   contact: {
     windowMs: CONTACT_RATE_LIMIT_WINDOW_MS,

@@ -44,6 +44,72 @@ test("language toggle remains stable after rapid repeated clicks", async ({ page
   await expect(selector).toHaveValue("en");
 });
 
+test("language toggle is hidden during splash and visible after", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto("/index.html");
+
+  const immediateState = await page.evaluate(() => {
+    const splash = document.querySelector(".home-splash");
+    const lang = document.querySelector(".lang-toggle");
+    const splashStyle = getComputedStyle(splash);
+    const langStyle = getComputedStyle(lang);
+    return {
+      splashVisibility: splashStyle.visibility,
+      splashOpacity: splashStyle.opacity,
+      langVisibility: langStyle.visibility,
+      langOpacity: langStyle.opacity,
+      langPointerEvents: langStyle.pointerEvents
+    };
+  });
+
+  expect(immediateState.splashVisibility).toBe("visible");
+  expect(immediateState.langVisibility).toBe("hidden");
+  expect(immediateState.langPointerEvents).toBe("none");
+
+  await page.waitForTimeout(4300);
+
+  const afterSplashState = await page.evaluate(() => {
+    const lang = document.querySelector(".lang-toggle");
+    const langStyle = getComputedStyle(lang);
+    return {
+      langVisibility: langStyle.visibility,
+      langOpacity: langStyle.opacity,
+      langPointerEvents: langStyle.pointerEvents
+    };
+  });
+
+  expect(afterSplashState.langVisibility).toBe("visible");
+  expect(afterSplashState.langPointerEvents).toBe("auto");
+});
+
+test("desktop header keeps language visible while links stay hidden at rest", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto("/index.html");
+  await page.waitForTimeout(4300);
+  await page.mouse.move(1000, 500);
+
+  const restState = await page.evaluate(() => {
+    const langItem = document.querySelector(".lang-toggle");
+    const aboutItem = document.querySelector('.nav-links a[href="/about.html"]')?.closest("li");
+    const langStyle = getComputedStyle(langItem);
+    const aboutStyle = getComputedStyle(aboutItem);
+    return {
+      langVisibility: langStyle.visibility,
+      langOpacity: langStyle.opacity,
+      langPointerEvents: langStyle.pointerEvents,
+      aboutVisibility: aboutStyle.visibility,
+      aboutOpacity: aboutStyle.opacity,
+      aboutPointerEvents: aboutStyle.pointerEvents
+    };
+  });
+
+  expect(restState.langVisibility).toBe("visible");
+  expect(restState.langPointerEvents).toBe("auto");
+  expect(restState.aboutVisibility).toBe("hidden");
+  expect(restState.aboutOpacity).toBe("0");
+  expect(restState.aboutPointerEvents).toBe("none");
+});
+
 test("404 route shows not found page", async ({ page }) => {
   await page.goto("/not-a-real-page");
   await expect(page.getByRole("heading", { name: /page not found/i })).toBeVisible();
