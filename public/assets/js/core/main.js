@@ -66,6 +66,10 @@ const registerServiceWorker = async () => {
     const registration = await navigator.serviceWorker.register("/service-worker.js");
     console.info("Service Worker registered successfully:", registration.scope);
 
+    registration.update().catch((err) => {
+      console.warn("Service Worker immediate update check failed:", err.message);
+    });
+
     if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       // Check for updates periodically in production without frequent polling.
       setInterval(() => {
@@ -169,50 +173,55 @@ const setupLanguageToggle = async () => {
   wrapper.appendChild(button);
   navLinks.appendChild(wrapper);
 
+  const localeCache = new Map([["en", DEFAULT_EN_LOCALE]]);
+
   const loadLocaleDictionary = async (locale) => {
+    if (localeCache.has(locale)) {
+      return localeCache.get(locale);
+    }
+
     const response = await fetch(`/assets/i18n/${locale}.json`);
     if (!response.ok) {
       throw new Error("Locale unavailable");
     }
-    return response.json();
+
+    const dictionary = await response.json();
+    localeCache.set(locale, dictionary);
+    return dictionary;
   };
 
   let locale = normalizeLocale(localStorage.getItem(LOCALE_STORAGE_KEY) || "en");
-  if (locale === "en") {
+
+  const setLocale = async (nextLocale) => {
+    const dictionary = await loadLocaleDictionary(nextLocale);
+    locale = nextLocale;
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    applyLocale(locale, dictionary);
+  };
+
+  try {
+    await setLocale(locale);
+  } catch {
+    locale = "en";
     applyLocale(locale, DEFAULT_EN_LOCALE);
-  } else {
-    try {
-      const dictionary = await loadLocaleDictionary(locale);
-      applyLocale(locale, dictionary);
-    } catch {
-      locale = "en";
-      applyLocale(locale, DEFAULT_EN_LOCALE);
-      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-    }
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   }
 
-  button.addEventListener("click", async () => {
-    const currentIndex = SUPPORTED_LOCALES.indexOf(locale);
-    const nextIndex = (currentIndex + 1) % SUPPORTED_LOCALES.length;
-    const nextLocale = SUPPORTED_LOCALES[nextIndex];
+  let localeSwitchQueue = Promise.resolve();
+  button.addEventListener("click", () => {
+    localeSwitchQueue = localeSwitchQueue
+      .then(async () => {
+        const currentIndex = SUPPORTED_LOCALES.indexOf(locale);
+        const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
+        const nextIndex = (safeCurrentIndex + 1) % SUPPORTED_LOCALES.length;
+        const nextLocale = SUPPORTED_LOCALES[nextIndex];
 
-    if (nextLocale === "en") {
-      locale = "en";
-      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      applyLocale(locale, DEFAULT_EN_LOCALE);
-      sendTelemetry("language_toggle");
-      return;
-    }
-
-    try {
-      const dictionary = await loadLocaleDictionary(nextLocale);
-      locale = nextLocale;
-      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      applyLocale(locale, dictionary);
-      sendTelemetry("language_toggle");
-    } catch {
-      // Ignore toggle failure and keep current locale.
-    }
+        await setLocale(nextLocale);
+        sendTelemetry("language_toggle");
+      })
+      .catch(() => {
+        // Ignore toggle failure and keep current locale.
+      });
   });
 };
 

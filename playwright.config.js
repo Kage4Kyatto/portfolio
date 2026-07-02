@@ -25,7 +25,7 @@ module.exports = defineConfig({
       ADMIN_USER: process.env.ADMIN_USER || "e2e-admin",
       ADMIN_PASS: process.env.ADMIN_PASS || "e2e-password"
     },
-    reuseExistingServer: process.env.CI ? false : true,
+    reuseExistingServer: false,
     timeout: 120000
   },
   projects: [

@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-cache-v3";
+const CACHE_NAME = "portfolio-cache-v4";
 const PRE_CACHE = [
   "/index.html",
   "/about.html",

@@ -358,6 +358,11 @@ const setStaticCacheHeaders = (res, filePath) => {
     return;
   }
 
+  if (normalizedPath.includes("/public/assets/js/core/main.js") || normalizedPath.includes("/public/assets/i18n/")) {
+    res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    return;
+  }
+
   if (normalizedPath.includes("/public/assets/")) {
     res.setHeader("Cache-Control", "public, max-age=604800");
     return;
