@@ -173,7 +173,39 @@ const setupLanguageToggle = async () => {
   wrapper.appendChild(button);
   navLinks.appendChild(wrapper);
 
-  const localeCache = new Map([["en", DEFAULT_EN_LOCALE]]);
+  const captureDefaultEnglishDictionary = () => {
+    const snapshot = { ...DEFAULT_EN_LOCALE };
+
+    document.querySelectorAll("[data-i18n]").forEach((element) => {
+      const key = element.getAttribute("data-i18n");
+      if (!key) {
+        return;
+      }
+      snapshot[key] = element.textContent;
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+      const key = element.getAttribute("data-i18n-placeholder");
+      if (!key) {
+        return;
+      }
+      snapshot[key] = element.getAttribute("placeholder") || "";
+    });
+
+    document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+      const key = element.getAttribute("data-i18n-title");
+      if (!key) {
+        return;
+      }
+      snapshot[key] = element.getAttribute("title") || "";
+    });
+
+    return snapshot;
+  };
+
+  const defaultEnDictionary = captureDefaultEnglishDictionary();
+
+  const localeCache = new Map();
 
   const loadLocaleDictionary = async (locale) => {
     if (localeCache.has(locale)) {
@@ -182,6 +214,9 @@ const setupLanguageToggle = async () => {
 
     const response = await fetch(`/assets/i18n/${locale}.json`, { cache: "no-store" });
     if (!response.ok) {
+      if (locale === "en") {
+        return defaultEnDictionary;
+      }
       throw new Error("Locale unavailable");
     }
 
@@ -215,6 +250,13 @@ const setupLanguageToggle = async () => {
         const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
         const nextIndex = (safeCurrentIndex + 1) % SUPPORTED_LOCALES.length;
         const nextLocale = SUPPORTED_LOCALES[nextIndex];
+
+        if (nextLocale === "en") {
+          localStorage.setItem(LOCALE_STORAGE_KEY, "en");
+          sendTelemetry("language_toggle");
+          window.location.reload();
+          return;
+        }
 
         await setLocale(nextLocale);
         sendTelemetry("language_toggle");
