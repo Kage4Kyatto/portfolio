@@ -1,10 +1,16 @@
 const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
 const LOCALE_STORAGE_KEY = "portfolio.locale";
+const SUPPORTED_LOCALES = ["en", "nl", "de", "fr", "es", "pt"];
 const DEFAULT_EN_LOCALE = {
   menu_label: "Language",
   menu_en: "EN",
   menu_nl: "NL"
+};
+
+const normalizeLocale = (value) => {
+  const requested = String(value || "").trim().toLowerCase();
+  return SUPPORTED_LOCALES.includes(requested) ? requested : "en";
 };
 
 const ensureMainLandmark = () => {
@@ -106,9 +112,7 @@ const applyLocale = (locale, dictionary) => {
   }
 
   if (languageButton) {
-    languageButton.textContent = locale === "nl"
-      ? (dictionary.menu_nl || "NL")
-      : (dictionary.menu_en || "EN");
+    languageButton.textContent = String(locale || "en").toUpperCase();
   }
 
   document.documentElement.setAttribute("lang", locale);
@@ -173,7 +177,7 @@ const setupLanguageToggle = async () => {
     return response.json();
   };
 
-  let locale = localStorage.getItem(LOCALE_STORAGE_KEY) || "en";
+  let locale = normalizeLocale(localStorage.getItem(LOCALE_STORAGE_KEY) || "en");
   if (locale === "en") {
     applyLocale(locale, DEFAULT_EN_LOCALE);
   } else {
@@ -188,7 +192,10 @@ const setupLanguageToggle = async () => {
   }
 
   button.addEventListener("click", async () => {
-    const nextLocale = locale === "en" ? "nl" : "en";
+    const currentIndex = SUPPORTED_LOCALES.indexOf(locale);
+    const nextIndex = (currentIndex + 1) % SUPPORTED_LOCALES.length;
+    const nextLocale = SUPPORTED_LOCALES[nextIndex];
+
     if (nextLocale === "en") {
       locale = "en";
       localStorage.setItem(LOCALE_STORAGE_KEY, locale);
