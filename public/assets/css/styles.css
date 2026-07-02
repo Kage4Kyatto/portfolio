@@ -239,7 +239,10 @@ textarea:focus-visible {
 }
 
 .container {
-  width: min(1160px, 92vw);
+  width: 100%;
+  max-width: none;
+  padding-left: clamp(14px, 2.2vw, 36px);
+  padding-right: clamp(14px, 2.2vw, 36px);
   margin: 0 auto;
 }
 
@@ -395,6 +398,14 @@ textarea:focus-visible {
   .site-header .nav-wrap {
     position: relative;
     justify-content: flex-start;
+    min-height: 92px;
+    padding-top: 8px;
+  }
+
+  .site-header .logo {
+    position: absolute;
+    left: 0;
+    top: 8px;
   }
 
   .site-header:hover,
@@ -408,8 +419,8 @@ textarea:focus-visible {
     display: flex;
     position: absolute;
     right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 8px;
+    transform: none;
   }
 
   .site-header .nav-links > li:not(.lang-toggle) {
