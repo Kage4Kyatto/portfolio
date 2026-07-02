@@ -54,7 +54,7 @@ const blogRoutes = require("./backend/node/routes/blogRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
 const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 const { appendTelemetryEvent } = require("./backend/node/data/storage");
-const { initializeRateLimits } = require("./backend/node/controllers/contactController");
+const { initializeRateLimits, flushRateLimitsOnShutdown } = require("./backend/node/controllers/contactController");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -338,9 +338,24 @@ if (require.main === module) {
   initializeRateLimits().catch((error) => {
     console.error("Failed to initialize rate limits:", error);
   });
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`Portfolio server running on http://localhost:${PORT}`);
   });
+
+  const handleShutdown = async () => {
+    try {
+      await flushRateLimitsOnShutdown();
+    } catch (error) {
+      console.error("Failed to flush rate limits on shutdown:", error);
+    } finally {
+      server.close(() => {
+        process.exit(0);
+      });
+    }
+  };
+
+  process.on("SIGINT", handleShutdown);
+  process.on("SIGTERM", handleShutdown);
 }
 
 module.exports = app;

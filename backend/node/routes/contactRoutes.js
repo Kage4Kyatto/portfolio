@@ -1,5 +1,5 @@
 const express = require("express");
-const { getHealth, submitContact, getMessages } = require("../controllers/contactController");
+const { getHealth, submitContact, getMessages: getMessagesHandler } = require("../controllers/contactController");
 const {
 	requireAdminAuth,
 	requireAdminSession,
@@ -10,7 +10,7 @@ const {
 	getAdminSessionState
 } = require("../middleware/authMiddleware");
 const { requireCloudflareAccess } = require("../middleware/cloudflareAccessMiddleware");
-const { getSystemMetrics } = require("../data/storage");
+const { getSystemMetrics, getMessages: getStoredMessages } = require("../data/storage");
 const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
 
 const router = express.Router();
@@ -224,7 +224,7 @@ router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdmin
  */
 router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
 	try {
-		const metrics = await getSystemMetrics();
+		const messages = await getStoredMessages();
 		const range = req.query.range || "30d";
 		const filter = req.query.filter || null;
 
@@ -238,23 +238,37 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 		const timeRange = ranges[range] || ranges["30d"];
 		const cutoffTime = now - timeRange;
 
-		let filteredMessages = (metrics.messages || []).filter(msg => 
-			new Date(msg.timestamp).getTime() >= cutoffTime
-		);
+		const toTimestamp = (msg) => {
+			const raw = msg.createdAt || msg.timestamp;
+			const parsed = new Date(raw).getTime();
+			return Number.isFinite(parsed) ? parsed : null;
+		};
+
+		const isUnread = (msg) => msg.read === false || msg.status === "unread";
+
+		let filteredMessages = (messages || []).filter((msg) => {
+			const timestamp = toTimestamp(msg);
+			return timestamp !== null && timestamp >= cutoffTime;
+		});
 
 		if (filter === "unread") {
-			filteredMessages = filteredMessages.filter(msg => !msg.read);
+			filteredMessages = filteredMessages.filter(isUnread);
 		}
 
 		const dailyTotals = {};
-		filteredMessages.forEach(msg => {
-			const date = new Date(msg.timestamp).toISOString().split("T")[0];
+		filteredMessages.forEach((msg) => {
+			const timestamp = toTimestamp(msg);
+			if (timestamp === null) {
+				return;
+			}
+
+			const date = new Date(timestamp).toISOString().split("T")[0];
 			dailyTotals[date] = (dailyTotals[date] || 0) + 1;
 		});
 
 		const sourceBreakdown = {};
-		filteredMessages.forEach(msg => {
-			const source = msg.referrer || "direct";
+		filteredMessages.forEach((msg) => {
+			const source = msg.referrer || msg.source || "direct";
 			sourceBreakdown[source] = (sourceBreakdown[source] || 0) + 1;
 		});
 
@@ -268,7 +282,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 			}
 
 			const timestamps = filteredMessages
-				.map((msg) => new Date(msg.timestamp).getTime())
+				.map((msg) => toTimestamp(msg))
 				.filter((value) => Number.isFinite(value));
 
 			if (timestamps.length === 0) {
@@ -284,7 +298,7 @@ router.get("/admin/analytics", requireCloudflareAccess, adminLimiter, requireAdm
 			success: true,
 			analytics: {
 				total: filteredMessages.length,
-				unread: filteredMessages.filter(m => !m.read).length,
+				unread: filteredMessages.filter(isUnread).length,
 				timeRange: range,
 				dailyTotals,
 				sourceBreakdown,
@@ -373,6 +387,6 @@ router.post("/contact", submitContact);
  *       429:
  *         description: Too many requests
  */
-router.get("/messages", requireCloudflareAccess, adminLimiter, requireAdminSessionOrBasic, getMessages);
+router.get("/messages", requireCloudflareAccess, adminLimiter, requireAdminSessionOrBasic, getMessagesHandler);
 
 module.exports = router;

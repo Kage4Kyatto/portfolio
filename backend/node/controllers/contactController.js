@@ -217,9 +217,20 @@ const initializeRateLimits = async () => {
   }
 };
 
+const flushRateLimitsOnShutdown = async () => {
+  if (!shouldPersistRateLimits) {
+    return;
+  }
+
+  // Force a final flush regardless of the periodic throttle window.
+  lastFlushTime = 0;
+  await flushRateLimitsToStorage();
+};
+
 module.exports = {
   getHealth,
   getMessages,
   submitContact,
-  initializeRateLimits
+  initializeRateLimits,
+  flushRateLimitsOnShutdown
 };

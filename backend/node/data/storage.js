@@ -202,18 +202,39 @@ const getRateLimits = async () => {
 const saveRateLimits = async (limits) => {
   if (await ensureDb()) {
     const db = getPool();
-    await db.query("DELETE FROM contact_rate_limits");
-
     const ips = Object.keys(limits);
-    for (const ip of ips) {
-      const item = limits[ip];
-      await db.query(
-        `
-          INSERT INTO contact_rate_limits (ip, count, window_start, last_attempt)
-          VALUES ($1, $2, $3, $4)
-        `,
-        [ip, Number(item.count || 0), Number(item.windowStart || 0), Number(item.lastAttempt || 0)]
-      );
+    const counts = ips.map((ip) => Number(limits[ip]?.count || 0));
+    const windowStarts = ips.map((ip) => Number(limits[ip]?.windowStart || 0));
+    const lastAttempts = ips.map((ip) => Number(limits[ip]?.lastAttempt || 0));
+
+    await db.query("BEGIN");
+    try {
+      if (ips.length > 0) {
+        await db.query(
+          `
+            INSERT INTO contact_rate_limits (ip, count, window_start, last_attempt)
+            SELECT * FROM UNNEST($1::text[], $2::int[], $3::bigint[], $4::bigint[])
+            ON CONFLICT (ip) DO UPDATE
+            SET
+              count = EXCLUDED.count,
+              window_start = EXCLUDED.window_start,
+              last_attempt = EXCLUDED.last_attempt
+          `,
+          [ips, counts, windowStarts, lastAttempts]
+        );
+
+        await db.query(
+          "DELETE FROM contact_rate_limits WHERE ip <> ALL($1::text[])",
+          [ips]
+        );
+      } else {
+        await db.query("DELETE FROM contact_rate_limits");
+      }
+
+      await db.query("COMMIT");
+    } catch (error) {
+      await db.query("ROLLBACK");
+      throw error;
     }
 
     return;
@@ -244,24 +265,41 @@ const getAuthAttempts = async () => {
 const saveAuthAttempts = async (attempts) => {
   if (await ensureDb()) {
     const db = getPool();
-    await db.query("DELETE FROM admin_auth_attempts");
-
     const ips = Object.keys(attempts);
-    for (const ip of ips) {
-      const entry = attempts[ip];
-      await db.query(
-        `
-          INSERT INTO admin_auth_attempts (ip, count, first_attempt_at, last_attempt_at, locked_until)
-          VALUES ($1, $2, $3, $4, $5)
-        `,
-        [
-          ip,
-          Number(entry.count || 0),
-          Number(entry.firstAttemptAt || 0),
-          Number(entry.lastAttemptAt || 0),
-          Number(entry.lockedUntil || 0)
-        ]
-      );
+    const counts = ips.map((ip) => Number(attempts[ip]?.count || 0));
+    const firstAttempts = ips.map((ip) => Number(attempts[ip]?.firstAttemptAt || 0));
+    const lastAttempts = ips.map((ip) => Number(attempts[ip]?.lastAttemptAt || 0));
+    const lockedUntilValues = ips.map((ip) => Number(attempts[ip]?.lockedUntil || 0));
+
+    await db.query("BEGIN");
+    try {
+      if (ips.length > 0) {
+        await db.query(
+          `
+            INSERT INTO admin_auth_attempts (ip, count, first_attempt_at, last_attempt_at, locked_until)
+            SELECT * FROM UNNEST($1::text[], $2::int[], $3::bigint[], $4::bigint[], $5::bigint[])
+            ON CONFLICT (ip) DO UPDATE
+            SET
+              count = EXCLUDED.count,
+              first_attempt_at = EXCLUDED.first_attempt_at,
+              last_attempt_at = EXCLUDED.last_attempt_at,
+              locked_until = EXCLUDED.locked_until
+          `,
+          [ips, counts, firstAttempts, lastAttempts, lockedUntilValues]
+        );
+
+        await db.query(
+          "DELETE FROM admin_auth_attempts WHERE ip <> ALL($1::text[])",
+          [ips]
+        );
+      } else {
+        await db.query("DELETE FROM admin_auth_attempts");
+      }
+
+      await db.query("COMMIT");
+    } catch (error) {
+      await db.query("ROLLBACK");
+      throw error;
     }
 
     return;
@@ -291,21 +329,39 @@ const getNotificationQueue = async () => {
 const saveNotificationQueue = async (queue) => {
   if (await ensureDb()) {
     const db = getPool();
-    await db.query("DELETE FROM notification_queue");
+    const ids = queue.map((job) => Number(job.id));
+    const payloads = queue.map((job) => JSON.stringify(job.payload || {}));
+    const attempts = queue.map((job) => Number(job.attempts || 0));
+    const nextAttempts = queue.map((job) => Number(job.nextAttemptAt || 0));
 
-    for (const job of queue) {
-      await db.query(
-        `
-          INSERT INTO notification_queue (id, payload, attempts, next_attempt_at)
-          VALUES ($1, $2::jsonb, $3, $4)
-        `,
-        [
-          Number(job.id),
-          JSON.stringify(job.payload || {}),
-          Number(job.attempts || 0),
-          Number(job.nextAttemptAt || 0)
-        ]
-      );
+    await db.query("BEGIN");
+    try {
+      if (ids.length > 0) {
+        await db.query(
+          `
+            INSERT INTO notification_queue (id, payload, attempts, next_attempt_at)
+            SELECT * FROM UNNEST($1::bigint[], $2::jsonb[], $3::int[], $4::bigint[])
+            ON CONFLICT (id) DO UPDATE
+            SET
+              payload = EXCLUDED.payload,
+              attempts = EXCLUDED.attempts,
+              next_attempt_at = EXCLUDED.next_attempt_at
+          `,
+          [ids, payloads, attempts, nextAttempts]
+        );
+
+        await db.query(
+          "DELETE FROM notification_queue WHERE id <> ALL($1::bigint[])",
+          [ids]
+        );
+      } else {
+        await db.query("DELETE FROM notification_queue");
+      }
+
+      await db.query("COMMIT");
+    } catch (error) {
+      await db.query("ROLLBACK");
+      throw error;
     }
 
     return;

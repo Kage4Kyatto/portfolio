@@ -153,6 +153,22 @@ test("GET /api/admin/analytics returns time-range filtered data", async () => {
   process.env.ADMIN_USER = "admin";
   process.env.ADMIN_PASS = "secret";
 
+  const contactPayload = {
+    name: "Analytics User",
+    email: "analytics@example.com",
+    subject: "Analytics Subject",
+    message: "Analytics message body"
+  };
+
+  for (let i = 0; i < 3; i += 1) {
+    const submitResponse = await request(app)
+      .post("/api/contact")
+      .set("X-Forwarded-For", "203.0.113.10")
+      .send(contactPayload);
+
+    assert.equal(submitResponse.status, 201);
+  }
+
   const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
   const loginResponse = await request(app)
     .post("/api/admin/login")
@@ -168,10 +184,12 @@ test("GET /api/admin/analytics returns time-range filtered data", async () => {
   assert.equal(analyticsResponse.body.success, true);
   assert.ok(analyticsResponse.body.analytics);
   assert.equal(analyticsResponse.body.analytics.timeRange, "30d");
-  assert.ok(typeof analyticsResponse.body.analytics.total === "number");
-  assert.ok(typeof analyticsResponse.body.analytics.unread === "number");
+  assert.equal(analyticsResponse.body.analytics.total, 3);
+  assert.equal(analyticsResponse.body.analytics.unread, 0);
+  assert.equal(analyticsResponse.body.analytics.avgMessagesPerDay, "0.1");
   assert.ok(analyticsResponse.body.analytics.dailyTotals);
   assert.ok(analyticsResponse.body.analytics.sourceBreakdown);
+  assert.equal(analyticsResponse.body.analytics.sourceBreakdown.direct, 3);
 });
 
 test("GET /api/admin/analytics supports range parameter", async () => {
