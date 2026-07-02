@@ -1,6 +1,18 @@
 # Full-Stack Portfolio Website
 
-This project contains a 5-page portfolio frontend and a PHP backend API.
+A production-oriented portfolio platform with a public multi-page frontend, secured admin dashboard, multilingual UX, and polyglot tooling (Node, PHP, Fastify, React, TypeScript, Python, Go, Rust).
+
+## GitHub About
+
+- Suggested description: Personal portfolio platform with secure admin dashboard, multilingual UX, and polyglot full-stack tooling.
+- Suggested website: `https://kage4kyatto.github.io/portfolio` (or your current deployed domain)
+- Suggested topics: `portfolio`, `full-stack`, `nodejs`, `php`, `fastify`, `react`, `playwright`, `i18n`, `typescript`, `docker`
+
+## Current Release Status
+
+- Current site build metadata: `v2.7`
+- Release workflow: `.github/workflows/release.yml`
+- Manual release trigger: GitHub Actions `Release Notes` workflow with a semantic tag (for example `v2.7.0`)
 
 ## Docs
 
