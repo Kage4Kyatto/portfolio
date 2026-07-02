@@ -48,50 +48,65 @@
 
       <section class="grid-3" aria-label="Recent change log">
         <article class="card reveal">
-          <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item1_title">Admin session hardening shipped</h3>
-          <p data-i18n="updates_item1_desc">Added session-based admin auth flow, CSRF protection, optional OTP support, and inactivity timeout handling.</p>
+          <span class="tag"><time datetime="2026-07-03">July 3, 2026</time></span>
+          <h3>Native language selector and visual polish shipped</h3>
+          <p>Replaced the old language cycle control with a stable native dropdown and styled it to match the navigation design system across desktop and mobile.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-07-03">July 3, 2026</time></span>
+          <h3>Multilingual content now updates reliably</h3>
+          <p>Resolved locale switching issues so EN, DE, FR, ES, and PT content now apply correctly without getting stuck between languages.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-07-03">July 3, 2026</time></span>
+          <h3>Cache invalidation fixes for translation assets</h3>
+          <p>Updated dictionary fetching, service worker cache versioning, and script cache-busting so language updates reach users immediately.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-07-02">July 2, 2026</time></span>
+          <h3>Language QA coverage expanded end-to-end</h3>
+          <p>Playwright tests now cover language selector behavior, repeated toggles, and stability checks so regressions are caught earlier.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-07-02">July 2, 2026</time></span>
+          <h3>Cross-page language audit tooling added</h3>
+          <p>Added and refined a language audit script to verify i18n keys and locale rendering consistency across all public pages.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-07-01">July 1, 2026</time></span>
+          <h3>New locale coverage shipped</h3>
+          <p>Expanded supported languages to include German, French, Spanish, and Portuguese and connected them to the shared translation system.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-06-30">June 30, 2026</time></span>
+          <h3>Admin queue UX and replay contract hardened</h3>
+          <p>Improved operational safety around queue processing and aligned idempotency replay behavior to reduce duplicate processing risk.</p>
+        </article>
+        <article class="card reveal">
+          <span class="tag"><time datetime="2026-06-30">June 30, 2026</time></span>
+          <h3>Idempotency persistence implemented</h3>
+          <p>Added persistence for idempotent request handling so retries can be resolved safely and consistently across process restarts.</p>
         </article>
         <article class="card reveal">
           <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item2_title">Database migration tooling added</h3>
-          <p data-i18n="updates_item2_desc">Introduced migration SQL for runtime tables and a Node migration runner for PostgreSQL deployments.</p>
+          <h3>Admin security and reliability pass</h3>
+          <p>Added session-based admin auth flow, CSRF protection, optional OTP support, inactivity timeout handling, and related request hardening.</p>
         </article>
         <article class="card reveal">
           <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item3_title">Localized content toggle expanded</h3>
-          <p data-i18n="updates_item3_desc">Language switching now updates key home/about content blocks instead of only the nav control.</p>
+          <h3>Database migration tooling added</h3>
+          <p>Introduced migration SQL for runtime tables and a Node migration runner for PostgreSQL deployments.</p>
         </article>
         <article class="card reveal">
           <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item4_title">Project detail pages published</h3>
-          <p data-i18n="updates_item4_desc">The projects section now links to dedicated breakdown pages with stack, highlights, and next steps for each repository.</p>
-          <p><a class="btn secondary" href="/project-portfolio-platform.html" data-i18n="updates_item4_link">Portfolio Platform Details</a></p>
+          <h3>Project detail pages published</h3>
+          <p>The projects section now links to dedicated breakdown pages with stack highlights and next-step plans for each repository.</p>
+          <p><a class="btn secondary" href="/project-portfolio-platform.html">Portfolio Platform Details</a></p>
         </article>
         <article class="card reveal">
           <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item5_title">Robots and sitemap improved</h3>
-          <p data-i18n="updates_item5_desc">Robots and sitemap now use host-aware output with better crawl hints and freshness metadata.</p>
-        </article>
-        <article class="card reveal">
-          <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item6_title">Navigation interactions refined</h3>
-          <p data-i18n="updates_item6_desc">Desktop navigation now uses a hover reveal behavior focused on keeping the header minimal at rest.</p>
-        </article>
-        <article class="card reveal">
-          <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item7_title">Footer expanded</h3>
-          <p data-i18n="updates_item7_desc">The bottom section now includes personal notes, build metadata, legal links, and this updates page.</p>
-        </article>
-        <article class="card reveal">
-          <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item8_title">Codebase cleanup</h3>
-          <p data-i18n="updates_item8_desc">The temporary background music player and related assets were removed for a cleaner baseline.</p>
-        </article>
-        <article class="card reveal">
-          <span class="tag"><time datetime="2026-06-17">June 17, 2026</time></span>
-          <h3 data-i18n="updates_item9_title">Accessibility and reliability pass</h3>
-          <p data-i18n="updates_item9_desc">Added skip-link support, improved focus visibility, and hardened contact/admin request flows for better UX and stability.</p>
+          <h3>Footer, accessibility, and SEO improvements</h3>
+          <p>Expanded footer metadata, improved focus and skip-link behavior, and tightened robots and sitemap output for better crawl quality.</p>
         </article>
       </section>
     </main>
