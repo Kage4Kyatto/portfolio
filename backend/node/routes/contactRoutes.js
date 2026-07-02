@@ -11,6 +11,8 @@ const {
 } = require("../middleware/authMiddleware");
 const { requireCloudflareAccess } = require("../middleware/cloudflareAccessMiddleware");
 const { getSystemMetrics, getMessages: getStoredMessages } = require("../data/storage");
+const { getQueueSnapshot, processQueueNow } = require("../services/notificationQueue");
+const { getSummary } = require("../services/reportSummary");
 const { adminLimiter, authLimiter } = require("../utils/rateLimiter");
 
 const router = express.Router();
@@ -181,6 +183,54 @@ router.get("/admin/metrics", requireCloudflareAccess, adminLimiter, requireAdmin
 		res.status(500).json({
 			success: false,
 			message: "Failed to load metrics."
+		});
+	}
+});
+
+router.get("/admin/queue", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
+	try {
+		const queue = await getQueueSnapshot();
+		res.status(200).json({
+			success: true,
+			queue
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: "Failed to load queue metrics."
+		});
+	}
+});
+
+router.post("/admin/queue/process", requireCloudflareAccess, adminLimiter, requireCsrfToken, requireAdminSession, async (req, res) => {
+	try {
+		const queue = await processQueueNow();
+		res.status(200).json({
+			success: true,
+			message: "Queue processed.",
+			queue
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: "Failed to process queue."
+		});
+	}
+});
+
+router.get("/admin/report-summary", requireCloudflareAccess, adminLimiter, requireAdminSession, async (req, res) => {
+	try {
+		const requestedEngine = req.query.engine || "auto";
+		const summary = await getSummary(requestedEngine);
+
+		res.status(200).json({
+			success: true,
+			summary
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: error.message || "Failed to load report summary."
 		});
 	}
 });

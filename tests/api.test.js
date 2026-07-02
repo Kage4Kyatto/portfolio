@@ -139,6 +139,45 @@ test("admin session login and logout flow works", async () => {
   assert.equal(logoutResponse.body.success, true);
 });
 
+test("admin queue and summary endpoints work", async () => {
+  process.env.ADMIN_USER = "admin";
+  process.env.ADMIN_PASS = "secret";
+
+  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
+  const loginResponse = await request(app)
+    .post("/api/admin/login")
+    .set("Authorization", authHeader);
+
+  const cookie = loginResponse.headers["set-cookie"];
+  const csrfToken = loginResponse.body.csrfToken;
+
+  const queueResponse = await request(app)
+    .get("/api/admin/queue")
+    .set("Cookie", cookie);
+
+  assert.equal(queueResponse.status, 200);
+  assert.equal(queueResponse.body.success, true);
+  assert.ok(queueResponse.body.queue);
+
+  const processResponse = await request(app)
+    .post("/api/admin/queue/process")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", csrfToken);
+
+  assert.equal(processResponse.status, 200);
+  assert.equal(processResponse.body.success, true);
+  assert.ok(processResponse.body.queue);
+
+  const summaryResponse = await request(app)
+    .get("/api/admin/report-summary?engine=js")
+    .set("Cookie", cookie);
+
+  assert.equal(summaryResponse.status, 200);
+  assert.equal(summaryResponse.body.success, true);
+  assert.equal(summaryResponse.body.summary.engine, "js");
+  assert.ok(Number.isFinite(summaryResponse.body.summary.totalMessages));
+});
+
 test("GET /api/blog/posts returns published posts only", async () => {
   const response = await request(app).get("/api/blog/posts");
 

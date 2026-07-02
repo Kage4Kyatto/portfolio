@@ -15,6 +15,12 @@ const logoutButton = document.getElementById("admin-logout");
 const pagePanel = document.querySelector(".admin-page .page-panel");
 const adminControls = document.querySelector(".admin-controls");
 const tableWrap = document.querySelector(".table-wrap");
+const queueRefreshButton = document.getElementById("queue-refresh");
+const queueProcessButton = document.getElementById("queue-process");
+const queueOutput = document.getElementById("queue-output");
+const summaryLoadButton = document.getElementById("summary-load");
+const summaryEngineSelect = document.getElementById("summary-engine");
+const summaryOutput = document.getElementById("summary-output");
 
 const ADMIN_LOCALE_STORAGE_KEY = "portfolio.locale";
 
@@ -378,6 +384,80 @@ const loadAdminMetrics = async () => {
   }
 };
 
+const setQueueOutput = (payload) => {
+  if (!queueOutput) {
+    return;
+  }
+
+  queueOutput.textContent = JSON.stringify(payload, null, 2);
+};
+
+const loadQueueHealth = async () => {
+  if (!queueOutput) {
+    return;
+  }
+
+  try {
+    const result = await fetchJsonWithFallback(["/api/admin/queue"]);
+    setQueueOutput(result.queue || result);
+  } catch (error) {
+    setQueueOutput({
+      success: false,
+      message: error.message || "Failed to load queue state."
+    });
+  }
+};
+
+const processQueue = async () => {
+  if (!queueOutput) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/admin/queue/process", {
+      method: "POST",
+      headers: csrfToken
+        ? { "X-CSRF-Token": csrfToken }
+        : {}
+    });
+
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(body.message || "Failed to process queue.");
+    }
+
+    setQueueOutput(body.queue || body);
+    if (window.toast) {
+      window.toast.success("Queue processed.");
+    }
+  } catch (error) {
+    setQueueOutput({
+      success: false,
+      message: error.message || "Failed to process queue."
+    });
+  }
+};
+
+const loadReportSummary = async () => {
+  if (!summaryOutput) {
+    return;
+  }
+
+  const engine = summaryEngineSelect?.value || "auto";
+
+  try {
+    const result = await fetchJsonWithFallback([
+      `/api/admin/report-summary?engine=${encodeURIComponent(engine)}`
+    ]);
+    summaryOutput.textContent = JSON.stringify(result.summary || result, null, 2);
+  } catch (error) {
+    summaryOutput.textContent = JSON.stringify({
+      success: false,
+      message: error.message || "Failed to load summary."
+    }, null, 2);
+  }
+};
+
 const clearInactivityTimer = () => {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer);
@@ -540,6 +620,8 @@ if (authForm && notice && tableBody) {
       notice.textContent = `${loadedLabel} ${allMessages.length} ${messagesLabel}.`;
       notice.className = "notice success";
       loadAdminMetrics();
+      loadQueueHealth();
+      loadReportSummary();
       scheduleInactivityTimeout();
     } catch (error) {
       setDashboardVisibility(false);
@@ -675,4 +757,8 @@ if (authForm && notice && tableBody) {
       window.toast.info(t("admin_logged_out_success", activeLocale === "nl" ? "Succesvol uitgelogd." : "Logged out successfully."));
     }
   });
+
+  queueRefreshButton?.addEventListener("click", loadQueueHealth);
+  queueProcessButton?.addEventListener("click", processQueue);
+  summaryLoadButton?.addEventListener("click", loadReportSummary);
 }

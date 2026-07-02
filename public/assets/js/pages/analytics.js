@@ -86,6 +86,27 @@ const loadAnalytics = async (range = "30d", filter = null) => {
   }
 };
 
+const renderBarList = (entries, labelFormatter) => {
+  if (!entries.length) {
+    return `<p class="analytics-empty">${t("analytics_no_data", activeLocale === "nl" ? "Geen gegevens beschikbaar" : "No data available")}</p>`;
+  }
+
+  const maxValue = Math.max(...entries.map(([, value]) => Number(value || 0)), 1);
+  return `<div class="analytics-bar-list">${entries
+    .map(([label, value]) => {
+      const numeric = Number(value || 0);
+      const percent = Math.max(2, Math.round((numeric / maxValue) * 100));
+      return `<div class="analytics-bar-row">
+        <div class="analytics-bar-head">
+          <span>${escapeHtml(labelFormatter(label))}</span>
+          <strong>${numeric}</strong>
+        </div>
+        <div class="analytics-bar-track"><div class="analytics-bar-fill" style="width:${percent}%"></div></div>
+      </div>`;
+    })
+    .join("")}</div>`;
+};
+
 const renderAnalytics = () => {
   if (!currentAnalytics) {
     return;
@@ -127,31 +148,19 @@ const renderAnalytics = () => {
   // Update daily chart
   const dailyChartContainer = analyticsContainer.querySelector('[data-chart="daily"]');
   if (dailyChartContainer) {
-    const dailyChartData = Object.entries(currentAnalytics.dailyTotals || {})
-      .map(([date, count]) => `<div class="analytics-list-row">
-        <span>${escapeHtml(date)}</span>
-        <strong>${count}</strong>
-      </div>`)
-      .join("");
-    dailyChartContainer.innerHTML = dailyChartData || `<p class="analytics-empty">${t("analytics_no_data", activeLocale === "nl" ? "Geen gegevens beschikbaar" : "No data available")}</p>`;
+    const dailyEntries = Object.entries(currentAnalytics.dailyTotals || {}).sort(([a], [b]) => a.localeCompare(b));
+    dailyChartContainer.innerHTML = renderBarList(dailyEntries, (label) => label);
   }
 
   // Update source chart
   const sourceChartContainer = analyticsContainer.querySelector('[data-chart="sources"]');
   if (sourceChartContainer) {
-    const sourceData = Object.entries(currentAnalytics.sourceBreakdown || {})
-      .sort(([, a], [, b]) => b - a)
-      .map(([source, count]) => `<div class="analytics-source-row">
-        <span>${escapeHtml(source === "direct"
-          ? t("analytics_direct", activeLocale === "nl" ? "Direct / Geen verwijzer" : "Direct / No Referrer")
-          : source)}</span>
-        <div class="analytics-source-count">
-          <span>${currentAnalytics.total > 0 ? `${Math.round((count / currentAnalytics.total) * 100)}%` : "0%"}</span>
-          <strong>${count}</strong>
-        </div>
-      </div>`)
-      .join("");
-    sourceChartContainer.innerHTML = sourceData || `<p class="analytics-empty">${t("analytics_no_source_data", activeLocale === "nl" ? "Geen brongegevens beschikbaar" : "No source data available")}</p>`;
+    const sourceEntries = Object.entries(currentAnalytics.sourceBreakdown || {}).sort(([, a], [, b]) => b - a);
+    sourceChartContainer.innerHTML = renderBarList(sourceEntries, (label) => (
+      label === "direct"
+        ? t("analytics_direct", activeLocale === "nl" ? "Direct / Geen verwijzer" : "Direct / No Referrer")
+        : label
+    ));
   }
 };
 

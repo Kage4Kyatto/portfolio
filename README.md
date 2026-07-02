@@ -73,6 +73,8 @@ This project contains a 5-page portfolio frontend and a PHP backend API.
 - Python message report: `npm run python:report`
 - Docker multi-service run: `npm run docker:up`
 - Docker stop: `npm run docker:down`
+- Go report microservice: `npm run go:report-service` (set `GO_REPORT_SERVICE_URL` for Node integration)
+- Rust JSON summary output: `npm run rust:message-summary:json`
 
 ## Added Framework Modules
 
@@ -202,6 +204,7 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 - If Cloudflare Access mode is enabled, only allowed Cloudflare Access users can reach the admin page/API.
 - Contact form submissions are stored in `backend/php/data/messages.json`.
 - Includes client-side search, pagination, and CSV export for loaded messages.
+- Includes analytics bar visualizations, queue health controls, and multi-engine report summary (JS/Go/Rust).
 
 ### Password Hash Option
 

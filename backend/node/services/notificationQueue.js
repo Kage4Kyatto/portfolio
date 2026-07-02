@@ -100,6 +100,27 @@ const getQueueMetrics = () => {
   return { ...queueMetrics };
 };
 
+const getQueueSnapshot = async () => {
+  const queue = await getNotificationQueue();
+  const now = Date.now();
+  const dueNow = queue.filter((job) => Number(job.nextAttemptAt || 0) <= now).length;
+  const oldestNextAttemptAt = queue.length > 0
+    ? Math.min(...queue.map((job) => Number(job.nextAttemptAt || now)))
+    : null;
+
+  return {
+    queueDepth: queue.length,
+    dueNow,
+    oldestNextAttemptAt,
+    ...getQueueMetrics()
+  };
+};
+
+const processQueueNow = async () => {
+  await processQueue();
+  return getQueueSnapshot();
+};
+
 const startNotificationWorker = () => {
   const interval = setInterval(() => {
     processQueue().catch((error) => {
@@ -113,5 +134,7 @@ const startNotificationWorker = () => {
 module.exports = {
   enqueueNotification,
   startNotificationWorker,
-  getQueueMetrics
+  getQueueMetrics,
+  getQueueSnapshot,
+  processQueueNow
 };

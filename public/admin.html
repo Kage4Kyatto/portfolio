@@ -217,6 +217,33 @@
           <div id="analytics-container">
             <p class="analytics-loading-note" data-i18n="admin_loading_analytics">Loading analytics...</p>
           </div>
+
+          <div class="admin-ops-grid">
+            <section class="card admin-op-card">
+              <h3>Queue Operations</h3>
+              <p class="admin-op-help">Monitor and process notification queue jobs.</p>
+              <div class="admin-op-actions">
+                <button id="queue-refresh" class="btn secondary" type="button">Refresh Queue</button>
+                <button id="queue-process" class="btn primary" type="button">Process Queue Now</button>
+              </div>
+              <pre id="queue-output" class="admin-op-output">No queue data loaded yet.</pre>
+            </section>
+
+            <section class="card admin-op-card">
+              <h3>Summary Engines</h3>
+              <p class="admin-op-help">Run reporting summary from JS, Go, Rust, or auto fallback.</p>
+              <div class="admin-op-actions">
+                <select id="summary-engine" class="admin-control-select">
+                  <option value="auto">Auto</option>
+                  <option value="js">JavaScript</option>
+                  <option value="go">Go Service</option>
+                  <option value="rust">Rust CLI</option>
+                </select>
+                <button id="summary-load" class="btn primary" type="button">Load Summary</button>
+              </div>
+              <pre id="summary-output" class="admin-op-output">No summary loaded yet.</pre>
+            </section>
+          </div>
         </div>
       </section>
 
