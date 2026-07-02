@@ -2,11 +2,11 @@ const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: '3.1.0',
     info: {
       title: 'Portfolio API',
-      version: '1.0.0',
-      description: 'REST API for portfolio contact form and admin dashboard',
+      version: '1.3.0',
+      description: 'API for contact submissions, admin sessions, queue operations, telemetry, diagnostics, and runtime metadata.',
       contact: {
         name: 'Soeraj Balak',
         email: 'soeraj_balak@hotmail.com'
@@ -24,6 +24,11 @@ const options = {
     ],
     components: {
       securitySchemes: {
+        basicAuth: {
+          type: 'http',
+          scheme: 'basic',
+          description: 'HTTP Basic authentication for admin login and optional message access'
+        },
         sessionAuth: {
           type: 'apiKey',
           in: 'cookie',

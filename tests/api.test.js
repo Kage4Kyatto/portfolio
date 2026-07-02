@@ -83,10 +83,11 @@ test("POST /api/contact honors idempotency key for duplicate submissions", async
     .set("X-Idempotency-Key", idempotencyKey)
     .send(payload);
 
-  assert.equal(secondResponse.status, 201);
+  assert.equal(secondResponse.status, 200);
   assert.equal(secondResponse.body.success, true);
   assert.equal(secondResponse.body.idempotent, true);
   assert.equal(secondResponse.body.data?.id, firstResponse.body.data?.id);
+  assert.equal(secondResponse.headers["x-idempotency-replayed"], "true");
 });
 
 test("GET /api/version returns app version metadata", async () => {
@@ -171,15 +172,24 @@ test("admin audit endpoint exposes normalized telemetry events", async () => {
 
   const cookie = loginResponse.headers["set-cookie"];
 
-  const auditResponse = await request(app)
-    .get("/api/admin/audit-events?limit=25")
-    .set("Cookie", cookie);
+  let targetEvent;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const auditResponse = await request(app)
+      .get("/api/admin/audit-events?limit=50")
+      .set("Cookie", cookie);
 
-  assert.equal(auditResponse.status, 200);
-  assert.equal(auditResponse.body.success, true);
-  assert.ok(Array.isArray(auditResponse.body.events));
+    assert.equal(auditResponse.status, 200);
+    assert.equal(auditResponse.body.success, true);
+    assert.ok(Array.isArray(auditResponse.body.events));
 
-  const targetEvent = auditResponse.body.events.find((entry) => entry.path === "/contract-test");
+    targetEvent = auditResponse.body.events.find((entry) => entry.path === "/contract-test");
+    if (targetEvent) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+
   assert.ok(targetEvent);
   assert.equal(targetEvent.event, "pageview");
   assert.equal(targetEvent.locale, "en");
@@ -272,6 +282,33 @@ test("admin queue and summary endpoints work", async () => {
   assert.equal(processResponse.status, 200);
   assert.equal(processResponse.body.success, true);
   assert.ok(processResponse.body.queue);
+
+  const pauseResponse = await request(app)
+    .post("/api/admin/queue/pause")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", csrfToken);
+
+  assert.equal(pauseResponse.status, 200);
+  assert.equal(pauseResponse.body.success, true);
+  assert.equal(pauseResponse.body.queue.workerPaused, true);
+
+  const resumeResponse = await request(app)
+    .post("/api/admin/queue/resume")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", csrfToken);
+
+  assert.equal(resumeResponse.status, 200);
+  assert.equal(resumeResponse.body.success, true);
+  assert.equal(resumeResponse.body.queue.workerPaused, false);
+
+  const clearResponse = await request(app)
+    .post("/api/admin/queue/clear")
+    .set("Cookie", cookie)
+    .set("X-CSRF-Token", csrfToken);
+
+  assert.equal(clearResponse.status, 200);
+  assert.equal(clearResponse.body.success, true);
+  assert.equal(clearResponse.body.queue.queueDepth, 0);
 
   const summaryResponse = await request(app)
     .get("/api/admin/report-summary?engine=js")

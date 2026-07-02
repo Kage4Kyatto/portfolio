@@ -1009,6 +1009,11 @@ if (authForm && notice && tableBody) {
     postQueueAction("/api/admin/queue/resume", "Queue worker resumed.", "Failed to resume queue worker.");
   });
   queueClearButton?.addEventListener("click", () => {
+    const shouldClear = window.confirm("Clear all queued jobs? This action cannot be undone.");
+    if (!shouldClear) {
+      return;
+    }
+
     postQueueAction("/api/admin/queue/clear", "Queue cleared.", "Failed to clear queue.");
   });
   summaryLoadButton?.addEventListener("click", loadReportSummary);

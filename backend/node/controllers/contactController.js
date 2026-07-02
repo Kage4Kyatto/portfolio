@@ -258,7 +258,8 @@ const submitContact = async (req, res) => {
     }
 
     if (idempotencyResult?.responsePayload) {
-      return res.status(201).json({
+      res.set("X-Idempotency-Replayed", "true");
+      return res.status(200).json({
         ...idempotencyResult.responsePayload,
         idempotent: true,
         requestId: req.requestId
