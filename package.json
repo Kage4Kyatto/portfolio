@@ -11,6 +11,8 @@
     "build:react": "npm --prefix frontend/react-app run build",
     "build:app": "npm run build:react",
     "preview:react": "npm --prefix frontend/react-app run preview",
+    "check:fastify": "node --check backend/fastify/src/server.mjs",
+    "verify:all": "npm run lint && npm test && npm run typecheck && npm run check:fastify && npm run build:react",
     "install:fastify": "npm --prefix backend/fastify install",
     "dev:fastify": "npm --prefix backend/fastify run dev",
     "start:fastify": "npm --prefix backend/fastify run start",

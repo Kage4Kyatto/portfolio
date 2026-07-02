@@ -158,6 +158,7 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 - Run lint checks: `npm run lint`
 - Run tests: `npm test`
 - Run TypeScript checks: `npm run typecheck`
+- Run full integration verification (Node API + tests + TypeScript + Fastify syntax + React build): `npm run verify:all`
 - Reset contact demo/test data to defaults: `npm run reset:contact-data`
 - Restore contact data files to the exact tracked Git state: `npm run clean:contact-data`
 - GitHub Actions quality workflow: `.github/workflows/quality.yml`
