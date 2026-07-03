@@ -94,8 +94,8 @@ test("language toggle is hidden during splash and visible after", async ({ page 
 test("desktop header keeps language visible while links stay hidden at rest", async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto("/index.html");
-  await page.waitForTimeout(4300);
   await page.mouse.move(1000, 500);
+  await page.waitForTimeout(4300);
 
   const restState = await page.evaluate(() => {
     const langItem = document.querySelector(".lang-toggle");
