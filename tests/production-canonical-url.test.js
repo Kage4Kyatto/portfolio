@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -120,3 +121,4 @@ test("production robots and sitemap use configured SITE_BASE_URL", async () => {
     await stop();
   }
 });
+

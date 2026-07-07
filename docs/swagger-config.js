@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
@@ -127,3 +128,4 @@ const options = {
 };
 
 module.exports = swaggerJsdoc(options);
+

@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const toBool = (value) => String(value || "").trim().toLowerCase() === "true";
 
 const isCloudflareAccessEnabled = () => toBool(process.env.CF_ACCESS_ENABLED);
@@ -55,3 +56,4 @@ module.exports = {
   requireCloudflareAccess,
   isCloudflareAccessEnabled
 };
+

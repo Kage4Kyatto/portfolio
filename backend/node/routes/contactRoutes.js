@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const express = require("express");
 const { getHealth, submitContact, getMessages: getMessagesHandler } = require("../controllers/contactController");
 const {
@@ -643,3 +644,4 @@ router.post("/contact", submitContact);
 router.get("/messages", requireCloudflareAccess, adminLimiter, requireAdminSessionOrBasic, getMessagesHandler);
 
 module.exports = router;
+

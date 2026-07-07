@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
@@ -132,3 +133,4 @@ test("cloudflare middleware local bypass works for loopback source in non-produc
   assert.equal(calledNext, true);
   assert.equal(res.statusCode, null);
 });
+

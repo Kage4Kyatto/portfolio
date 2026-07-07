@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const CACHE_NAME = "portfolio-cache-v4";
 const PRE_CACHE = [
   "/index.html",
@@ -79,3 +80,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+

@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const navLinks = document.querySelector(".nav-links");
 const menuButton = document.querySelector(".menu-toggle");
 const LOCALE_STORAGE_KEY = "portfolio.locale";
@@ -6,9 +7,9 @@ const LOCALE_LABELS = {
   en: "English",
   nl: "Nederlands",
   de: "Deutsch",
-  fr: "Français",
-  es: "Español",
-  pt: "Português"
+  fr: "FranÃ§ais",
+  es: "EspaÃ±ol",
+  pt: "PortuguÃªs"
 };
 const DEFAULT_EN_LOCALE = {
   menu_label: "Language",
@@ -597,4 +598,5 @@ if (!prefersReducedMotion && hasFinePointer) {
     document.body.style.setProperty("--cursor-glow-opacity", "0");
   });
 }
+
 

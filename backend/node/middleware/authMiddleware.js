@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const crypto = require("crypto");
 const { getAuthAttempts, saveAuthAttempts } = require("../data/storage");
 const getClientIp = require("../utils/getClientIp");
@@ -235,3 +236,4 @@ module.exports = {
   endAdminSession,
   getAdminSessionState
 };
+

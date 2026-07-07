@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const rateLimit = require("express-rate-limit");
 const getClientIp = require("./getClientIp");
 
@@ -75,3 +76,4 @@ module.exports = {
   adminLimiter,
   authLimiter
 };
+

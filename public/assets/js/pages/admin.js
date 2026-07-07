@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const authForm = document.getElementById("admin-auth-form");
 const notice = document.getElementById("admin-notice");
 const tableBody = document.getElementById("messages-body");
@@ -919,7 +920,7 @@ if (authForm && notice && tableBody) {
     }
 
     downloadCsv(filteredMessages);
-    const exportedLabel = t("admin_exported", activeLocale === "nl" ? "Geëxporteerd" : "Exported");
+    const exportedLabel = t("admin_exported", activeLocale === "nl" ? "GeÃ«xporteerd" : "Exported");
     const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
     const toCsvLabel = t("admin_to_csv", activeLocale === "nl" ? "naar CSV" : "to CSV");
     notice.textContent = `${exportedLabel} ${filteredMessages.length} ${messagesLabel} ${toCsvLabel}.`;
@@ -1018,3 +1019,4 @@ if (authForm && notice && tableBody) {
   });
   summaryLoadButton?.addEventListener("click", loadReportSummary);
 }
+

@@ -1,3 +1,4 @@
+﻿/* Updated 2026-07-07 */
 :root {
   --bg: #07111f;
   --bg-soft: rgba(15, 24, 42, 0.78);
@@ -2426,3 +2427,4 @@ textarea:focus-visible.input-error {
     transform: translate3d(0, 14px, 0) scale(1.03);
   }
 }
+

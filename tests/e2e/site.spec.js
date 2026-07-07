@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
@@ -7,9 +8,9 @@ const LOCALE_LABELS = {
   en: "English",
   nl: "Nederlands",
   de: "Deutsch",
-  fr: "Français",
-  es: "Español",
-  pt: "Português"
+  fr: "FranÃ§ais",
+  es: "EspaÃ±ol",
+  pt: "PortuguÃªs"
 };
 
 const selectLocale = async (page, locale) => {
@@ -192,3 +193,4 @@ test("admin dashboard loads queue, audit, and performance panels", async ({ page
   await page.locator("#summary-load").click();
   await expect(page.locator("#summary-output")).toContainText(/runtimeStatus|storage/i);
 });
+

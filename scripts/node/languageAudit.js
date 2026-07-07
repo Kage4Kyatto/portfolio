@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { chromium } = require("playwright");
 
 const base = process.env.PORTFOLIO_AUDIT_BASE_URL || "http://localhost:3000";
@@ -185,3 +186,4 @@ const selectLocale = async (page, locale) => {
   console.log(JSON.stringify(failures, null, 2));
   process.exit(1);
 })();
+

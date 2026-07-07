@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { spawn } = require("child_process");
 
 const projectRoot = process.cwd();
@@ -78,3 +79,4 @@ for (const processConfig of processes) {
 
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
+

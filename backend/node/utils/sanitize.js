@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const xss = require("xss");
 
 const sanitizeHtml = (input) => {
@@ -50,3 +51,4 @@ module.exports = {
   sanitizeEmail,
   sanitizeObject
 };
+

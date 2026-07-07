@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
+// Updated 2026-07-07
 
 const fs = require("fs");
 const path = require("path");
@@ -95,10 +96,11 @@ const createBlogPost = (args) => {
     process.exit(1);
   }
 
-  console.log(`✓ Blog post created: ${slug}`);
+  console.log(`âœ“ Blog post created: ${slug}`);
   console.log(`  ID: ${newPost.id}`);
   console.log(`  Status: Draft (set published: true in blog-posts.json to publish)`);
   console.log(`\nCreate /public/blog/${slug}/index.html for full post content`);
 };
 
 createBlogPost(process.argv.slice(2));
+

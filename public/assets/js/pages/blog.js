@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const blogPostsContainer = document.getElementById("blog-posts");
 
 const toSafeBlogUrl = (slug) => {
@@ -79,7 +80,7 @@ const loadBlogPosts = async () => {
           </p>
           ${tagsHtml ? `<div class="blog-tags">${tagsHtml}</div>` : ''}
           <p itemprop="description" class="blog-excerpt">${escapeHtml(post.excerpt)}</p>
-          <a href="${postUrl}" class="read-more">Read More →</a>
+          <a href="${postUrl}" class="read-more">Read More â†’</a>
         </article>
       `;
       })
@@ -103,3 +104,4 @@ const loadBlogPosts = async () => {
 if (blogPostsContainer) {
   loadBlogPosts();
 }
+

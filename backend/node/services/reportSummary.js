@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const { getMessages } = require("../data/storage");
@@ -89,3 +90,4 @@ const getSummary = async (requestedEngine = "auto") => {
 module.exports = {
   getSummary
 };
+

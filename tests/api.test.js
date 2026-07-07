@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const request = require("supertest");
@@ -532,3 +533,4 @@ test("GET /api/admin/analytics supports unread filter and exact breakdowns", asy
     "https://example.com": 1
   });
 });
+

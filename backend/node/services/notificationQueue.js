@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const fs = require("fs");
 const path = require("path");
 const { getNotificationQueue, saveNotificationQueue } = require("../data/storage");
@@ -93,7 +94,7 @@ const processQueue = async () => {
 
       // Add exponential backoff with jitter to prevent thundering herd
       const baseBackoff = Math.min(maxBackoffMs, retryDelayMs * 2 ** Math.max(0, nextAttempts - 1));
-      const jitter = Math.random() * 0.1 * baseBackoff; // ±5% jitter
+      const jitter = Math.random() * 0.1 * baseBackoff; // Â±5% jitter
       const backoff = baseBackoff + jitter;
 
       pending.push({
@@ -181,3 +182,4 @@ module.exports = {
   getQueueSnapshot,
   processQueueNow
 };
+

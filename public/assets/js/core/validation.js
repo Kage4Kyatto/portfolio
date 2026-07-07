@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const VALIDATION_RULES = {
   name: {
     required: true,
@@ -122,3 +123,4 @@ window.validation = {
   clearFieldError,
   setupLiveValidation
 };
+

@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const TOAST_DURATION_MS = 5000;
 
 const createToastContainer = () => {
@@ -29,7 +30,7 @@ const showToast = (message, type = "info") => {
   const dismissBtn = document.createElement("button");
   dismissBtn.className = "toast-dismiss";
   dismissBtn.setAttribute("aria-label", "Dismiss notification");
-  dismissBtn.textContent = "×";
+  dismissBtn.textContent = "Ã—";
   
   const dismiss = () => {
     toast.classList.remove("toast--visible");
@@ -71,3 +72,4 @@ window.toast = {
   info: showInfo,
   warning: showWarning
 };
+

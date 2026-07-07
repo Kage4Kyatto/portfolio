@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { spawnSync } = require("child_process");
 const path = require("path");
 

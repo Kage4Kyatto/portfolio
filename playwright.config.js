@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { defineConfig, devices } = require("@playwright/test");
 const path = require("path");
 
@@ -37,3 +38,4 @@ module.exports = defineConfig({
     }
   ]
 });
+

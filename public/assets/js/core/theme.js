@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const THEME_STORAGE_KEY = "portfolio.theme";
 
 const getSystemTheme = () => {
@@ -47,11 +48,11 @@ const setupThemeToggle = () => {
   toggle.type = "button";
   toggle.setAttribute("aria-label", "Toggle dark/light mode");
   toggle.title = "Toggle theme";
-  toggle.innerHTML = "🌙";
+  toggle.innerHTML = "ðŸŒ™";
 
   toggle.addEventListener("click", () => {
     const newTheme = toggleTheme();
-    toggle.innerHTML = newTheme === "dark" ? "☀️" : "🌙";
+    toggle.innerHTML = newTheme === "dark" ? "â˜€ï¸" : "ðŸŒ™";
   });
 
   const navLinks = document.querySelector(".nav-links");
@@ -61,7 +62,7 @@ const setupThemeToggle = () => {
     navLinks.insertBefore(li, navLinks.firstChild);
 
     const current = getSavedTheme() || getSystemTheme();
-    toggle.innerHTML = current === "dark" ? "☀️" : "🌙";
+    toggle.innerHTML = current === "dark" ? "â˜€ï¸" : "ðŸŒ™";
   }
 };
 
@@ -75,3 +76,4 @@ window.theme = {
   getCurrent: getSavedTheme,
   getSystem: getSystemTheme
 };
+

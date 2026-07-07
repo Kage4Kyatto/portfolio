@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const { spawnSync } = require("child_process");
 
 const quoteArg = (value) => {
@@ -33,3 +34,4 @@ console.log("[setup] Installing Fastify backend dependencies...");
 run("npm", ["--prefix", "backend/fastify", "install"]);
 
 console.log("[setup] Development environment is ready.");
+

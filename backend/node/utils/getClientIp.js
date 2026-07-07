@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const toBool = (value) => String(value || "").trim().toLowerCase() === "true";
 
 const normalizeIp = (value) => String(value || "")
@@ -25,3 +26,4 @@ const getClientIp = (req) => {
 };
 
 module.exports = getClientIp;
+

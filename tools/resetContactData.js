@@ -1,3 +1,4 @@
+﻿// Updated 2026-07-07
 const fs = require("fs");
 const path = require("path");
 
@@ -18,3 +19,4 @@ for (const file of filesToReset) {
   fs.writeFileSync(targetPath, `${JSON.stringify(file.defaultValue, null, 2)}\n`, "utf8");
   console.log(`Reset ${file.fileName}`);
 }
+
