@@ -20,6 +20,8 @@ const SPLASH_DURATION_MS = 3950;
 const TELEMETRY_DEDUPE_WINDOW_MS = 5000;
 const telemetryLastSent = new Map();
 const DEV_LIVE_RELOAD_MIN_GAP_MS = 800;
+const IS_LOCAL_ORIGIN = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const DEV_RELOAD_QUERY_FLAG = "devReload";
 
 const normalizeLocale = (value) => {
   const requested = String(value || "").trim().toLowerCase();
@@ -115,8 +117,10 @@ const ensureManifestLink = () => {
 };
 
 const setupDevLiveReload = () => {
-  const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  if (!isLocalHost || !window.EventSource || navigator.webdriver) {
+  const params = new URLSearchParams(window.location.search);
+  const isExplicitlyEnabled = params.get(DEV_RELOAD_QUERY_FLAG) === "1";
+
+  if (!IS_LOCAL_ORIGIN || !isExplicitlyEnabled || !window.EventSource || navigator.webdriver) {
     return;
   }
 
@@ -144,6 +148,17 @@ const registerServiceWorker = async () => {
     return;
   }
 
+  if (IS_LOCAL_ORIGIN) {
+    // Prevent stale workers from causing local navigation/network glitches.
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    } catch (error) {
+      console.warn("Failed to clear local service workers:", error.message);
+    }
+    return;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register("/service-worker.js");
     console.info("Service Worker registered successfully:", registration.scope);
@@ -152,14 +167,12 @@ const registerServiceWorker = async () => {
       console.warn("Service Worker immediate update check failed:", err.message);
     });
 
-    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      // Check for updates periodically in production without frequent polling.
-      setInterval(() => {
-        registration.update().catch((err) => {
-          console.warn("Service Worker update check failed:", err.message);
-        });
-      }, 60 * 60 * 1000);
-    }
+    // Check for updates periodically in production without frequent polling.
+    setInterval(() => {
+      registration.update().catch((err) => {
+        console.warn("Service Worker update check failed:", err.message);
+      });
+    }, 60 * 60 * 1000);
   } catch (error) {
     console.warn("Service Worker registration failed:", error.message);
     // App continues without PWA features - not fatal

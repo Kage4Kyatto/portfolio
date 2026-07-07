@@ -61,6 +61,8 @@ const packageJson = require("./package.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_TEST = process.env.NODE_ENV === "test";
+const DEV_CANONICAL_LOCAL_HOST = process.env.DEV_CANONICAL_LOCAL_HOST || "localhost";
 const TRUST_PROXY = String(process.env.TRUST_PROXY || "").trim();
 const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "100kb";
 const URLENCODED_BODY_LIMIT = process.env.URLENCODED_BODY_LIMIT || "50kb";
@@ -213,6 +215,18 @@ app.use(helmet({
 }));
 
 app.use(compression());
+
+if (!IS_PRODUCTION && !IS_TEST) {
+  app.use((req, res, next) => {
+    const hostHeader = String(req.headers.host || "");
+    if (!hostHeader.toLowerCase().startsWith("127.0.0.1")) {
+      return next();
+    }
+
+    const redirectedHost = hostHeader.replace(/^127\.0\.0\.1/i, DEV_CANONICAL_LOCAL_HOST);
+    return res.redirect(307, `${req.protocol}://${redirectedHost}${req.originalUrl}`);
+  });
+}
 
 app.use("/api", apiLimiter);
 
