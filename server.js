@@ -53,7 +53,6 @@ if (process.env.NODE_ENV === "production" && !process.env.ADMIN_SESSION_SECRET) 
 const contactRoutes = require("./backend/node/routes/contactRoutes");
 const blogRoutes = require("./backend/node/routes/blogRoutes");
 const { requireCloudflareAccess } = require("./backend/node/middleware/cloudflareAccessMiddleware");
-const { startNotificationWorker } = require("./backend/node/services/notificationQueue");
 const { appendTelemetryEvent } = require("./backend/node/data/storage");
 const { initializeRateLimits, flushRateLimitsOnShutdown } = require("./backend/node/controllers/contactController");
 const { recordRequest } = require("./backend/node/services/performanceMetrics");
@@ -502,7 +501,6 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
-  startNotificationWorker();
   initializeRateLimits().catch((error) => {
     console.error("Failed to initialize rate limits:", error);
   });

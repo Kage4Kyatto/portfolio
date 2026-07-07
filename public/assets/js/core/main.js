@@ -7,9 +7,9 @@ const LOCALE_LABELS = {
   en: "English",
   nl: "Nederlands",
   de: "Deutsch",
-  fr: "FranÃ§ais",
-  es: "EspaÃ±ol",
-  pt: "PortuguÃªs"
+  fr: "Français",
+  es: "Español",
+  pt: "Português"
 };
 const DEFAULT_EN_LOCALE = {
   menu_label: "Language",

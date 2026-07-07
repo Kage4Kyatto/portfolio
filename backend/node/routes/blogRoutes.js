@@ -12,7 +12,7 @@ const readBlogPosts = async () => {
     if (!fs.existsSync(BLOG_DATA_FILE)) {
       return [];
     }
-    const data = fs.readFileSync(BLOG_DATA_FILE, "utf-8");
+    const data = await fs.promises.readFile(BLOG_DATA_FILE, "utf-8");
     return JSON.parse(data);
   } catch (error) {
     console.error("Error reading blog posts:", error);

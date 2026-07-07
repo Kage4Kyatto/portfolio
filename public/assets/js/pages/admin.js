@@ -327,6 +327,10 @@ const fetchJsonWithFallback = async (endpoints, options = {}) => {
       }
 
       if (!parsed) {
+        if (response.ok && bodyText.trim() === "") {
+          return {};
+        }
+
         const parseError = new Error(t("admin_non_json", activeLocale === "nl" ? "API-eindpunt reageerde met geen JSON-inhoud." : "API endpoint responded with non-JSON content."));
 
         if (!hasNextEndpoint) {
@@ -920,7 +924,7 @@ if (authForm && notice && tableBody) {
     }
 
     downloadCsv(filteredMessages);
-    const exportedLabel = t("admin_exported", activeLocale === "nl" ? "GeÃ«xporteerd" : "Exported");
+    const exportedLabel = t("admin_exported", activeLocale === "nl" ? "Geëxporteerd" : "Exported");
     const messagesLabel = t("admin_pager_messages", activeLocale === "nl" ? "bericht(en)" : "message(s)");
     const toCsvLabel = t("admin_to_csv", activeLocale === "nl" ? "naar CSV" : "to CSV");
     notice.textContent = `${exportedLabel} ${filteredMessages.length} ${messagesLabel} ${toCsvLabel}.`;

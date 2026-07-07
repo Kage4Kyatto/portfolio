@@ -30,7 +30,7 @@ const showToast = (message, type = "info") => {
   const dismissBtn = document.createElement("button");
   dismissBtn.className = "toast-dismiss";
   dismissBtn.setAttribute("aria-label", "Dismiss notification");
-  dismissBtn.textContent = "Ã—";
+  dismissBtn.textContent = "×";
   
   const dismiss = () => {
     toast.classList.remove("toast--visible");

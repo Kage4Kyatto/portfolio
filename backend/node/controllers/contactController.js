@@ -7,7 +7,6 @@ const {
   getIdempotencyRecord,
   saveIdempotencyRecord
 } = require("../data/storage");
-const { enqueueNotification } = require("../services/notificationQueue");
 const { sanitizeText, sanitizeEmail, sanitizeObject } = require("../utils/sanitize");
 const getClientIp = require("../utils/getClientIp");
 
@@ -66,6 +65,7 @@ const evaluateContactRateLimit = async (req) => {
     const retryAfterMs = Math.max(1000, CONTACT_RATE_LIMIT_WINDOW_MS - (now - entry.windowStart));
     entry.lastAttempt = now;
     rateLimitMemory.set(ip, entry);
+    lastFlushTime = 0;
     
     // Flush periodically in background
     flushRateLimitsToStorage().catch(() => {});
@@ -273,15 +273,6 @@ const submitContact = async (req, res) => {
       subject: sanitizedSubject,
       message: sanitizedMessage,
       createdAt: new Date().toISOString()
-    });
-    
-    enqueueNotification({
-      type: "contact_message",
-      messageId: newMessage.id,
-      createdAt: newMessage.createdAt
-    }).catch((error) => {
-      // Notification queue failure is non-fatal
-      console.warn(`[Request ${req.requestId}] Notification queue error:`, error.message);
     });
 
     const responsePayload = {
