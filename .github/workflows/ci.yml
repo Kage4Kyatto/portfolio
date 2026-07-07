@@ -23,5 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend/react-app
+
       - name: Full verification
         run: npm run verify:all
