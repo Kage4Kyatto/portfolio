@@ -96,7 +96,7 @@ const createBlogPost = (args) => {
     process.exit(1);
   }
 
-  console.log(`âœ“ Blog post created: ${slug}`);
+  console.log(`✓ Blog post created: ${slug}`);
   console.log(`  ID: ${newPost.id}`);
   console.log(`  Status: Draft (set published: true in blog-posts.json to publish)`);
   console.log(`\nCreate /public/blog/${slug}/index.html for full post content`);
