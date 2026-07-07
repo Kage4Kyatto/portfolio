@@ -433,7 +433,7 @@ if (fs.existsSync(REACT_DIST_PATH)) {
   app.get("/app", (req, res) => {
     res.sendFile(path.join(REACT_DIST_PATH, "index.html"));
   });
-  app.get("/app/*", (req, res) => {
+  app.get(/^\/app\/.*/, (req, res) => {
     res.sendFile(path.join(REACT_DIST_PATH, "index.html"));
   });
 }
@@ -482,7 +482,7 @@ app.use(express.static(path.join(__dirname, "public"), {
   setHeaders: setStaticCacheHeaders
 }));
 
-app.get("*", (req, res) => {
+app.get(/.*/, (req, res) => {
   res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
 });
 
