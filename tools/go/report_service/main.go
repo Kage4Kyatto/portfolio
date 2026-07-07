@@ -74,7 +74,7 @@ func main() {
 		fmt.Println("Go report service")
 		fmt.Println()
 		fmt.Println("Usage:")
-		fmt.Println("  go run tools/go/report_service.go [--port <port>] [--help]")
+		fmt.Println("  go run ./tools/go/report_service/main.go [--port <port>] [--help]")
 		fmt.Println()
 		fmt.Println("Options:")
 		fmt.Println("  -h, --help       Show this help and exit")
