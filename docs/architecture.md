@@ -55,6 +55,12 @@ React dashboard checks use Vite bridge proxies during development:
 - `backend/php/bootstrap.php`: shared PHP helpers
 - `backend/php/data/`: JSON persistence for messages and rate-limits
 
+## Test Layout
+
+- `tests/unit/`: fast unit-level checks for utilities, middleware, and focused helpers
+- `tests/integration/`: API and runtime-contract tests that exercise the Node app end to end
+- `tests/e2e/`: browser-driven Playwright flows for the public site and admin dashboard
+
 ## Frontend Layout
 
 - `public/*.html`: static pages

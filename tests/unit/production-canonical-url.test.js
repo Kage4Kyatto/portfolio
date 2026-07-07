@@ -1,11 +1,11 @@
-﻿// Updated 2026-07-07
+// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const net = require("node:net");
 const { spawn } = require("node:child_process");
 
-const projectRoot = path.join(__dirname, "..");
+const projectRoot = path.join(__dirname, "..", "..");
 
 const getAvailablePort = async () => {
   return new Promise((resolve, reject) => {
@@ -121,4 +121,3 @@ test("production robots and sitemap use configured SITE_BASE_URL", async () => {
     await stop();
   }
 });
-

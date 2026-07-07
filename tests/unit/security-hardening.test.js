@@ -1,9 +1,9 @@
-﻿// Updated 2026-07-07
+// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const getClientIp = require("../backend/node/utils/getClientIp");
-const { requireCloudflareAccess } = require("../backend/node/middleware/cloudflareAccessMiddleware");
+const getClientIp = require("../../backend/node/utils/getClientIp");
+const { requireCloudflareAccess } = require("../../backend/node/middleware/cloudflareAccessMiddleware");
 
 const trackedEnvKeys = [
   "PORTFOLIO_TRUST_PROXY_HEADERS",
@@ -146,4 +146,3 @@ test("cloudflare middleware local bypass works for loopback source in non-produc
   assert.equal(calledNext, true);
   assert.equal(res.statusCode, null);
 });
-

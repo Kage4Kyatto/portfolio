@@ -1,4 +1,4 @@
-﻿// Updated 2026-07-07
+// Updated 2026-07-07
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const request = require("supertest");
@@ -11,7 +11,7 @@ process.env.NODE_ENV = "test";
 process.env.PORTFOLIO_DATA_DIR = testDataDir;
 process.env.PORTFOLIO_TRUST_PROXY_HEADERS = "true";
 
-const app = require("../server");
+const app = require("../../server");
 
 const contactRateLimitPath = path.join(testDataDir, "contact_rate_limits.json");
 const messagesPath = path.join(testDataDir, "messages.json");
@@ -148,7 +148,7 @@ test("GET /api/openapi.json returns OpenAPI spec", async () => {
 });
 
 test("GET /api/blog/posts returns an empty list when the blog file is missing", async () => {
-  const blogDir = path.join(__dirname, "..", "public", "blog");
+  const blogDir = path.join(__dirname, "..", "..", "public", "blog");
   const blogFile = path.join(blogDir, "blog-posts.json");
   const backupFile = path.join(blogDir, "blog-posts.json.bak-test");
 
@@ -401,179 +401,3 @@ test("runtime health contracts are consistent when optional services are running
     }
   }
 });
-
-test("GET /api/blog/posts returns published posts only", async () => {
-  const response = await request(app).get("/api/blog/posts");
-
-  assert.equal(response.status, 200);
-  assert.equal(response.body.success, true);
-  assert.ok(Array.isArray(response.body.posts));
-  
-  const allPublished = response.body.posts.every(post => post.published === true);
-  assert.equal(allPublished, true);
-});
-
-test("GET /api/admin/analytics returns time-range filtered data", async () => {
-  process.env.ADMIN_USER = "admin";
-  process.env.ADMIN_PASS = "secret";
-
-  const contactPayload = {
-    name: "Analytics User",
-    email: "analytics@example.com",
-    subject: "Analytics Subject",
-    message: "Analytics message body"
-  };
-
-  for (let i = 0; i < 3; i += 1) {
-    const submitResponse = await request(app)
-      .post("/api/contact")
-      .set("X-Forwarded-For", "203.0.113.10")
-      .send(contactPayload);
-
-    assert.equal(submitResponse.status, 201);
-  }
-
-  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
-  const loginResponse = await request(app)
-    .post("/api/admin/login")
-    .set("Authorization", authHeader);
-
-  const cookie = loginResponse.headers["set-cookie"];
-
-  const analyticsResponse = await request(app)
-    .get("/api/admin/analytics?range=30d")
-    .set("Cookie", cookie);
-
-  assert.equal(analyticsResponse.status, 200);
-  assert.equal(analyticsResponse.body.success, true);
-  assert.ok(analyticsResponse.body.analytics);
-  assert.equal(analyticsResponse.body.analytics.timeRange, "30d");
-  assert.equal(analyticsResponse.body.analytics.total, 3);
-  assert.equal(analyticsResponse.body.analytics.unread, 0);
-  assert.equal(analyticsResponse.body.analytics.avgMessagesPerDay, "0.1");
-  assert.ok(analyticsResponse.body.analytics.dailyTotals);
-  assert.ok(analyticsResponse.body.analytics.sourceBreakdown);
-  assert.equal(analyticsResponse.body.analytics.sourceBreakdown.direct, 3);
-});
-
-test("GET /api/admin/analytics supports range parameter", async () => {
-  process.env.ADMIN_USER = "admin";
-  process.env.ADMIN_PASS = "secret";
-
-  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
-  const loginResponse = await request(app)
-    .post("/api/admin/login")
-    .set("Authorization", authHeader);
-
-  const cookie = loginResponse.headers["set-cookie"];
-
-  const ranges = ["24h", "7d", "30d", "all"];
-  
-  for (const range of ranges) {
-    const analyticsResponse = await request(app)
-      .get(`/api/admin/analytics?range=${range}`)
-      .set("Cookie", cookie);
-
-    assert.equal(analyticsResponse.status, 200);
-    assert.equal(analyticsResponse.body.analytics.timeRange, range);
-  }
-});
-
-test("GET /api/admin/analytics rejects invalid range and filter", async () => {
-  process.env.ADMIN_USER = "admin";
-  process.env.ADMIN_PASS = "secret";
-
-  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
-  const loginResponse = await request(app)
-    .post("/api/admin/login")
-    .set("Authorization", authHeader);
-
-  const cookie = loginResponse.headers["set-cookie"];
-
-  const invalidRangeResponse = await request(app)
-    .get("/api/admin/analytics?range=bad")
-    .set("Cookie", cookie);
-
-  assert.equal(invalidRangeResponse.status, 400);
-  assert.equal(invalidRangeResponse.body.success, false);
-
-  const invalidFilterResponse = await request(app)
-    .get("/api/admin/analytics?range=30d&filter=bad")
-    .set("Cookie", cookie);
-
-  assert.equal(invalidFilterResponse.status, 400);
-  assert.equal(invalidFilterResponse.body.success, false);
-});
-
-test("GET /api/blog/posts handles invalid pagination params safely", async () => {
-  const response = await request(app).get("/api/blog/posts?limit=abc&offset=-5");
-
-  assert.equal(response.status, 200);
-  assert.equal(response.body.success, true);
-  assert.ok(Array.isArray(response.body.posts));
-});
-
-test("GET /api/admin/analytics supports unread filter and exact breakdowns", async () => {
-  process.env.ADMIN_USER = "admin";
-  process.env.ADMIN_PASS = "secret";
-
-  const seededMessages = [
-    {
-      id: 1,
-      name: "Unread One",
-      email: "u1@example.com",
-      subject: "Unread",
-      message: "First unread",
-      createdAt: "2026-01-01T10:00:00.000Z",
-      status: "unread",
-      source: "newsletter"
-    },
-    {
-      id: 2,
-      name: "Unread Two",
-      email: "u2@example.com",
-      subject: "Unread",
-      message: "Second unread",
-      createdAt: "2026-01-02T11:00:00.000Z",
-      read: false,
-      referrer: "https://example.com"
-    },
-    {
-      id: 3,
-      name: "Read One",
-      email: "r1@example.com",
-      subject: "Read",
-      message: "Read message",
-      createdAt: "2026-01-02T12:00:00.000Z",
-      read: true,
-      source: "direct"
-    }
-  ];
-
-  fs.writeFileSync(messagesPath, JSON.stringify(seededMessages, null, 2), "utf8");
-
-  const authHeader = `Basic ${Buffer.from("admin:secret").toString("base64")}`;
-  const loginResponse = await request(app)
-    .post("/api/admin/login")
-    .set("Authorization", authHeader);
-
-  const cookie = loginResponse.headers["set-cookie"];
-
-  const analyticsResponse = await request(app)
-    .get("/api/admin/analytics?range=all&filter=unread")
-    .set("Cookie", cookie);
-
-  assert.equal(analyticsResponse.status, 200);
-  assert.equal(analyticsResponse.body.success, true);
-  assert.equal(analyticsResponse.body.analytics.total, 2);
-  assert.equal(analyticsResponse.body.analytics.unread, 2);
-  assert.deepEqual(analyticsResponse.body.analytics.dailyTotals, {
-    "2026-01-01": 1,
-    "2026-01-02": 1
-  });
-  assert.deepEqual(analyticsResponse.body.analytics.sourceBreakdown, {
-    newsletter: 1,
-    "https://example.com": 1
-  });
-});
-

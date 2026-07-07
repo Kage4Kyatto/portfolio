@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const adminScriptPath = path.join(__dirname, "..", "public", "assets", "js", "pages", "admin.js");
+const adminScriptPath = path.join(__dirname, "..", "..", "public", "assets", "js", "pages", "admin.js");
 
 const loadFetchJsonWithFallback = () => {
   const source = fs.readFileSync(adminScriptPath, "utf8");

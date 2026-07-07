@@ -49,6 +49,9 @@ A production-oriented portfolio platform with a public multi-page frontend, secu
 - `backend/fastify/` Fastify backend framework module
 - `backend/sql/` SQL schema and query examples
 - `frontend/react-app/` React + Vite frontend framework module
+- `tests/unit/` fast Node unit and security checks
+- `tests/integration/` Node API and runtime contract tests
+- `tests/e2e/` browser-driven Playwright tests
 - `scripts/python/` Python utility scripts
 - `tools/ts/` TypeScript utility scripts
 - `Dockerfile` and `docker-compose.yml` for containerized runs
