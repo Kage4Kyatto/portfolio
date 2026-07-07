@@ -1,5 +1,28 @@
 const blogPostsContainer = document.getElementById("blog-posts");
 
+const toSafeBlogUrl = (slug) => {
+  const normalized = String(slug || "").trim();
+  if (!normalized) {
+    return "/blog/";
+  }
+
+  return `/blog/${encodeURIComponent(normalized)}/`;
+};
+
+const toSafeIsoDate = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString();
+};
+
 const loadBlogPosts = async () => {
   try {
     const response = await fetch("/api/blog/posts");
@@ -23,6 +46,18 @@ const loadBlogPosts = async () => {
 
     const html = data.posts
       .map(post => {
+        const postUrl = toSafeBlogUrl(post.slug);
+        const publishedDateIso = toSafeIsoDate(post.published_date);
+        const publishedDisplay = publishedDateIso
+          ? new Date(publishedDateIso).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          })
+          : "";
+        const readTime = Number.isFinite(Number(post.readTimeMinutes))
+          ? Number(post.readTimeMinutes)
+          : null;
         const tagsHtml = (post.tags || [])
           .map(tag => `<span class="blog-tag">${escapeHtml(tag)}</span>`)
           .join("");
@@ -30,25 +65,21 @@ const loadBlogPosts = async () => {
         return `
         <article class="blog-post-card" itemscope itemtype="https://schema.org/BlogPosting">
           <meta itemprop="author" content="${escapeHtml(post.author || 'Soeraj Balak')}" />
-          <meta itemprop="datePublished" content="${post.published_date}" />
+          <meta itemprop="datePublished" content="${escapeHtml(publishedDateIso)}" />
           <meta itemprop="description" content="${escapeHtml(post.description || post.excerpt)}" />
           <h3 itemprop="headline">
-            <a href="/blog/${post.slug}/" itemprop="url">${escapeHtml(post.title)}</a>
+            <a href="${postUrl}" itemprop="url">${escapeHtml(post.title)}</a>
           </h3>
           <p class="blog-meta">
-            <time datetime="${post.published_date}" itemprop="datePublished">
-              ${new Date(post.published_date).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+            <time datetime="${escapeHtml(publishedDateIso)}" itemprop="datePublished">
+              ${escapeHtml(publishedDisplay)}
             </time>
             <span class="blog-category" itemprop="keywords">${escapeHtml(post.category || 'General')}</span>
-            ${post.readTimeMinutes ? `<span class="blog-read-time">${post.readTimeMinutes} min read</span>` : ''}
+            ${readTime !== null ? `<span class="blog-read-time">${readTime} min read</span>` : ''}
           </p>
           ${tagsHtml ? `<div class="blog-tags">${tagsHtml}</div>` : ''}
           <p itemprop="description" class="blog-excerpt">${escapeHtml(post.excerpt)}</p>
-          <a href="/blog/${post.slug}/" class="read-more">Read More →</a>
+          <a href="${postUrl}" class="read-more">Read More →</a>
         </article>
       `;
       })
