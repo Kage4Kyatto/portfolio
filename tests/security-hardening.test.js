@@ -81,6 +81,19 @@ test("getClientIp trusts forwarded headers only when explicitly enabled", () => 
   assert.equal(ip, "198.51.100.42");
 });
 
+test("getClientIp falls back to unknown when no address is available", () => {
+  delete process.env.PORTFOLIO_TRUST_PROXY_HEADERS;
+
+  const ip = getClientIp({
+    headers: {},
+    ip: "",
+    socket: {},
+    connection: {}
+  });
+
+  assert.equal(ip, "unknown");
+});
+
 test("cloudflare middleware does not bypass auth based on Host header", () => {
   process.env.NODE_ENV = "test";
   process.env.CF_ACCESS_ENABLED = "true";

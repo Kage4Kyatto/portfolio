@@ -30,6 +30,8 @@ Contact form submission supports both runtimes via endpoint fallback in `public/
 1. Try `POST /api/contact` (Node route)
 2. Fallback to `POST /api/contact.php` (PHP route)
 
+The PHP endpoint is the authoritative notification sender. It stores the message and sends email through `send_contact_notification_email()` in `public/api/contact.php`. The Node route exists for local/runtime compatibility and persistence, but it no longer owns notification dispatch.
+
 This keeps the same frontend behavior across both local server modes.
 
 Contact submission order for `public/contact.html`:

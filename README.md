@@ -178,6 +178,7 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
    - First tries Resend API when `RESEND_API_KEY` is set.
    - Falls back to PHP `mail()` when Resend is not configured or fails.
 - The API stores each message in JSON and also attempts immediate email delivery.
+- The PHP contact endpoint is the authoritative sender for notification email delivery; the Node route is kept for local/runtime compatibility and message persistence.
 - If you use `CONTACT_NOTIFY_FROM`, it should be a sender address allowed by your provider/domain.
 
 ## SEO and Performance Notes

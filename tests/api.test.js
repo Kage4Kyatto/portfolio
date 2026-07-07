@@ -92,6 +92,30 @@ test("POST /api/contact honors idempotency key for duplicate submissions", async
   assert.equal(secondResponse.headers["x-idempotency-replayed"], "true");
 });
 
+test("POST /api/contact stores the submitted message", async () => {
+  const payload = {
+    name: "Stored User",
+    email: "stored@example.com",
+    subject: "Storage check",
+    message: "Verifying the contact flow persists data."
+  };
+
+  const response = await request(app).post("/api/contact").send(payload);
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.success, true);
+  assert.ok(response.body.data?.id);
+
+  const messages = JSON.parse(fs.readFileSync(messagesPath, "utf8"));
+  const storedMessage = messages.find((entry) => entry.id === response.body.data.id);
+
+  assert.ok(storedMessage);
+  assert.equal(storedMessage.name, payload.name);
+  assert.equal(storedMessage.email, payload.email);
+  assert.equal(storedMessage.subject, payload.subject);
+  assert.equal(storedMessage.message, payload.message);
+});
+
 test("GET /api/version returns app version metadata", async () => {
   const response = await request(app).get("/api/version");
 
@@ -121,6 +145,25 @@ test("GET /api/openapi.json returns OpenAPI spec", async () => {
   assert.equal(response.status, 200);
   assert.equal(response.body.openapi, "3.1.0");
   assert.ok(response.body.paths["/api/contact"]);
+});
+
+test("GET /api/blog/posts returns an empty list when the blog file is missing", async () => {
+  const blogDir = path.join(__dirname, "..", "public", "blog");
+  const blogFile = path.join(blogDir, "blog-posts.json");
+  const backupFile = path.join(blogDir, "blog-posts.json.bak-test");
+
+  fs.renameSync(blogFile, backupFile);
+
+  try {
+    const response = await request(app).get("/api/blog/posts");
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.success, true);
+    assert.deepEqual(response.body.posts, []);
+    assert.equal(response.body.total, 0);
+  } finally {
+    fs.renameSync(backupFile, blogFile);
+  }
 });
 
 test("POST /api/telemetry accepts event payload", async () => {
