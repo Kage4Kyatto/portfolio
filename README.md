@@ -99,6 +99,12 @@ A production-oriented portfolio platform with a public multi-page frontend, secu
 - Go report microservice: `npm run go:report-service` (set `GO_REPORT_SERVICE_URL` for Node integration)
 - Rust JSON summary output: `npm run rust:message-summary:json`
 
+### Go Tooling Note
+
+- Go helper scripts are launched through `scripts/node/runGoTool.js` so they can run even when `go` is not available on PATH in some local shells.
+- If your Go executable is in a non-standard location, set `GO_BIN` to the full executable path before running Go npm scripts.
+   - Example (PowerShell): `$env:GO_BIN = "C:\\Program Files\\Go\\bin\\go.exe"`
+
 ## Added Framework Modules
 
 You can now run multiple frameworks in parallel with the existing static/PHP/Express setup.

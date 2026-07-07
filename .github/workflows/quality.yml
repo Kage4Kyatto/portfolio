@@ -22,6 +22,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+
       - name: Install Dependencies
         run: npm ci
 
@@ -30,6 +35,11 @@ jobs:
 
       - name: Run Tests
         run: npm test
+
+      - name: Run Go Helper Smoke Checks
+        run: |
+          npm run go:message-summary
+          npm run go:report-service -- --help
 
   e2e:
     runs-on: ubuntu-latest
