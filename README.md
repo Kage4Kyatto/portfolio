@@ -71,6 +71,7 @@ A production-oriented portfolio platform with a public multi-page frontend, secu
    - Optional hash alternative: `ADMIN_PASS_HASH=<sha256-hex>`
 - Optional OTP requirement: `ADMIN_OTP_CODE=<code>`
 - For production Node runtime, set: `ADMIN_SESSION_SECRET`, `ADMIN_USER`, and either `ADMIN_PASS` or `ADMIN_PASS_HASH`
+- For production Node runtime, also set: `SITE_BASE_URL` (for canonical robots/sitemap URLs)
 4. Start local PHP server from project root:
    - `php -S localhost:8000 -t public`
 5. Open:
@@ -153,9 +154,12 @@ Use root `.env` for backend runtime ports/origins and `frontend/react-app/.env` 
 - Admin authentication now requires explicit env vars. No fallback credentials are used.
 - Admin login attempts are throttled and temporarily blocked after repeated failures.
 - Contact submissions have stricter validation and IP-based sliding-window rate limiting.
+- Forwarded IP headers are ignored by default to prevent spoofing; only enable trusted proxy parsing with `PORTFOLIO_TRUST_PROXY_HEADERS=true` when your proxy chain is locked down.
 - Optional Cloudflare Access gate for admin routes:
    - `CF_ACCESS_ENABLED=true`
    - `CF_ACCESS_ALLOWED_EMAILS=you@example.com` (comma-separated for multiple users)
+   - Optional local dev bypass toggle (non-production only): `CF_ACCESS_ALLOW_LOCAL_BYPASS=true`
+   - Optional Express proxy trust setting: `TRUST_PROXY=true` (or subnet/IP value supported by Express)
    - When enabled, `/admin`, `/admin.html`, and `/api/messages` require the Cloudflare Access user email header and (for admin) Basic auth.
 
 ## Contact Email Forwarding

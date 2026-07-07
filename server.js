@@ -37,6 +37,7 @@ const requireEnv = (name) => {
 if (process.env.NODE_ENV === "production") {
   requireEnv("ADMIN_SESSION_SECRET");
   requireEnv("ADMIN_USER");
+  requireEnv("SITE_BASE_URL");
   if (!process.env.ADMIN_PASS && !process.env.ADMIN_PASS_HASH) {
     throw new Error("Set either ADMIN_PASS or ADMIN_PASS_HASH in production.");
   }
@@ -60,9 +61,27 @@ const packageJson = require("./package.json");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const TRUST_PROXY = String(process.env.TRUST_PROXY || "").trim();
 const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || "100kb";
 const URLENCODED_BODY_LIMIT = process.env.URLENCODED_BODY_LIMIT || "50kb";
 const MAX_TELEMETRY_PATH_LENGTH = Number(process.env.MAX_TELEMETRY_PATH_LENGTH || 2048);
+const SITE_BASE_URL = String(process.env.SITE_BASE_URL || "").trim();
+
+let canonicalSiteBaseUrl = "";
+if (SITE_BASE_URL) {
+  try {
+    canonicalSiteBaseUrl = new URL(SITE_BASE_URL).origin;
+  } catch {
+    throw new Error("SITE_BASE_URL must be a valid absolute URL.");
+  }
+}
+
+if (TRUST_PROXY) {
+  const trustProxyValue = TRUST_PROXY === "true"
+    ? true
+    : (TRUST_PROXY === "false" ? false : TRUST_PROXY);
+  app.set("trust proxy", trustProxyValue);
+}
 
 const DEV_LIVE_RELOAD_ENABLED = !IS_PRODUCTION && process.env.DEV_LIVE_RELOAD !== "false";
 const devReloadClients = new Set();
@@ -370,6 +389,10 @@ app.post("/api/telemetry", express.text({ type: ["application/json", "text/plain
 });
 
 const getBaseUrl = (req) => {
+  if (canonicalSiteBaseUrl) {
+    return canonicalSiteBaseUrl;
+  }
+
   const forwardedProtoHeader = req.headers["x-forwarded-proto"];
   const forwardedProto = Array.isArray(forwardedProtoHeader)
     ? forwardedProtoHeader[0]

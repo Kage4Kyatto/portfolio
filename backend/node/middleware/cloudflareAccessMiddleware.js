@@ -1,10 +1,17 @@
 const toBool = (value) => String(value || "").trim().toLowerCase() === "true";
 
 const isCloudflareAccessEnabled = () => toBool(process.env.CF_ACCESS_ENABLED);
+const allowLocalBypass = () =>
+  process.env.NODE_ENV !== "production" && toBool(process.env.CF_ACCESS_ALLOW_LOCAL_BYPASS || "true");
+
+const normalizeIp = (value) => String(value || "")
+  .trim()
+  .replace(/^\[|\]$/g, "")
+  .replace(/^::ffff:/, "");
 
 const isLocalRequest = (req) => {
-  const host = String(req.hostname || "").toLowerCase();
-  return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  const remote = normalizeIp(req.socket?.remoteAddress || req.connection?.remoteAddress);
+  return remote === "127.0.0.1" || remote === "::1";
 };
 
 const getAllowedEmails = () =>
@@ -14,7 +21,7 @@ const getAllowedEmails = () =>
     .filter(Boolean);
 
 const requireCloudflareAccess = (req, res, next) => {
-  if (isLocalRequest(req)) {
+  if (allowLocalBypass() && isLocalRequest(req)) {
     return next();
   }
 

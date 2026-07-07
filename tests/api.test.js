@@ -8,6 +8,7 @@ const os = require("os");
 const testDataDir = path.join(os.tmpdir(), "portfolio-node-test-data");
 process.env.NODE_ENV = "test";
 process.env.PORTFOLIO_DATA_DIR = testDataDir;
+process.env.PORTFOLIO_TRUST_PROXY_HEADERS = "true";
 
 const app = require("../server");
 
