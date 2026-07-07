@@ -26,7 +26,7 @@
       });
 
       child.on("exit", (code) => {
-        resolve({ code: code || 1, output });
+        resolve({ code: code == null ? 1 : code, output });
       });
     });
   }
